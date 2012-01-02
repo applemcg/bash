@@ -116,5 +116,8 @@ mklib_init ()
 { 
     source programlib 2> /dev/null
     logUse mklib sourced programlib
+    foreach bin *lib
+    comment mkbin
+    fbdy mkbin 1>&2
 }
 mklib_init
