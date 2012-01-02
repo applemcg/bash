@@ -1,0 +1,80 @@
+copyrightNotice () 
+{ 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: $(author)"
+}
+blib_help () 
+{ 
+    comment -- blib function list --;
+    functions $(installed)/bin/blib 1>&2
+}
+testargs () 
+{ 
+    eval "$1() { [[ -$2 \$1 ]]; }"
+}
+bkup () 
+{ 
+    function dirof () 
+    { 
+        case $1 in 
+            */*)
+                dirname $1
+            ;;
+            *)
+                dirname ./$1
+            ;;
+        esac
+    };
+    function backup () 
+    { 
+        indir $(dirof $1) lbkup false $(basename $1)
+    };
+    function lbkup () 
+    { 
+        isdirectory .bak || mkdir .bak;
+        $1 || { 
+            cmp $2 .bak/$2 > /dev/null 2>&1 && return
+        };
+        exists .bak/$2 && indir .bak lbkup true $2;
+        domove $2 .bak;
+        $1 || docopy .bak/$2 .
+    };
+    function domove () 
+    { 
+        comment $PWD;
+        doit mv -f $*
+    };
+    function docopy () 
+    { 
+        doit cp -f $*
+    };
+    foreach backup $*
+}
+blib_doc () 
+{ 
+    copyrightNotice;
+    report "blib Entry points" fbdy bkup backup blib_help blib_doc;
+    blib_help
+}
+bkfiles () 
+{ 
+    onlyfiles $(indir .bak ls -a)
+}
+blib_init () 
+{ 
+    source newlib 2> /dev/null;
+    function installed () 
+    { 
+        echo $HOME
+    };
+    logUse blib sourced newlib;
+
+    blib_help
+}
+unbkfile () 
+{ 
+    indir .bak bkup $1;
+    indir .bak rm $1;
+    comment rm $1
+}
+blib_init

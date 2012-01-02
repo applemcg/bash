@@ -1,0 +1,291 @@
+qvslib_init () 
+{ 
+    source blib;
+    logUse qvslib sourced blib
+}
+qvs_doc () 
+{ 
+    report "Environment Variables" foreach nava VER_BASE VER_HOME VERFILES SYSTEM_DEPENDENT_USER_HOME EDITOR;
+    report "Entry Points" fbdy verfiles verhome ver_rwd verbase get_verbase set_verbase verlocn qvs thisSecond lastNameVer verDirectory rollupV lastVer de;
+    qvs_help
+}
+qvs_help () 
+{ 
+    comment qvs_doc, qvs_note, qvs_help, qvs
+}
+qvs_note () 
+{ 
+    clear;
+    cat 1>&2  <<'EOF'
+
+ QVS is a Quick Version System.   As such, it relies on the "bkup" tool,
+using the "backup.tcl" file to do the heavy lifting.   See the discussion
+there.   essetially, "bkup" creates an ever deeper tree of ".bak/.bak/..."
+directories, with the newest on top.
+
+ 1. bkup  the  VERFILES, defaulting to the list of files in the ".files" file;
+     (which itself should be "qvs"d; HINT:  ls $(< $(verfiles))  ).
+
+ 2. A new version is created in the ".ver/" directory, with a sub-directory
+	whose name is "thisSecond:  YYmmddHHMMSS format".    
+
+ 3. files in the .bak direcory are linked to the .ver/YYmmddHHMMSS copy of the file
+
+ the copy in the common parent directory is then suitable for editing.
+
+ after you have confidence in the yymmdd... versioning, you may delete the deepest
+.bak/.bak/... directories without fear of losing your content. (Since, so long as
+there is a link to a file somewhere, the contest is available).
+
+ VER_BASE and VER_HOME both default to $HOME.   If you are synching to a remote or
+central versioning location, set VER_HOME to that location. e.g. /home/mygroup.
+ VER_BASE _must_ be in your current directory path;
+
+all this results in setting your versioning location to:
+
+   $(verhome)/$(ver_rwd)/.ver/$(thisSecond)
+
+ VER_BASE files are stored in VER_HOME in the same realtive working directory, 
+Both need to be on the same file system.
+
+  Finally,  rollupV  permits the collection of like-named versions from disparate
+ sources. e.g.
+ 
+    $ cd /home/group
+    $ rollupV  LikeNamedFeature [ userA, userB, ... ]
+
+EOF
+
+}
+set_verbase () 
+{ 
+    comment PWD $PWD;
+    for p in $(echo $PATH | sed 's/:/\
+/g; s/\/bin//g') $SYSTEM_DEPENDENT_USER_HOME;
+    do
+        comment p $p;
+        case ${PWD} in 
+            $p/*)
+                setenv VER_BASE $p;
+                get_verbase;
+                return
+            ;;
+        esac;
+    done
+}
+get_verbase () 
+{ 
+    comment VER_BASE=$VER_BASE, PWD=${PWD}, RWD=$(ver_rwd)
+}
+verbase () 
+{ 
+    case ${PWD} in 
+        $VER_BASE/*)
+            case $VER_BASE in 
+                "")
+                    set_verbase
+                ;;
+                *)
+                    get_verbase
+                ;;
+            esac
+        ;;
+        *)
+            set_verbase
+        ;;
+    esac
+}
+cleanlist () 
+{ 
+    ( grep '^\.' $VERFILES;
+    ls ) | sort | comm -3 - $VERFILES
+}
+shdoc_out () 
+{ 
+    echo $@ 1>&2
+}
+dotfile () 
+{ 
+    shdoc_out add2$1 uses echo cat sort mv;
+    eval "add2${1}() { (echo \$1; cat .$1) | sort -u >.x.$1; mv .x.$1 .$1; }";
+    shdoc_out rmFm$1 uses grep mv;
+    eval "rmFm${1}() { grep -v "^\$1\\\$" .$1 	 >.y.$1; mv .y.$1 .$1; }"
+}
+verhome () 
+{ 
+    echo ${VER_HOME:-$HOME}
+}
+qvsfrom () 
+{ 
+    setenv VER_BASE ${1:-$HOME};
+    setenv VER_HOME ${1:-$VER_BASE};
+    comment verhome, verbase
+}
+qvsto () 
+{ 
+    setenv VER_HOME ${1:-$HOME};
+    comment verhome
+}
+ver_rwd () 
+{ 
+    echo ${PWD#${VER_BASE:-$HOME}}
+}
+verlocn () 
+{ 
+    echo ${VER_HOME:-$HOME}/$(ver_rwd)/.ver
+}
+_mkVername () 
+{ 
+    [[ -d $(verlocn)/$1 ]] && { 
+        echo Version $1 Exists;
+        exit 3
+    };
+    echo $1
+}
+qvs () 
+{ 
+    function lnS () 
+    { 
+        _do_cp ${PWD}/$2 $1
+    };
+    function _do_cp () 
+    { 
+        comment cp $*;
+        cp $*
+    };
+    function _do_ln () 
+    { 
+        comment ln $*;
+        ln $*
+    };
+    function _qvs_hardlink () 
+    { 
+        target=$1;
+        shift 2;
+        _do_ln $* $target
+    };
+    function _qvs_softlink () 
+    { 
+        foreachi lnS $*
+    };
+    function _qvs_ln () 
+    { 
+        ln $2 $1 2> /dev/null && { 
+            _qvs_hardlink $*;
+            return
+        } || _qvs_softlink $*
+    };
+    function _doqvs_at () 
+    { 
+        mkdir -p $1;
+        _qvs_ln $1 $(_doqvs $(bflist $*))
+    };
+    function _qvfnames () 
+    { 
+        for f in "$@";
+        do
+            [[ -f $f ]] && echo $f;
+        done
+    };
+    _doqvs_at $(verlocn)/$(_mkVername $1 $(thisSecond))
+}
+bflist () 
+{ 
+    vf=$(verfiles);
+    [[ -f $vf ]] && cat $vf || bkfiles
+}
+verfiles () 
+{ 
+    echo ${VERFILES:-.files}
+}
+thisSecond () 
+{ 
+    date '+%Y%m%d%H%M%S'
+}
+_doqvs () 
+{ 
+    bkup $*;
+    for f in "$@";
+    do
+        [[ -f .bak/$f ]] && echo .bak/$f;
+    done
+}
+lastVer () 
+{ 
+    ls -t $(verlocn) | sed 1q
+}
+lastNameVer () 
+{ 
+    ls -t $(verlocn) | grep -v '^2[0-9][0-9]*$' | sed 1q
+}
+verDirectory () 
+{ 
+    echo $(verlocn)/$(${1:-lastVer})
+}
+rollupV () 
+{ 
+    vname=$1;
+    shift;
+    odir=Version/$vname;
+    mkdir -p $odir;
+    find ${*:-.} -type f | grep $vname | sed "s/.ver.$vname\///" | cpio -pdluvm $odir
+}
+_de_hdr () 
+{ 
+    printf "\n=====\t$(date '+%F %T %A')\t==\n\n"
+}
+de () 
+{ 
+    f=/tmp/de.$$;
+    rm -f $f;
+    ${EDITOR:-vi} $f;
+    ( _de_hdr;
+    cat $f .diary ) > .y.$$;
+    mv .y.$$ .diary
+}
+qvs_manpp () 
+{ 
+    cat  <<EOF
+
+  qvslib -- Quick Version System
+
+ COMMANDS
+
+   * qvs_help 
+   * source qvslib
+   * qvs 
+
+  FILES
+    $VERFILES, defautls to ".files", the list of files to version
+  
+  ENVIRONMENT
+    VERFILES -- list of files to version
+    VER_BASE -- 
+    VER_HOME -- 
+    SYSTEM_DEPENDENT_USER_HOME -- places to look to Root the Version Tree
+
+EOF
+
+}
+newVprog () 
+{ 
+    bkup $(< .files);
+    foreach clearBak $(vpreplist);
+    bakVer
+}
+clearBak () 
+{ 
+    indir .bak bkup $f;
+    rm -f $f
+}
+vpreplist () 
+{ 
+    indir .bak ls | comm -23 - .bak/.files
+}
+bakVer () 
+{ 
+    set -- $OLDHOME/$(rwd)/.ver/$(thisSecond);
+    mkdir -p $1;
+    cat .files | cpio -pduvm $1
+}
+qvslib_init

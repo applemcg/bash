@@ -1,0 +1,447 @@
+copyrightNotice () 
+{ 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: $(author)"
+}
+functions () 
+{ 
+    cat ${*:--} | grep -v '^[ 	]' | sed 's/()/ & /' | awk '$1 ~ /^[a-zA-Z0-9_]*$/ && $2 ~ /\(\)/' | printfirst | field 1
+}
+stdout () 
+{ 
+    o=$1;
+    shift;
+    "$@" > $o
+}
+pipe () 
+{ 
+    eval $(shifted $@) | $1
+}
+run_test () 
+{ 
+    doit $*
+}
+comment () 
+{ 
+    echo "$@" 1>&2
+}
+foreach () 
+{ 
+    cmd=$1;
+    shift;
+    for arg in "$@";
+    do
+        $cmd $arg;
+    done
+}
+doit () 
+{ 
+    comment "$@";
+    $@
+}
+nonempty () 
+{ 
+    [[ -s $1 ]]
+}
+shifted () 
+{ 
+    shift;
+    echo "$@"
+}
+rlib_comment () 
+{ 
+    cat  <<EOF
+ EDIT MARK -- have to do a better job with this.  sourceing 
+    has to be free of "PWD = ~/bin" dependency
+EOF
+
+}
+liblib_obsolescent () 
+{ 
+    foreach rlib $(liblib_users)
+}
+ignore () 
+{ 
+    "$@" > /dev/null
+}
+fbdy () 
+{ 
+    declare -f ${*:-fbdy}
+}
+setenv () 
+{ 
+    eval $1=\"$2\";
+    export $1
+}
+libfunc () 
+{ 
+    sed 's/ *( *) */ () /' $* | egrep -v '["\$]' | awk '
+     $2 ~ /^\(\)$/ && printed[$1]++ < 1	{ print $1 }
+     '
+}
+subcmds () 
+{ 
+    fbdy $1 | grep ')$' | sed 's/^  *//; s/.$//'
+}
+obsolescent () 
+{ 
+    eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"
+}
+nonUnderscore () 
+{ 
+    grep -v _ $*
+}
+fUses () 
+{ 
+    isfunction ${1}_uses && echo $1 $( ${1}_uses )
+}
+fDoc () 
+{ 
+    isfunction ${1}_doc && ${1}_doc
+}
+programlib_doc () 
+{ 
+    cat  <<EOF
+	 
+     programlib \[arg\] performs functions on arguments defined in the library
+
+     basename a/long/path/to/file returns file 
+
+     dated ... formats ... with a sortable YYYY-MM-DD HH:mm:ss  date  for logging
+     dirname a/long/path/to/file returns a/long/path/to
+     doit evaluates (executes) the arguments
+
+     error comments and exits with Number of Arguments
+
+     fbdy ... displays ... function bodies defaulting to fbdy itself
+     field N ... returns the Nth field from the file arguments defaulting to STDIN; "USAGE: indir directory cmd ..."
+     fileTest name x creates a new function name, excuting the file test argument
+     foreach cmd arg ... executes cmd on successive args
+     foreachi cmd arg0 args ... executes cmd arg0 on successive args
+     functions lib ... lists canonical function names in lib ...
+
+     getawk finds preferred AWK program	 
+
+     ignore executes a command and ignores the result. used to preserve comments	 
+     intersection f1 \[f2 -\] reports the intersection of the lists f1 and f2
+     isfunction returns the truth of the argument being a function     libfunc trims a search for function names into just the names
+
+     logUse  ...  stores ... in a usage log
+     logLog cmd   excutes cmd (defaulting to echo) on the logfile
+
+     nava prints the NAME and the VALUE of the shell variable
+     newest target file ... is; TRUE when the target is newer than the file ... arguments
+     nonUnderscore \[file ... \]removes lines with underscores from the input    
+
+     obsolescent old new declares the old function obsolescent in behalf new	 
+
+     pipe cmmb cmmda ... pipes cmmds .. to cmmdb	
+     printfirst prints only the first occurence of lines based on the first field     not cmmd returns FALSE if cmmd is true. vice versa
+ 
+     setenv NAME value sets NAME into the Environment with value
+     shifted arg1 arg2 ... returns arg2 ...
+     shift2 arg1 arg2 arg3 ... returns arg3 ...
+     stdout file cmmd args ... stores cmmd args ... in file	 
+     subcmds ...lib returns sub-commands from a ...lib function library
+     subtract f1 \[f2 - \] subtracts the list f2 from f1
+
+     toupper transliterats input files, defaulting to STDIN to UPPER case
+     tolower transliterats input files, defaulting to STDIN to lower case
+
+     wh cmmd returns PATHname of cmmd defending against ugly BSD which
+     wpl file ... seprates file ... contents to one Word Per Line
+EOF
+
+}
+programlib_init () 
+{ 
+    obsolescent piped pipe;
+    obsolescent is_a_function isfunction;
+    logUse programlib;
+    setenv AWK $(getawk);
+    testargs empty z;
+    testargs executable x;
+    testargs existingdir d;
+    testargs existingfile f;
+    testargs nonempty s;
+    testargs writeable w;
+    testargs isdirectory d;
+    testargs exists e;
+    ( fbdy programlib_init;
+    programlib_doc ) 1>&2
+}
+generic_lib () 
+{ 
+    lib=${1:-programlib};
+    case $2 in 
+        "")
+            libfunc $($lib location)/$lib
+        ;;
+        location)
+            echo $BASE/bin
+        ;;
+        init)
+            copyrightNotice;
+            ${lib}_init
+        ;;
+        doc)
+            foreach fDoc $($lib|nonUnderscore)
+        ;;
+        uses)
+            foreach fUses $($lib|nonUnderscore)
+        ;;
+        subcmds)
+            subcmds $lib
+        ;;
+        start)
+            $lib init;
+            $lib help
+        ;;
+        help)
+            comment -- $lib function list --;
+            generic_lib $lib | sort -u 1>&2;
+            comment --------------------;
+            comment "e.g. fbdy"
+        ;;
+        general)
+            $lib | sed -n 1,/_init/p | grep -v $lib;
+            $lib | grep $lib
+        ;;
+        install)
+            [[ -d $3 ]] || { 
+                comment "$0 install {dir}; $3 is NOT a directory";
+                return
+            };
+            [[ -f .$lib ]] || { 
+                comment "$0 install {dir}; NO .$lib in $PWD";
+                return
+            };
+            cd $($lib location);
+            cp $(< .$lib) $3
+        ;;
+        export)
+            fbdy $($lib general) | sed "s/$lib/exportlib/g"
+        ;;
+        restore)
+            fbdy $($lib);
+            grep '^comment.*--' $lib;
+            echo generic_lib $lib start
+        ;;
+        *)
+            $lib help
+        ;;
+    esac
+}
+programlib () 
+{ 
+    case $1 in 
+        location)
+            echo $BASE/bin/
+        ;;
+        *)
+            generic_lib programlib $*
+        ;;
+    esac
+}
+wh () 
+{ 
+    which $1
+}
+getawk () 
+{ 
+    wh gawk || wh nawk || wh awk
+}
+error () 
+{ 
+    comment "$@";
+    exit $#
+}
+foreachi () 
+{ 
+    par="$1 $2";
+    shift 2;
+    for a in "$@";
+    do
+        $par $a;
+    done
+}
+shift2 () 
+{ 
+    shift;
+    shift;
+    echo $*
+}
+not () 
+{ 
+    if { 
+        eval "$@"
+    }; then
+        false;
+    else
+        true;
+    fi
+}
+dirname () 
+{ 
+    echo ${1%/*}
+}
+basename () 
+{ 
+    echo ${1##*/}
+}
+testargs () 
+{ 
+    eval "$1() { [[ -$2 \$1 ]]; }"
+}
+newest () 
+{ 
+    target=$1;
+    shift;
+    [[ -f $target ]] || return 1;
+    while [[ -n $1 ]]; do
+        [[ $target -ot $1 ]] && return 1;
+        shift;
+    done;
+    return 0
+}
+wpl () 
+{ 
+    cat ${*:--} | tr -cs "[A-Z][a-z][0-9]_" '[\012*]'
+}
+toupper () 
+{ 
+    cat ${*:--} | tr a-z A-Z
+}
+tolower () 
+{ 
+    cat ${*:--} | tr A-Z a-z
+}
+intersection () 
+{ 
+    cat ${2:--} | sort -u | comm -12 $1 -
+}
+subtract () 
+{ 
+    cat ${2:--} | sort -u | comm -23 $1 -
+}
+field () 
+{ 
+    awk "{ print \$$1 }"
+}
+indir () 
+{ 
+    ignore pushd $1;
+    shift;
+    $@;
+    ignore popd
+}
+isfunction () 
+{ 
+    typeset -f $1 > /dev/null
+}
+nava () 
+{ 
+    eval echo $1 \$$1
+}
+printfirst () 
+{ 
+    awk 'printed [$1]++ < 1' $*
+}
+programlib_loaded () 
+{ 
+    return
+}
+cleanlib () 
+{ 
+    fbdy $(libfunc $1 | printfirst);
+    echo ${1}_init
+}
+libfunctions () 
+{ 
+    sed 's/( *)/ () /' $* | tee .sh.in | awk '$2 ~ /\(\)/ {print $1}'
+}
+testarg () 
+{ 
+    eval "$1() { [[ -$2 \$1 ]]; }"
+}
+programIdea () 
+{ 
+    echo "remove the _uses in behalf of uses function, has ..."
+}
+fnames () 
+{ 
+    [[ -d .names ]] || mkdir -p .names;
+    suf=${1:-stdin};
+    libfunc $* | tee .names.$suf | sort -u > .names/$suf;
+    cat .names.$suf && rm -f .names.$suf
+}
+lc () 
+{ 
+    cat ${*:--} | tr '[A-Z]' '[a-z]'
+}
+newer () 
+{ 
+    existing $1 || return 1;
+    set -- $(ls -drt $* | awk "
+        printing > 0    { print; next }
+        \$1 ~ /^$1\$/   { printing++ }");
+    echo $* 1>&2;
+    return $#
+}
+cpfmto () 
+{ 
+    doit cp -f $1 $2;
+    if test -f $2; then
+        domode $2 $3;
+    else
+        domode $2/$1 $3;
+    fi
+}
+piped () 
+{ 
+    comment OBSOLESCENT in behalf of pipe;
+    pipe $@
+}
+dated () 
+{ 
+    date +"%F %T %a%t$*"
+}
+logUse () 
+{ 
+    dated $* >> ~/lib/logUse.txt
+}
+logLog () 
+{ 
+    eval "${*:-echo}" ~/lib/logUse.txt
+}
+dirfile () 
+{ 
+    case $1 in 
+        */*)
+            dirname $1
+        ;;
+        *)
+            echo .
+        ;;
+    esac
+}
+today () 
+{ 
+    date +%Y%m%d
+}
+HHMMSS () 
+{ 
+    echo $(today)_$(hhmmss)
+}
+hhmmss () 
+{ 
+    date +%H%M%S
+}
+onlyfiles () 
+{ 
+    for arg in $*;
+    do
+        [[ -f $arg ]] && echo $arg;
+    done
+}
+programlib_init

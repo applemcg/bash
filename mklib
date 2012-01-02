@@ -1,0 +1,120 @@
+dothis () 
+{ 
+    comment "+++ NOTE: dothis() deprecated; use doit()" && comment "$@";
+    $@
+}
+addlist () 
+{ 
+    eval $1=\"\$$1 $2\";
+    export $1
+}
+dmd () 
+{ 
+    [ -d $1 ] || doit mkdir -p $1
+}
+foreach () 
+{ 
+    cmd=$1;
+    shift;
+    for arg in "$@";
+    do
+        $cmd $arg;
+    done
+}
+domode () 
+{ 
+    doit chmod ${2:-\-w} $1
+}
+exists () 
+{ 
+    [[ -e $1 ]]
+}
+defun () 
+{ 
+    eval "$1() { $2; }"
+}
+foreach1 () 
+{ 
+    _f=_local$RANDOM;
+    defun $_f "$1";
+    shift;
+    for i in "$@";
+    do
+        $_f $i;
+    done;
+    unset $_f
+}
+primarysource () 
+{ 
+    defun $1 "addlist _${2}files \"\$1\""
+}
+textfile () 
+{ 
+    [[ $# -eq 2 ]] && addlist _textfiles "$(echo $@)" || comment ERROR: textfile src dest
+}
+deploytextfiles () 
+{ 
+    set -- $@;
+    while [[ -n "$2" ]]; do
+        cpfmto $1 $2 0444;
+        shift 2;
+    done
+}
+bitmeld () 
+{ 
+    for i in bin include tmp man etc lib doc;
+    do
+        dmd ${1:-$HOME}/$i;
+    done;
+    doit setenv BITMELD ${1:-$HOME}
+}
+mkhelp () 
+{ 
+    comment 'mk [ all | exec | bin | text | man | etc | lib | doc | help ]'
+}
+mk_all () 
+{ 
+    foreach1 "doit mk\${1}" ${*:-help}
+}
+mkit () 
+{ 
+    [[ -n $(eval echo "\$_${1}files") ]] && doit mk${1}
+}
+mkall () 
+{ 
+    foreach mkit "exec bin text man etc lib doc"
+}
+mkexec () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/bin 0555" $_execfiles
+}
+mkbin () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/bin" $_binfiles
+}
+mketc () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/etc" $_etcfiles
+}
+mklib () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/lib" $_libfiles
+}
+mkdoc () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/doc" $_docfiles
+}
+mkman () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/man/man1" $_manfiles
+}
+mktext () 
+{ 
+    deploytextfiles $_textfiles
+}
+mklib_init () 
+{ 
+    source programlib 2> /dev/null
+    logUse mklib sourced programlib
+}
+mklib_init

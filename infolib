@@ -1,0 +1,61 @@
+copyrightNotice () 
+{ 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: $(author)"
+}
+infoBits () 
+{ 
+    file=~/lib/db/$1.tcl;
+    eval "$1() { t=\$1;shift;echo $1 \$(HHMMSS) \"{}\" \"{\$t}\" \"{\$*}\" >> $file; }; ${1}s () { \${*:-cat} $file;} ";
+    [[ -f $file ]] || { 
+        echo "relation insert_time delete_time {tag, ...} { bits of information on this item }" > $file
+    }
+}
+infobits_init () 
+{ 
+    foreach infoBits $(infobits)
+}
+infobits () 
+{ 
+    function installed () 
+    { 
+        mkdir -p $1/lib/db;
+        ignore pushd $1/lib/db
+    };
+    installed $HOME;
+    ls | sed 's/\.tcl$//';
+    ignore popd
+}
+infobits_doc () 
+{ 
+    cat  <<EOF
+
+ infoBits name     creates a "name" function to collect bits of "name" information.
+ infobits          lists the  "name" functions. 
+
+USAGE:
+  name   tag      bits of information of type "name" with a tag.
+
+ where "tag" may be quoted as here:
+
+ name "taga, tagb, .. "   with associated information 
+
+Also, given a "name", then
+
+ $ names         lists the infobits associated with "name"
+
+The resulting data appears in a file   ~/lib/db/name.tcl and has this format:
+
+  name  YYYYMMDD_hhmmss  {tag, ...}  {bits of information of type "name" with tags.}
+
+EOF
+
+}
+infolib_init () 
+{ 
+    source newlib 2> /dev/null;
+    logUse infolib sourced newlib;
+    infobits_init;
+    infobits_doc
+}
+infolib_init

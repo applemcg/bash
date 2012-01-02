@@ -1,0 +1,157 @@
+canonlib () 
+{ 
+    f=$1;
+    shift;
+    bkup $f;
+    ( fbdy $(functions $f | ${*:-cat});
+    echo ${f}_init ) > .y;
+    mv .y $f
+}
+fixlib () 
+{ 
+    source $1;
+    fbdy $(tflib $1 | field 1) >> $1;
+    source $1;
+    fbdy $(tflib $1 | field 1) | tee -a $1;
+    edsave $1
+}
+tflib () 
+{ 
+    tmp=/tmp/tflib;
+    rm -f $tmp.*;
+    setenv F $1;
+    canonflag $F | awk '$2 ~ /^\(\)$/ && NF>2' | tee $tmp.$$;
+    [[ ! -s $tmp.$$ ]]
+}
+canonflag () 
+{ 
+    sed 's/ *( *) */ () /' $1
+}
+edsave () 
+{ 
+    vi $1;
+    bkup $1;
+    source $1
+    logUse fixlib.edsave sourced $1
+}
+fixlib_idea () 
+{ 
+    echo "\"source newlib\" is way too generic for this library"
+}
+fixlib_init () 
+{ 
+    source blib;
+    logUse fixlib sourced blib
+    fixlib_help;
+    mkdir -p .names
+    integ_doc 1>&2
+}
+fixlib_help () 
+{ 
+    cat 1>&2  <<EOF
+0. fixlib_help
+   annotate {libname}
+
+1. tflib {libname}
+
+  if nothing, NEXT lib,
+  else ...
+2. fixlib {libname}
+   edsave {libname}
+
+  until satisfied, then
+3. canonlib {libname}
+EOF
+
+}
+annotate () 
+{ 
+    fundef="$1Idea ()";
+    cat >> ${1}lib  <<EOF
+$fundef
+{
+    echo "$2"
+}    
+EOF
+
+}
+sav1f () 
+{ 
+    fbdy $2 > .mrg/$1/$2
+}
+samef () 
+{ 
+    comm -12 $1 $2
+}
+savlibf () 
+{ 
+    source $1 2> /dev/null;
+    logUse  fixlib.savlibf sourced $1
+    foreachi sav1f $1 $(samef .$1 .$2)
+}
+integA () 
+{ 
+    flist $1 > /dev/null;
+    flist $2 > /dev/null;
+    mkdir -p .mrg/$1 .mrg/$2 .mrg/ifdiff;
+    savlibf $1 $2;
+    savlibf $2 $1;
+    for f in $(samef .$1 .$2);
+    do
+        diff .mrg/*lib/$f > .mrg/ifdiff/$f;
+    done;
+    wc -l .mrg/ifdiff/* | awk '$1 > 1 && $2 !~ /^total$/ { print $2}' > .ifdiff;
+    cat $(sed "s/ifdiff/$1/" .ifdiff) > com$1;
+    cat $(sed "s/ifdiff/$2/" .ifdiff) > com$2;
+    rm -fr .mrg/*;
+    echo ${EDIT:-vi} com$1 com$2
+}
+integ_doc () 
+{ 
+    cat  <<'EOF'
+    usage: integA libA libB
+
+    where libA, B are separate instances of LIB, requring INTEGRATION.
+    e.g. they've undergone separate changes, and need merging.
+
+    Two files result:  comlibA and comlibB    which have the copies
+    of the differing functions which share the same name in the libraries.
+
+    Edit one or the other, say comlibB to have the desired copy of
+    each function.   Then, conclude the integration with these steps:
+
+        $ source libA
+        $ source libB
+        $ source comlibB
+        $ fbdy $(functions libA libB) > nextlibA
+
+    Then  nextlibA  is allegedly the library you are looking for.
+    Inspect it for completeness and spill-over since there may be
+    some functions from libB you didn't need.
+
+EOF
+
+}
+itsLib () 
+{ 
+    whf $1 | sed 1q | field 1
+}
+ffinlib () 
+{ 
+    whfOK $1 || { 
+        comment too many $1 $(whf $1);
+        eturn
+    };
+    ffun $1;
+    fbdy $1 | append $(itsLib $1 )
+}
+fbdy () 
+{ 
+    declare -f ${*:-fbdy}
+}
+forgotAppend () 
+{ 
+    cat .bak/$1 $1 > .y;
+    mv .y $1
+}
+fixlib_init

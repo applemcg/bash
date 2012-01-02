@@ -1,0 +1,43 @@
+bitmeld () 
+{ 
+    pushd ${1:-.} > /dev/null;
+    while true; do
+        for dir in src bin include tmp man etc lib doc;
+        do
+            [[ -d $dir ]] && break 2;
+        done;
+        cd ..;
+        case $PWD in 
+            /)
+                break
+            ;;
+        esac;
+    done;
+    pwd;
+    popd > /dev/null
+}
+testlib_init () 
+{ 
+    source newlib 2> /dev/null;
+    tsystem $(system)
+}
+tsystem () 
+{ 
+    case $1 in 
+        Cygwin.*.*)
+            echo cygwin $1
+        ;;
+        *)
+            echo NOT Cyt $1
+        ;;
+    esac;
+    case $1 in 
+        *.*.eec-net)
+            echo EEC-NET $1
+        ;;
+        *)
+            echo NOT eec $1
+        ;;
+    esac
+}
+testlib_init

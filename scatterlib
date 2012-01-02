@@ -1,0 +1,89 @@
+scatterlib_init () 
+{ 
+    function copyrightNotice () 
+    { 
+        comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+        comment "mailto: $(author)"
+    };
+    function author () 
+    { 
+        ${1:-echo} mcgowan AT alum DOT mit DOT edu
+    };
+    ( copyrightNotice;
+    source programlib 2> /dev/null;
+    scatter_man;
+    echo scatter_man ) 1>&2
+}
+scatter_man () 
+{ 
+    cat  <<EOF
+
+scatter(1)                                                         scatter(1)
+
+NAME -- scatter
+
+	detect the token "scatter" of an ascii text
+
+SYNOPSIS 
+	source scatterlib   
+	scatter [ file ... ]
+
+	scatter reads from the standard input or the named files on the
+	command line and computes a collective "scatter" function for the
+	input.  as a TOTAL, it also reports the number of separate tokens
+	and the total scatter for the input.
+
+	"scatter" is the sum of the squares of the separation of successive
+	appearance of an individual token,  where separation is measured
+	in units of tokens.  successive appearances of a single token have
+	a separation of 1.
+
+	a token is  the longest sequence of alphabetic and numeric characters,
+	to include the underscore.
+
+BUGS
+	none known.
+
+USES
+	nothing -- self-contained bash.
+
+AUTHOR
+	$(author)
+
+EOF
+
+}
+scatter () 
+{ 
+    cat ${*:--} | antoken | awk '
+
+END	{
+	fmt2 = "%7d\t%-14s\t%7.1f\n"
+
+	for (w in sumsq) {
+		outwdat( fmt2, w)
+	}
+	printf fmt2,TWC, "_TOTAL",  totalsmsq/TWC
+}
+function outwdat( fmt2, w) {
+	TWC++;
+	favg( w, count[w]);
+	printf fmt2, count[w], w, avgsq[w];
+}
+function upd( word, d) { sumsq[word] += d*d; totalsmsq += d*d; }
+function favg( w, n)  {
+	if(n > 1) {
+		avgsq[w] = sumsq[w] /(n - 1)
+	}
+}
+	{ 
+		if(count[$1]++)	upd( $1, NR-last[$1]) # after the first
+		last[$1] = NR
+	}
+'
+}
+antoken () 
+{ 
+    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$'
+}
+scatterlib_init

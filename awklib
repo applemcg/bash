@@ -1,0 +1,85 @@
+copyrightNotice () 
+{ 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: $(author)"
+}
+comment () 
+{ 
+    echo "$@" 1>&2
+}
+awklib_doc () 
+{ 
+    cat  <<EOF
+whch    
+
+    whch is necessary, because of the various ways people have implemented "which"!
+ some put an error message on standard out, some dont return a failure if not found.
+ whch works uniformly on these known enviroments:
+
+       cygwin, solaris, os_x
+
+shlibtools 
+
+     For shell libraries, shlibtools discovers the names of SOURCE files
+  printing the name of the sourcING file and the SOURCEd file
+  on the standard output.
+
+    \$ shlibtools \*lib
+EOF
+
+}
+whch () 
+{ 
+    set -- $(which $1 2>&1);
+    case $1.$2 in 
+        no)
+            return 1
+        ;;
+        "".*)
+            return 1
+        ;;
+        *)
+            echo $1;
+            return 0
+        ;;
+    esac
+}
+getAwk () 
+{ 
+    whch gawk || whch nawk || whch awk
+}
+shlibtools () 
+{ 
+    $AWK '$1 ~ /^source$/ { print FILENAME, $2 }' $(onlyfiles $*)
+}
+onlyfiles () 
+{ 
+    for arg in $*;
+    do
+        [[ -f $arg ]] && echo $arg;
+    done
+}
+unsourced () 
+{ 
+    shlibtools *lib | sed 's/;//' | grep -v '$[12]' | field 2 | sort -u > .sourced;
+    ls *lib | comm -23 - .sourced
+}
+awklib_init () 
+{ 
+    setenv AWK $(getAwk);
+    copyrightNotice;
+    comment e.g. $ fbdy unsourced shlibtools;
+    shlibtools_doc 1>&2;
+    comment and \$AWK=$AWK;
+    awklib_doc 1>&2
+}
+setenv () 
+{ 
+    eval $1=\"$2\";
+    export $1
+}
+fbdy () 
+{ 
+    declare -f ${*:-fbdy}
+}
+awklib_init

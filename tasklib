@@ -1,0 +1,123 @@
+tasks () 
+{ 
+    function name () 
+    { 
+        echo "$PWD/$1"
+    };
+    function toolbase () 
+    { 
+        echo $HOME
+    };
+    function report () 
+    { 
+        echo $1:;
+        eval $(shifted "$@") | sed 's/^/    /'
+    };
+    function installed () 
+    { 
+        mkdir -p $1/lib/tasks;
+        ignore pushd $1/lib/tasks
+    };
+    function finished () 
+    { 
+        echo "$PWD/completed.txt"
+    };
+    function somecomplete () 
+    { 
+        touch completed.txt;
+        sort -r completed.txt | sed ${1}q
+    };
+    function help () 
+    { 
+        report "current tasks" tasks;
+        report "last 12 completed" somecomplete 12;
+        report functions functions $installed/bin/tasklib;
+        report HINT echo tasks, tasks help, tasks name, tasks finished
+    };
+    installed $(toolbase);
+    f=tasks.txt;
+    touch $f;
+    eval ${1:-"pr -t -n"} $f $(shifted $*);
+    ignore popd
+}
+copyrightNotice () 
+{ 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: $(author)"
+}
+tpush () 
+{ 
+    function prepend () 
+    { 
+        ( echo $(shifted $*);
+        cat $1 ) > .y;
+        mv .y $1
+    };
+    tasks prepend $*
+}
+tpeek () 
+{ 
+    function seefirst () 
+    { 
+        sed 1q $1
+    };
+    tasks seefirst
+}
+ttop () 
+{ 
+    function toTop () 
+    { 
+        awk "
+		BEGIN	{top = $2 }"'
+			{record[NR] = $0 }
+		END	 { save = record[top]
+			for (n=top; n>1; n--) {
+				record[n] = record[n-1]
+			}
+			record[1] = save
+			for (n=1; n<= NR; n++)
+				print record[n]
+			}
+		
+		' $1 > .y;
+        mv .y $1
+    };
+    tasks toTop ${1:-1}
+}
+tqueue () 
+{ 
+    function append () 
+    { 
+        ( cat $1;
+        echo $(shifted "$@") ) > .y;
+        mv .y $1
+    };
+    tasks append $*
+}
+tcomplete () 
+{ 
+    function tdated () 
+    { 
+        dated $(shifted $*) >> completed.txt
+    };
+    set -- $(tpop);
+    tasks tdated $*
+}
+tpop () 
+{ 
+    function lopTop () 
+    { 
+        set -- $1 $(sed 1q $1);
+        tail +2 $1 > .y;
+        mv .y $1;
+        shifted $*
+    };
+    tasks lopTop
+}
+tasklib_init () 
+{ 
+    source programlib 2> /dev/null;
+    logUse tasklib sourced programlib;
+    tasks help
+}
+tasklib_init

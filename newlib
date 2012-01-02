@@ -1,0 +1,640 @@
+add2files () 
+{ 
+    f=.files;
+    ( echo ${1:-$f};
+    cat $f ) | sort -u >.y;
+    mv .y $f
+}
+addto () 
+{ 
+    o=$1;
+    shift;
+    ( ls $*;
+    cat $o ) | sort -u >.tmp.$$ && mv .tmp.$$ $o
+}
+allver () 
+{ 
+    ls -d $(find $1 -name .ver | sed 's/$/\/*/') | sed 's/.*ver\///'
+}
+allvers () 
+{ 
+    find . -type d -name '.ver' | sed 's/.ver$//; s/..//; s/.$//'
+}
+backless () 
+{ 
+    find . -type f | egrep -v '(\/\.|[~#]$)' | cpio -pdluvm ../.clean/$(basename $PWD)
+}
+cfe () 
+{ 
+    eval "xx() { $1; }";
+    shift;
+    foreach xx $*
+}
+clearRedundantFunction () 
+{ 
+    editPattern ${1:-redundantFunction} dupLibTags
+}
+count () 
+{ 
+    cat ${*:--} | field 1 | sort | uniq -c
+}
+cp2ar () 
+{ 
+    mkdir -p ar;
+    mv ar .ar;
+    mv * .ar;
+    mv .ar ar
+}
+dtar () 
+{ 
+    tar cvf ../$(basename $PWD).tar $(< .files)
+}
+editPattern () 
+{ 
+    vi +/$1/ $($2 $1)
+}
+eupLibTags () 
+{ 
+    redundantFunction | grep $1 | $AWK '{ print $1, $2 }' | wpl | sort -u
+}
+f () 
+{ 
+    $AWK '
+	{ e[$5 $2 $3 $7] = e[ $5 $2 $3 $7] " " $6 }
+END	{ for(n in e) printf "%s\t%s\n",  n, e[n] }
+
+' $*
+}
+f2l () 
+{ 
+    f=$($2 echo);
+    chmod +w $f;
+    fbdy $1 >>$f;
+    chmod -w $f
+}
+fcon () 
+{ 
+    while read f; do
+        sed "s@^@$(dirname $f)/@" $f;
+    done
+}
+files () 
+{ 
+    find ${*:-.} -type f
+}
+fixname () 
+{ 
+    echo $* | sed 's/[ :]/\\&/g'
+}
+fun () 
+{ 
+    set | grep '=() *$' | sed 's/=().*//' | grep ${1:-fun}
+}
+latestver () 
+{ 
+    ls .ver | tail -${1:-1} | sed 1q
+}
+letters () 
+{ 
+    echo a b c d e f g h i j k l m n o p q r s t u v w x y z
+}
+log2csv () 
+{ 
+    sed 's/ /,/; s/ /./; s/ /,/g; s/\./ /' $*
+}
+lx () 
+{ 
+    eval "l${1}_doc() { echo short hand for ls -$1; }";
+    eval "l${1}() { ls -$1 \$*; }"
+}
+lx_init () 
+{ 
+    lx a;
+    lx l;
+    lx lrt
+}
+missing () 
+{ 
+    [[ -f $1 ]] || echo $1
+}
+mtime () 
+{ 
+    stat -f %m $1
+}
+mvx () 
+{ 
+    mkdir -p .ver/$1;
+    mv $1/.ver/* .ver/$1
+}
+namever () 
+{ 
+    ln $(ls -dt .ver/200* | sed 1q) .namver/$1
+}
+newlib () 
+{ 
+    ignore pushd $(rBin)/bin;
+    functions newlib;
+    ignore popd
+}
+newlib_doc () 
+{ 
+    cat  <<EOF
+0. fixlibdoc
+1. tflib {libname}
+
+  if nothing, NEXT lib,
+  else ...
+2. genlib {libname}
+   edsave {libname}
+
+  until satisfied, then
+3. canonlib {libname}
+~ library, returns "has function library" list for functions in library.
+~ token library, Returns "use Function token" for functions in library.
+https://ukwdc-fs2/user/com.fidessa.ustraining.html#ClientCygwin_paper
+EOF
+
+}
+newlib_init () 
+{ 
+    source programlib;
+    logUse newlib sourced programlib;
+    lx_init;
+    mkuBin;
+    obsolescent toss_fnames tossFnames;
+    obsolescent mfx mvx;
+    obsolescent does doit;
+    obsolescent tags echo;
+    reRoot HOME
+}
+newlib_loaded () 
+{ 
+    return
+}
+nonver () 
+{ 
+    egrep -v '\/\.(ver|bak|namedver)\/' $*
+}
+noted () 
+{ 
+    true
+}
+onlydirs () 
+{ 
+    for arg in ${*:-*};
+    do
+        [[ -d $arg ]] && echo $arg;
+    done
+}
+popl () 
+{ 
+    sort $* | uniq -c
+}
+prVim () 
+{ 
+    pr -n -l73 $* >printout.txt
+}
+qfield () 
+{ 
+    grep $* | sed "s/.*$1/$1/; s/[,\.\"\\]//g; s/ .*//; s/[0-9][0-9]*$/{NN}/"
+}
+qs () 
+{ 
+    echo === $1;
+    cat $1
+}
+quikscan () 
+{ 
+    foreach qs $*
+}
+redundantFunction () 
+{ 
+    ctags *lib 2>&1 | $AWK 'NF > 9 { print $5, $7, $8 }' | sed 's/://'
+}
+rprtflib () 
+{ 
+    $AWK -F'	' '{ print $2 } ' | sort | uniq -c | $AWK 'NF > 2'
+}
+shlibtools () 
+{ 
+    $AWK '$1 ~ /^source$/ { print FILENAME, $2 }' $(onlyfiles $*)
+}
+tclproc () 
+{ 
+    cd;
+    pkg CO tcl | xargs awk '$1 ~ /proc/ { printf "%s\t%s\n", $2, FILENAME}'
+}
+tgdir () 
+{ 
+    find ${1:-.} -type d | grep -v '\/\.'
+}
+tooltar () 
+{ 
+    PT_PATH=${PT_PATH:=$PATH};
+    export PT_PATH;
+    PATH=$PT_PATH:$HOME;
+    [[ -f .shlib1 ]] || touch .shlib1;
+    function ddtar () 
+    { 
+        shlibtools $* 2>/dev/null | tsort | xargs which | sort -u
+    };
+    ddtar * $(<.shlib1) | tee .shlib2 | diff .shlib1 -;
+    tar -cvf ../$(basename $PWD).tar $(<.shlib2)
+}
+tossFnames () 
+{ 
+    sed 's/[^:]*:[ 	]*//'
+}
+alias_email () 
+{ 
+    sed 's/[a-z]*@[a-z\.]*/handle@email.dom/'
+}
+append () 
+{ 
+    tee -a $1
+}
+tgrep () 
+{ 
+    ( cat $2 | egrep -i "(^proc|$1)" | sed 's/#.*//';
+    echo ) | tab2sp | grep -v '^ *$' | awk '$0 ~ /^  */ { print prev; prev=$0; next}; prev ~ /^  */ { print prev } ; { prev = $0 }'
+}
+rwd () 
+{ 
+    echo ${PWD#$(bitmeld)/}
+}
+prefile () 
+{ 
+    for f in *.$1;
+    do
+        r=${f%.$1};
+        sed "s/^/$r,/" $f;
+    done
+}
+tab2sp () 
+{ 
+    sed 's/[ 	][	]*/ /' $*
+}
+duplicate1st () 
+{ 
+    awk '$1 == prev; {prev=$1};' $*
+}
+fixlibdoc () 
+{ 
+    cat  <<EOF
+0. fixlibdoc
+1. tflib {libname}
+
+  if nothing, NEXT lib,
+  else ...
+2. genlib {libname}
+   edsave {libname}
+
+  until satisfied, then
+3. canonlib {libname}
+EOF
+
+}
+funtag () 
+{ 
+    fuser $* | awk "{ printf \"%-14s $1\n\", \$1}"
+}
+fuser () 
+{ 
+    for f in $(${2:-newlib});
+    do
+        fbdy $f | grep $1 >/dev/null && echo $f;
+    done | grep -v _
+}
+has () 
+{ 
+    fnames $1 | sed "s/.*/has & $1/"
+}
+idea () 
+{ 
+    echo generalize mktht with two suffix and a process
+}
+keywords () 
+{ 
+    wpl $1 | sort | grep -v _ | uniq -c | awk '$1 > 1 && length($2) > 2 { print $2 }'
+}
+liblives () 
+{ 
+    eval "$1() { indir \"$2\" fnames $1; }"
+}
+matchedWith () 
+{ 
+    find .names -name "$1*" | sed "s/.*\/$1//; s/^[+-]//" | sort -u
+}
+mktht () 
+{ 
+    for f in *.tcl;
+    do
+        r=${f%.tcl};
+        [[ -f $r.tht ]] || continue;
+        [[ $r.tht -nt $r.tcl ]] && continue;
+        echo tchtm $r;
+        tchtm $r;
+    done
+}
+nhistory () 
+{ 
+    history | sed 's/^ *[0-9]* *//' | grep -v history
+}
+peekd () 
+{ 
+    ignore pushd .;
+    popd
+}
+swapd () 
+{ 
+    set -- $(peekd);
+    popd;
+    cd $1;
+    pushd $2
+}
+nipd () 
+{ 
+    ignore swapd;
+    popd
+}
+procDef () 
+{ 
+    awk '$1 ~ /^proc$/ { printf "%-12s\t%s\n",  $2, FILENAME}' *.tcl
+}
+reRoot () 
+{ 
+    eval "re_$1 () { sed \"s@\$$1@\\\$$1@g\" \$*; }"
+}
+recent () 
+{ 
+    find . -type f -mtime -${1:-1} | sed 's/\.//' | grep -v '\/\.' | sed 's/\///'
+}
+savef () 
+{ 
+    fbdy $* >>$(uBin)/.$(today)
+}
+sourceTcl () 
+{ 
+    [[ x$1 = "x*lib.tcl" ]] && return;
+    [[ -f $1 ]] || { 
+        comment Missing $1 for source $1;
+        return
+    };
+    echo source $1
+}
+systemID () 
+{ 
+    uname -s -r -p
+}
+tchtm () 
+{ 
+    cp $1.tcl $1.tht;
+    tht $1.tht >$1.html 2>$1.err
+}
+to_tht () 
+{ 
+    [[ -f $1 ]] || { 
+        echo Missing $1 1>&2;
+        return
+    };
+    [[ -f tableOfContents.tht ]] || { 
+        ( sed 3q $THT_LIB/template_TOC.tht;
+        echo END ) >tableOfContents.tht
+    };
+    [[ -f headStyle.css ]] || { 
+        cp $THT_LIB/headStyle.css .
+    };
+    foreach sourceTcl $THT_LIB/*lib.tcl ./*lib.tcl;
+    echo fidessa_init;
+    cat $1
+}
+usefull () 
+{ 
+    egrep -v '(~$|/(\.|(ar|backup)/))' $*
+}
+uses () 
+{ 
+    labelfunct $* | wpl | whouses | sort -u | grep USES
+}
+whf () 
+{ 
+    grep "^$1 *()" *lib | sed 's/ .*//; s/:/ /'
+}
+copyright () 
+{ 
+    source $1;
+    fbdy copyrightNotice $(functions $1) >$1.nxt
+}
+hoy () 
+{ 
+    ${*:-echo} $(uBin)/.$(today)
+}
+gh () 
+{ 
+    history | grep $*
+}
+defaultInit () 
+{ 
+    echo " ${1}lib_init() { source programlib; } " >>${1}lib
+}
+difflib () 
+{ 
+    ( fnames $1;
+    fnames $2 ) >/dev/null;
+    pushd .names;
+    comm -12 $1 $2;
+    fbdy ${1}_init ${2}_init;
+    popd
+}
+dosubna () 
+{ 
+    for f in *lib;
+    do
+        printf "subna $f | ";
+    done;
+    echo cat
+}
+eachDir () 
+{ 
+    for d in *;
+    do
+        [[ -d $d ]] || continue;
+        batty $d;
+        echo batty $d;
+    done
+}
+fAlessB () 
+{ 
+    libcomp $1 $2 >/dev/null 2>&1;
+    fnames $1 | fgrep -v -f .names/$1+$2
+}
+fng () 
+{ 
+    egrep "(\(\) *$|$1)" $2 | awk '$0 ~ /^[ 	]/ { print last; print $0; }; { last=$0; next; }'
+}
+fng2 () 
+{ 
+    awk '$0 ~ /^[ ]/ { print last; print $0; }; { last=$0; next; }'
+}
+fofg () 
+{ 
+    sed 's/:.*//' $* | sort -u
+}
+fwith () 
+{ 
+    fng $* | awk '$0 !~ /\(\) *$/ { print last}; {last=$0}' | grep ' *() *$' | sed 's/ *() *$//' | sort -u
+}
+fx () 
+{ 
+    echo "$1: $(uname -$1 2>/dev/null)"
+}
+grepf () 
+{ 
+    p=$1;
+    shift;
+    egrep "(\(\)|$p)" $*
+}
+ideas () 
+{ 
+    cat  <<EOF
+generalize mktht with two suffix and a process
+d	generalize mktht with two suffix and a process
+EOF
+
+}
+kernel () 
+{ 
+    echo $(uname -s).$(uname -m)
+}
+libfresh () 
+{ 
+    $1 | grep -v $1;
+    $1 | grep $1
+}
+libtrail () 
+{ 
+    source $1;
+    fbdy $(libfunc $1|grep init) | grep source | sed 's/.* //; s/;//'
+}
+likefiles () 
+{ 
+    find . -type f | xargs wc -c | awk -F/ '{ printf "%-27s\t%s\n", $NF, $0 }' | sort
+}
+newToday () 
+{ 
+    eval "wtoday cat | fnames |sort| $(dosubna)"
+}
+nonf () 
+{ 
+    fbdy $1 >/dev/null || echo $1
+}
+out2err () 
+{ 
+    "$@" 1>&2
+}
+re_root () 
+{ 
+    eval "re_$1 () { sed \"s@\$$1@\\\$$1@g\" \$*; }"
+}
+subna () 
+{ 
+    fnames $1 >/dev/null;
+    tee .names/.in.$1 | comm -23 - .names/$1 | tee .names/.ot.$1
+}
+system () 
+{ 
+    echo $(uname -o).$(uname -m).$(uname -n)
+}
+tsh () 
+{ 
+    file=${PWD}/$(basename $0).suf;
+    echo file=$file;
+    echo '##*/' removes longest leading ${file##*/} =BASENAME;
+    echo '#/*' removes shortest leading ${file#/*};
+    echo '%%/*' removes longest trailing ${file%%/*};
+    echo '%/*' removes shortest trailing ${file%/*} from $file =DIRNAME;
+    echo $PWD;
+    echo '#$HOME/' removes HOME leading ${PWD#$HOME/} rw
+}
+ua () 
+{ 
+    echo "$1: $(uname -$1 2>/dev/null)"
+}
+unsourced () 
+{ 
+    shlibtools *lib | sed 's/;//' | grep -v '$[12]' | field 2 | sort -u >.sourced;
+    ls *lib | comm -23 - .sourced
+}
+wtoday () 
+{ 
+    ${1:-source} $(uBin)/.$(today)
+}
+twocol () 
+{ 
+    awk '{ printf "%-18s\t%s\n", $1, $2 }'
+}
+swapcol () 
+{ 
+    awk '{ print $2, $1 }' $*
+}
+undername () 
+{ 
+    echo $* | tr ' ' '_'
+}
+labelfunct () 
+{ 
+    sed 's/^\([a-zA-Z0-9_]*\) *( *) *$/FUNCTION     \1/' $*
+}
+whouses () 
+{ 
+    awk '
+	$1 ~	/FUNCTION/	{ tick = 1; next}
+	tick == 1		{ funct = $1; tick = 0; next }
+				{ printf "%s\tUSES\t%s\n", funct, $1
+				  printf "%s\tUSED\t%s\n", $1, funct
+				 }
+	
+	' $*
+}
+mkuBin () 
+{ 
+    case $(uname -n|tolower) in 
+        eec-net | appleton)
+            doit mkaBin u ~;
+            doit mkaBin r ~
+        ;;
+        *)
+            doit mkaBin u H:;
+            doit mkaBin r B:
+        ;;
+    esac
+}
+mkaBin () 
+{ 
+    eval "${1}Bin () { echo $2/bin; }"
+}
+whfOK () 
+{ 
+    [[ $(whf $1 | wc -l) -eq 1 ]]
+}
+shudBTcl () 
+{ 
+    bkup $1;
+    rm -f $1;
+    echo $1 >>../lib/thisShudBTcl
+}
+ffun () 
+{ 
+    fbdy $1 >.y;
+    vi .y;
+    source .y
+}
+fmdos () 
+{ 
+    cat ${*:--} | tr -d '\r'
+}
+fgrepf () 
+{ 
+    grepf $* | awk "\$2 ~ /^\(\)\$/ {fun = \$1; next}; /$1/ { printf \"%s\n%s\n\", fun, \$0 }"
+}
+newlib_init
