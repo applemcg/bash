@@ -1,57 +1,68 @@
+comment ()
+{
+	echo "$@" 1>&2
+}
 tasks () 
 { 
+    namevalue toolbase
+    toolbase  $HOME
+
+    comment tasks $*
+
     function name () 
     { 
         echo "$PWD/$1"
     };
-    function toolbase () 
-    { 
-        echo $HOME
-    };
+    
     function report () 
     { 
-        echo $1:;
-        eval $(shifted "$@") | sed 's/^/    /'
+        echo $1:; shift;
+        eval "$@" | sed 's/^/    /'
     };
-    function installed () 
-    { 
-        mkdir -p $1/lib/tasks;
-        ignore pushd $1/lib/tasks
-    };
-    function finished () 
-    { 
-        echo "$PWD/completed.txt"
+    function installed ()
+    {
+        case $1 in 
+	"")  toolbase
+	     ;;
+	*)   
+	     mkdir -p $1/lib/tasks
+	     ;;
+ 	esac
+    }
+    function finished ()
+    {
+	echo "$PWD/completed.txt"
     };
     function somecomplete () 
     { 
-        touch completed.txt;
+        touch completed.txt
         sort -r completed.txt | sed ${1}q
     };
     function help () 
     { 
         report "current tasks" tasks;
         report "last 12 completed" somecomplete 12;
-        report functions functions $installed/bin/tasklib;
+        report functions functions $(installed)/bin/tasklib;
         report HINT echo tasks, tasks help, tasks name, tasks finished
     };
-    installed $(toolbase);
+    installed $(toolbase)
+    ignore pushd $(installed)/lib/tasks
     f=tasks.txt;
     touch $f;
-    eval ${1:-"pr -t -n"} $f $(shifted $*);
+    cmmd=${1:-"pr -t -n"}; shift
+    eval $cmmd $f $*
     ignore popd
-}
-copyrightNotice () 
-{ 
-    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: $(author)"
 }
 tpush () 
 { 
+    comment tpush $*
     function prepend () 
     { 
-        ( echo $(shifted $*);
-        cat $1 ) > .y;
-        mv .y $1
+      comment prepend $*
+      f=$1; shift;
+        ( echo $*
+        cat $f ) > .y;
+        mv .y $f
     };
     tasks prepend $*
 }
@@ -63,11 +74,11 @@ tpeek ()
     };
     tasks seefirst
 }
-ttop () 
-{ 
-    function toTop () 
-    { 
-        awk "
+ttop ()
+{
+	function toTop ()
+	{
+		awk	"
 		BEGIN	{top = $2 }"'
 			{record[NR] = $0 }
 		END	 { save = record[top]
@@ -79,18 +90,19 @@ ttop ()
 				print record[n]
 			}
 		
-		' $1 > .y;
-        mv .y $1
-    };
-    tasks toTop ${1:-1}
+		' $1 >  .y; mv .y $1
+	}
+
+	tasks toTop ${1:-1}
 }
 tqueue () 
 { 
     function append () 
     { 
-        ( cat $1;
-        echo $(shifted "$@") ) > .y;
-        mv .y $1
+      f=$1; shift
+        ( cat $f;
+        echo "$@" ) > .y;
+        mv .y $f
     };
     tasks append $*
 }
@@ -98,10 +110,9 @@ tcomplete ()
 { 
     function tdated () 
     { 
-        dated $(shifted $*) >> completed.txt
+        shift; dated  $* >> completed.txt
     };
-    set -- $(tpop);
-    tasks tdated $*
+    tasks tdated  $(tpop)
 }
 tpop () 
 { 
@@ -109,15 +120,16 @@ tpop ()
     { 
         set -- $1 $(sed 1q $1);
         tail +2 $1 > .y;
-        mv .y $1;
-        shifted $*
+        mv .y $1; 
+	shift; echo $*
     };
     tasks lopTop
 }
-tasklib_init () 
-{ 
-    source programlib 2> /dev/null;
-    logUse tasklib sourced programlib;
-    tasks help
+tasklib_init ()
+{
+     source programlib 2>/dev/null
+     logUse tasklib sourced programlib
+     tasks help
 }
-tasklib_init
+
+ tasklib_init

@@ -1,28 +1,26 @@
-copyrightNotice () 
-{ 
-    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: $(author)"
-}
 infoBits () 
 { 
-    file=~/lib/db/$1.tcl;
-    eval "$1() { t=\$1;shift;echo $1 \$(HHMMSS) \"{}\" \"{\$t}\" \"{\$*}\" >> $file; }; ${1}s () { \${*:-cat} $file;} ";
-    [[ -f $file ]] || { 
-        echo "relation insert_time delete_time {tag, ...} { bits of information on this item }" > $file
+    file=~/lib/db/$1.tcl
+    eval "$1() { t=\$1;shift;echo $1 \$(HHMMSS) \"{}\" \"{\$t}\" \"{\$*}\" >> $file; }; ${1}s () { \${*:-cat} $file;} "
+    [[ -f $file ]] ||  {
+
+      echo "relation insert_time delete_time {tag, ...} { bits of information on this item }" > $file
     }
+
 }
-infobits_init () 
-{ 
+infobits_init ()
+{
     foreach infoBits $(infobits)
 }
 infobits () 
 { 
-    function installed () 
-    { 
-        mkdir -p $1/lib/db;
-        ignore pushd $1/lib/db
-    };
-    installed $HOME;
+  function installed () 
+  {
+	mkdir -p  $1/lib/db;
+	 ignore pushd $1/lib/db;
+  }
+  installed $HOME
+
     ls | sed 's/\.tcl$//';
     ignore popd
 }
@@ -53,9 +51,9 @@ EOF
 }
 infolib_init () 
 { 
-    source newlib 2> /dev/null;
-    logUse infolib sourced newlib;
-    infobits_init;
+    source newlib 2>/dev/null
+    logUse infolib sourced newlib
+    infoBits_init
     infobits_doc
 }
 infolib_init

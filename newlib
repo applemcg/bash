@@ -2,7 +2,7 @@ add2files ()
 { 
     f=.files;
     ( echo ${1:-$f};
-    cat $f ) | sort -u >.y;
+    cat $f ) | sort -u > .y;
     mv .y $f
 }
 addto () 
@@ -10,7 +10,7 @@ addto ()
     o=$1;
     shift;
     ( ls $*;
-    cat $o ) | sort -u >.tmp.$$ && mv .tmp.$$ $o
+    cat $o ) | sort -u > .tmp.$$ && mv .tmp.$$ $o
 }
 allver () 
 { 
@@ -69,7 +69,7 @@ f2l ()
 { 
     f=$($2 echo);
     chmod +w $f;
-    fbdy $1 >>$f;
+    fbdy $1 >> $f;
     chmod -w $f
 }
 fcon () 
@@ -84,7 +84,11 @@ files ()
 }
 fixname () 
 { 
-    echo $* | sed 's/[ :]/\\&/g'
+    a="$*"; b=${a// /\\ }; echo ${b//:/\\:}
+}
+undername () 
+{ 
+    a="$*";                echo ${a// /_}
 }
 fun () 
 { 
@@ -104,7 +108,6 @@ log2csv ()
 }
 lx () 
 { 
-    eval "l${1}_doc() { echo short hand for ls -$1; }";
     eval "l${1}() { ls -$1 \$*; }"
 }
 lx_init () 
@@ -132,6 +135,7 @@ namever ()
 }
 newlib () 
 { 
+    
     ignore pushd $(rBin)/bin;
     functions newlib;
     ignore popd
@@ -157,6 +161,7 @@ EOF
 }
 newlib_init () 
 { 
+  comment bkup: appleton.home./Users/applemcg/bin 2012_0318 105101
     source programlib;
     logUse newlib sourced programlib;
     lx_init;
@@ -192,7 +197,7 @@ popl ()
 }
 prVim () 
 { 
-    pr -n -l73 $* >printout.txt
+    pr -n -l73 $* > printout.txt
 }
 qfield () 
 { 
@@ -236,7 +241,7 @@ tooltar ()
     [[ -f .shlib1 ]] || touch .shlib1;
     function ddtar () 
     { 
-        shlibtools $* 2>/dev/null | tsort | xargs which | sort -u
+        shlibtools $* 2> /dev/null | tsort | xargs which | sort -u
     };
     ddtar * $(<.shlib1) | tee .shlib2 | diff .shlib1 -;
     tar -cvf ../$(basename $PWD).tar $(<.shlib2)
@@ -302,7 +307,7 @@ fuser ()
 { 
     for f in $(${2:-newlib});
     do
-        fbdy $f | grep $1 >/dev/null && echo $f;
+        fbdy $f | grep $1 > /dev/null && echo $f;
     done | grep -v _
 }
 has () 
@@ -371,7 +376,7 @@ recent ()
 }
 savef () 
 { 
-    fbdy $* >>$(uBin)/.$(today)
+    fbdy $* >> $(uBin)/.$(today)
 }
 sourceTcl () 
 { 
@@ -389,7 +394,7 @@ systemID ()
 tchtm () 
 { 
     cp $1.tcl $1.tht;
-    tht $1.tht >$1.html 2>$1.err
+    tht $1.tht > $1.html 2> $1.err
 }
 to_tht () 
 { 
@@ -399,7 +404,7 @@ to_tht ()
     };
     [[ -f tableOfContents.tht ]] || { 
         ( sed 3q $THT_LIB/template_TOC.tht;
-        echo END ) >tableOfContents.tht
+        echo END ) > tableOfContents.tht
     };
     [[ -f headStyle.css ]] || { 
         cp $THT_LIB/headStyle.css .
@@ -423,7 +428,11 @@ whf ()
 copyright () 
 { 
     source $1;
-    fbdy copyrightNotice $(functions $1) >$1.nxt
+    (
+      fbdy copyrightNotice $(functions $1| grep -v copyrightNotice) 
+      echo ${1}_init
+      ) > $1.nxt
+     comment new $1 in $1.nxt
 }
 hoy () 
 { 
@@ -435,12 +444,12 @@ gh ()
 }
 defaultInit () 
 { 
-    echo " ${1}lib_init() { source programlib; } " >>${1}lib
+    echo " ${1}lib_init() { source programlib; } " >> ${1}lib
 }
 difflib () 
 { 
     ( fnames $1;
-    fnames $2 ) >/dev/null;
+    fnames $2 ) > /dev/null;
     pushd .names;
     comm -12 $1 $2;
     fbdy ${1}_init ${2}_init;
@@ -465,7 +474,7 @@ eachDir ()
 }
 fAlessB () 
 { 
-    libcomp $1 $2 >/dev/null 2>&1;
+    libcomp $1 $2 > /dev/null 2>&1;
     fnames $1 | fgrep -v -f .names/$1+$2
 }
 fng () 
@@ -526,7 +535,7 @@ newToday ()
 }
 nonf () 
 { 
-    fbdy $1 >/dev/null || echo $1
+    fbdy $1 > /dev/null || echo $1
 }
 out2err () 
 { 
@@ -538,7 +547,7 @@ re_root ()
 }
 subna () 
 { 
-    fnames $1 >/dev/null;
+    fnames $1 > /dev/null;
     tee .names/.in.$1 | comm -23 - .names/$1 | tee .names/.ot.$1
 }
 system () 
@@ -555,6 +564,7 @@ tsh ()
     echo '%/*' removes shortest trailing ${file%/*} from $file =DIRNAME;
     echo $PWD;
     echo '#$HOME/' removes HOME leading ${PWD#$HOME/} rw
+    echo '${var//foo/bar}' replaces all foo with bar in var
 }
 ua () 
 { 
@@ -562,8 +572,12 @@ ua ()
 }
 unsourced () 
 { 
-    shlibtools *lib | sed 's/;//' | grep -v '$[12]' | field 2 | sort -u >.sourced;
+    shlibtools *lib | sed 's/;//' | grep -v '$[12]' | field 2 | sort -u > .sourced;
     ls *lib | comm -23 - .sourced
+}
+upper () 
+{ 
+    cat ${*:--} | tr '[a-z]' '[A-Z]'
 }
 wtoday () 
 { 
@@ -576,10 +590,6 @@ twocol ()
 swapcol () 
 { 
     awk '{ print $2, $1 }' $*
-}
-undername () 
-{ 
-    echo $* | tr ' ' '_'
 }
 labelfunct () 
 { 
@@ -598,14 +608,14 @@ whouses ()
 }
 mkuBin () 
 { 
-    case $(uname -n|tolower) in 
-        eec-net | appleton)
-            doit mkaBin u ~;
-            doit mkaBin r ~
+    case $(kernel) in 
+        Darwin.i386)
+            mkaBin u ~;
+            mkaBin r ~
         ;;
         *)
-            doit mkaBin u H:;
-            doit mkaBin r B:
+            mkaBin u H:;
+            mkaBin r B:
         ;;
     esac
 }
@@ -621,11 +631,11 @@ shudBTcl ()
 { 
     bkup $1;
     rm -f $1;
-    echo $1 >>../lib/thisShudBTcl
+    echo $1 >> ../lib/thisShudBTcl
 }
 ffun () 
 { 
-    fbdy $1 >.y;
+    fbdy $1 > .y;
     vi .y;
     source .y
 }
@@ -633,8 +643,47 @@ fmdos ()
 { 
     cat ${*:--} | tr -d '\r'
 }
-fgrepf () 
-{ 
-    grepf $* | awk "\$2 ~ /^\(\)\$/ {fun = \$1; next}; /$1/ { printf \"%s\n%s\n\", fun, \$0 }"
-}
 newlib_init
+words () 
+{ 
+    cat ${*:--} | tr -cs a-zA-Z0-9_ " " | wpl | sort -u
+}
+findBigDup () 
+{ 
+    cat ${*:--} | awk '
+
+    { line[NR] = $0; count[$0]++; last[$0]=NR }
+
+    END {
+      for (i=1; i<=NR; i++) {
+          l = line[i]; o = last[l]; d = o-i; 
+          printf "%4d %4d %4d %4d %s\n", count[l], o, d, i, l
+	  }
+      }
+ '
+}
+findBigDup_doc () 
+{ 
+    echo "
+
+   ~ file ... 
+
+   produces 5 column output:
+
+    number of times a line has occured
+    last line # on which it occured
+    difference between last line and this
+    this line number
+    Text of the line
+
+  also likelyBigDup highlights likely extraneous
+"
+}
+likelyBigDup () 
+{ 
+    findBigDup $* | awk '$1 > 1 && $1 < 4'
+}
+quse () 
+{ 
+    which $1 || fbdy $1
+}

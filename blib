@@ -1,16 +1,22 @@
-copyrightNotice () 
-{ 
+bapp_init ()
+{
     comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: $(author)"
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 090634
+
+    testarg isdirectory d;
+    testarg exists e;
+    blib_help
 }
 blib_help () 
 { 
-    comment -- blib function list --;
-    functions $(installed)/bin/blib 1>&2
-}
-testargs () 
-{ 
-    eval "$1() { [[ -$2 \$1 ]]; }"
+  is installed $HOME
+
+  comment -- blib function list --;
+  functions $(is installed)/bin/blib 1>&2;
+  comment -- usage: ;
+  comment bkup file ... ; 
+  comment blib_doc
 }
 bkup () 
 { 
@@ -27,22 +33,31 @@ bkup ()
     };
     function backup () 
     { 
-        indir $(dirof $1) lbkup false $(basename $1)
+        indir $(dirof $1) lbkup false .bak $(basename $1)
     };
+    function sameas ()
+    {
+	cmp $*
+    }
     function lbkup () 
     { 
-        isdirectory .bak || mkdir .bak;
+        isdirectory $2 || mkdir $2;
         $1 || { 
-            cmp $2 .bak/$2 > /dev/null 2>&1 && return
+            sameas $3 $2/$3 > /dev/null 2>&1 && return
         };
-        exists .bak/$2 && indir .bak lbkup true $2;
-        domove $2 .bak;
-        $1 || docopy .bak/$2 .
+        exists $2/$3 && indir $2 lbkup true $2 $3;
+        $1 && domove $3 $2;
+        $1 || { 
+	   mkbkup   ./$3 > $2/$3
+	   sameTime ./$3   $2/$3
+	   docopy   $2/$3  ./$3
+	   sameTime $2/$3  ./$3
+	}
     };
     function domove () 
     { 
         comment $PWD;
-        doit mv -f $*
+	doit mv -f $*
     };
     function docopy () 
     { 
@@ -52,9 +67,77 @@ bkup ()
 }
 blib_doc () 
 { 
-    copyrightNotice;
-    report "blib Entry points" fbdy bkup backup blib_help blib_doc;
-    blib_help
+clear; cat << \EOF | more
+
+blib (1)                    backup library                      blib (1)
+
+NAME
+
+  blib -- shell library to backup any file
+
+SYNOPSIS
+
+  $ source blib
+  $ bkup file ...    -- modified files are backed up
+  $ bkfiles          -- lists all the currently backed-up files
+  $ bkup $(bkfiles)  -- the second time should be "quiet", it's done
+  $ unbkfile file    -- remove a file from the list for routine backup.
+  $ bdeep N          -- returns the name of the N-deep backup directory
+  $ commentType file -- returns the comment sentinal for the file
+
+DESCRIPTION
+
+  "bkup" uses recursive descent into a local backup tree to save only
+modified copies of text and binary files.
+
+  "bkfiles" lists the files in the backup directory. since all files
+in a directory needn't be backed up, this saves a user from having to
+maintain a separate list.  the following utility is a to to filter the
+available backups.
+
+  "unbkfile" preserves the most recent backup file (by backing it up),
+and removes it and the current backup file.  this allows the bkfiles
+utility to produce just the list of needed backups.
+
+VERSIONS
+
+  when backing up a textfile which includes a leading comment with
+"blib:", an identification including the user's network name, the
+working directory and a time stamp are appended after the "blib:".
+
+  the "commentType" function returns the comment sentinal for a file, 
+defaulting to the scripting "#".
+
+FILES
+
+  ./.bak      -- the initial backup directory, holds the latest copy
+  ./.bak/.bak -- the prior backup copy, anyfile in this directory is
+                 necessarily different from the current copy of a file.
+  ./.bak/.bak/.bak ... etc.
+  ...
+
+BUGS
+
+  since the backup chain can get arbitrarily deep, a user will
+occasionally need to do some tree trimming. the author has found
+a depth of about 33 to begin breaking limbs.
+
+  an experimental tree pruning might be built as follows:
+
+  $ find $(bdeep 21) -mtime  +90 | xargs rm -fr
+  $ find $(bdeep 15) -mtime +180 | xargs rm -fr
+  $  ...
+
+ALSO
+
+  see programlib (1), for lower-level utilities, and
+      qvslib (1) for a companion, simple versioning tool.
+
+AUTHOR
+
+  mcgowan AT alum DOT mit DOT edu
+
+EOF
 }
 bkfiles () 
 { 
@@ -62,19 +145,39 @@ bkfiles ()
 }
 blib_init () 
 { 
-    source newlib 2> /dev/null;
-    function installed () 
-    { 
-        echo $HOME
-    };
-    logUse blib sourced newlib;
+    source programlib 2> /dev/null;
+    logUse blib sourced programlib
 
-    blib_help
+    bapp_init
 }
 unbkfile () 
 { 
-    indir .bak bkup $1;
-    indir .bak rm $1;
-    comment rm $1
+    f=${1:-/dev/null}
+    bkup  $f
+    rm -f $f
+
+    pushd .bak
+    bkup  $f;
+    rm -f $f;
+    popd
+}
+bdeep () 
+{ 
+    [[ $1 -gt 0 ]] && echo .bak/$( bdeep $(( $1 - 1)) )
+}
+mkbkup ()
+{
+    sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S')=" $1
+}
+commentType () 
+{
+	case $1 in
+	*.c)	echo "/*";;
+	*.h)	echo "/*";;
+	*.cpp)	echo "//";;
+	*.java)	echo "//";;
+	*lib)	echo " *comment";;
+	*)	echo " *#";;
+	esac
 }
 blib_init

@@ -1,7 +1,8 @@
 copyrightNotice () 
 { 
     comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: $(author)"
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 091609
 }
 functions () 
 { 
@@ -41,7 +42,7 @@ doit ()
 }
 nonempty () 
 { 
-    [[ -s $1 ]]
+    [[ -s ${1:-/dev/null} ]]
 }
 shifted () 
 { 
@@ -145,8 +146,8 @@ programlib_doc ()
      subcmds ...lib returns sub-commands from a ...lib function library
      subtract f1 \[f2 - \] subtracts the list f2 from f1
 
-     toupper transliterats input files, defaulting to STDIN to UPPER case
-     tolower transliterats input files, defaulting to STDIN to lower case
+     toupper transliterats STDIN to UPPER case
+     tolower transliterats STDIN to lower case
 
      wh cmmd returns PATHname of cmmd defending against ugly BSD which
      wpl file ... seprates file ... contents to one Word Per Line
@@ -155,18 +156,17 @@ EOF
 }
 programlib_init () 
 { 
+    obsolescent file_test fileTest;
     obsolescent piped pipe;
     obsolescent is_a_function isfunction;
     logUse programlib;
     setenv AWK $(getawk);
-    testargs empty z;
-    testargs executable x;
-    testargs existingdir d;
-    testargs existingfile f;
-    testargs nonempty s;
-    testargs writeable w;
-    testargs isdirectory d;
-    testargs exists e;
+    fileTest empty z;
+    fileTest executable x;
+    fileTest existingdir d;
+    fileTest existingfile f;
+    fileTest nonempty s;
+    fileTest writeable w;
     ( fbdy programlib_init;
     programlib_doc ) 1>&2
 }
@@ -289,9 +289,9 @@ basename ()
 { 
     echo ${1##*/}
 }
-testargs () 
+fileTest () 
 { 
-    eval "$1() { [[ -$2 \$1 ]]; }"
+    eval "$1() { [[ -$2 \${1:-/dev/null} ]]; }"
 }
 newest () 
 { 
@@ -310,11 +310,11 @@ wpl ()
 }
 toupper () 
 { 
-    cat ${*:--} | tr a-z A-Z
+    tr '[a-z]' '[A-Z]'
 }
 tolower () 
 { 
-    cat ${*:--} | tr A-Z a-z
+    tr '[A-Z]' '[a-z]'
 }
 intersection () 
 { 
@@ -437,6 +437,7 @@ hhmmss ()
 { 
     date +%H%M%S
 }
+programlib_init
 onlyfiles () 
 { 
     for arg in $*;
@@ -444,4 +445,61 @@ onlyfiles ()
         [[ -f $arg ]] && echo $arg;
     done
 }
-programlib_init
+namevalue ()
+{
+    eval "$1() { _doesnava $1 \$1; }"
+}
+_doesnava () 
+{
+#    echo doesnava $* 1>&2
+    case $2 in 
+    "")	 eval echo \$nava_$1;;
+    *)	 eval nava_$1=$2;;
+    esac
+}
+loaded () 
+{ 
+    for f in $(set | grep '_init () *$' | sed 's/ ().*//');
+    do
+        whf $f;
+    done | sed 's/ .*//'
+}
+is () 
+{ 
+    [[ $# -lt 1 ]] && { 
+        echo "is name [value]" 1>&2
+    };
+    [[ $# -lt 2 ]] && eval echo \$$1 || setenv $1 $2
+}
+obsf () 
+{ 
+    f=${1:-/dev/null};
+    bkup $f;
+    rm -f $f;
+    cd .bak;
+    bkup $f;
+    rm -f $f;
+    cd ..
+}
+tolib () 
+{ 
+    f=$1;
+    shift;
+    [[ -f $f ]] || { 
+        echo no Library $f 1>&2;
+        return
+    };
+    fbdy $* | tee -a $f
+}
+epoch () 
+{ 
+    [[ -f $1 ]] && perl -e "\$m=(stat(\"$1\"))[9]; print \$m"
+}
+sameTime () 
+{ 
+    [[ $# -lt 2 ]] && { 
+        comment sameTime file toTouch;
+        return
+    };
+    touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
+}

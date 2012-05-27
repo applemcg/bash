@@ -1,20 +1,4 @@
-scatterlib_init () 
-{ 
-    function copyrightNotice () 
-    { 
-        comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-        comment "mailto: $(author)"
-    };
-    function author () 
-    { 
-        ${1:-echo} mcgowan AT alum DOT mit DOT edu
-    };
-    ( copyrightNotice;
-    source programlib 2> /dev/null;
-    scatter_man;
-    echo scatter_man ) 1>&2
-}
-scatter_man () 
+man_scatter () 
 { 
     cat  <<EOF
 
@@ -48,7 +32,7 @@ USES
 	nothing -- self-contained bash.
 
 AUTHOR
-	$(author)
+	mcgowan@alum.mit.edu
 
 EOF
 
@@ -85,5 +69,9 @@ function favg( w, n)  {
 antoken () 
 { 
     sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$'
+}
+scatterlib_init () 
+{ 
+    source programlib
 }
 scatterlib_init

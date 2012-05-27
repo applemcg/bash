@@ -38,13 +38,18 @@ fixlib_idea ()
 { 
     echo "\"source newlib\" is way too generic for this library"
 }
+fixapp_init ()
+{
+    fixlib_help;
+    mkdir -p .names
+    integ_doc 1>&2
+}
 fixlib_init () 
 { 
     source blib;
     logUse fixlib sourced blib
-    fixlib_help;
-    mkdir -p .names
-    integ_doc 1>&2
+    logUse fixlib uses programlib
+    fixapp_init
 }
 fixlib_help () 
 { 
@@ -108,7 +113,10 @@ integA ()
 }
 integ_doc () 
 { 
+    comment "# Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 092755
     cat  <<'EOF'
+
     usage: integA libA libB
 
     where libA, B are separate instances of LIB, requring INTEGRATION.

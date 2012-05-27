@@ -1,3 +1,7 @@
+comment ()
+{
+	echo "$@" 1>&2
+}
 setpath () 
 { 
     function _presolve () 
@@ -7,7 +11,6 @@ setpath ()
         PWD=`pwd`;
         case $PATH in 
             *:$PWD:* | *:$PWD | $PWD:*)
-
             ;;
             *)
                 PATH=$PATH:$PWD;
@@ -50,14 +53,15 @@ require ()
     shift;
     bin=$1/bin;
     shift;
-    set -- $(which $tool);
-    [[ $1 = no ]] || return;
-    [[ $2 = $tool ]] || return;
+    paths | grep $bin || return
+    set -- $(which $tool)
+    [[ "$1" == $bin/$tool ]] && return
     setpath $bin
 }
 setpathlib_doc () 
 { 
-    cat  <<EOF
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 091440
+    cat  <<\EOF | ${MORE:-more}
 
 setpathlib (1)              JYATL Tool Shed               setpathlib (1)  
 
@@ -67,19 +71,14 @@ NAME
 
 SYNOPSIS
 
-  bitmeld 
-
-  paths   [name defaulting to PATH]
-
-  require  BITMELD    tooln  
-
-  setpath {name ending with}/bin 
-
-  setpathlib_doc 
-
-  set_path  {a BITMELD name, e.g. include}
-
-  whipath  file
+ $ source setpathlib          # necessary to use the functions
+ $ bitmeld                    # where is the BITMELD
+ $ paths    [name defaulting to PATH]
+ $ require  BITMELD    tooln  
+ $ setpath  {name ending with}/bin 
+ $ setpathlib_doc 
+ $ set_path {a BITMELD name, e.g. include}
+ $ whipath  file
 
 DESCRIPTION
 
@@ -108,15 +107,15 @@ found on the current path
 
 EXAMPLES
 
-  $ setpath \$HOME/bin     appends  HOME/bin to the user's PATH if not
+  $ setpath $HOME/bin     appends  HOME/bin to the user's PATH if not
                           already included
 
-  $ whipath  stdio.h      returns   /usr/include/stdio.h 
+  $ whipath stdio.h      returns   /usr/include/stdio.h 
                           on many systems
 
-  $ INCLUDE_PATH=\$(set_path include)   is the default
+  $ INCLUDE_PATH=$(set_path include)   is the default
 
-  $ setpath \$(bitmeld)/bin  adds the local bin to the users path.
+  $ setpath $(bitmeld)/bin  adds the local bin to the users path.
 
      e.g. if in the directory /home/group/apps/src/this
      and a directory          /home/group/apps/bin
@@ -139,12 +138,12 @@ AUTHOR
   mcgowan@alum.mit.edu
 
 EOF
+
 }
 setpathlib_init () 
 { 
     : ${INCLUDE_PATH:=$(set_path include)};
-    source programlib 2> /dev/null;
-    logUse setpath
+    # source programlib 2> /dev/null;
     comment setpathlib_doc
 }
 paths () 

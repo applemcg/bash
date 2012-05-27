@@ -1,3 +1,9 @@
+copyrightNotice () 
+{ 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0318 105454
+}
 qvslib_init () 
 { 
     source blib;
@@ -6,7 +12,7 @@ qvslib_init ()
 qvs_doc () 
 { 
     report "Environment Variables" foreach nava VER_BASE VER_HOME VERFILES SYSTEM_DEPENDENT_USER_HOME EDITOR;
-    report "Entry Points" fbdy verfiles verhome ver_rwd verbase get_verbase set_verbase verlocn qvs thisSecond lastNameVer verDirectory rollupV lastVer de;
+    report "Entry Points" fbdy verfiles verhome ver_rwd verbase get_verbase set_verbase verlocn qvs verSecond lastNameVer verDirectory rollupV lastVer de;
     qvs_help
 }
 qvs_help () 
@@ -27,7 +33,7 @@ directories, with the newest on top.
      (which itself should be "qvs"d; HINT:  ls $(< $(verfiles))  ).
 
  2. A new version is created in the ".ver/" directory, with a sub-directory
-	whose name is "thisSecond:  YYmmddHHMMSS format".    
+	whose name is "verSecond:  YYYY_mmdd_HHMMSS format".    
 
  3. files in the .bak direcory are linked to the .ver/YYmmddHHMMSS copy of the file
 
@@ -43,7 +49,7 @@ central versioning location, set VER_HOME to that location. e.g. /home/mygroup.
 
 all this results in setting your versioning location to:
 
-   $(verhome)/$(ver_rwd)/.ver/$(thisSecond)
+   $(verhome)/$(ver_rwd)/.ver/$(verSecond)
 
  VER_BASE files are stored in VER_HOME in the same realtive working directory, 
 Both need to be on the same file system.
@@ -60,8 +66,8 @@ EOF
 set_verbase () 
 { 
     comment PWD $PWD;
-    for p in $(echo $PATH | sed 's/:/\
-/g; s/\/bin//g') $SYSTEM_DEPENDENT_USER_HOME;
+    path=${PATH//:/ };
+    for p in $(echo ${path//\/bin/}) $SYSTEM_DEPENDENT_USER_HOME;
     do
         comment p $p;
         case ${PWD} in 
@@ -100,15 +106,9 @@ cleanlist ()
     ( grep '^\.' $VERFILES;
     ls ) | sort | comm -3 - $VERFILES
 }
-shdoc_out () 
-{ 
-    echo $@ 1>&2
-}
 dotfile () 
 { 
-    shdoc_out add2$1 uses echo cat sort mv;
     eval "add2${1}() { (echo \$1; cat .$1) | sort -u >.x.$1; mv .x.$1 .$1; }";
-    shdoc_out rmFm$1 uses grep mv;
     eval "rmFm${1}() { grep -v "^\$1\\\$" .$1 	 >.y.$1; mv .y.$1 .$1; }"
 }
 verhome () 
@@ -187,7 +187,7 @@ qvs ()
             [[ -f $f ]] && echo $f;
         done
     };
-    _doqvs_at $(verlocn)/$(_mkVername $1 $(thisSecond))
+    _doqvs_at $(verlocn)/$(_mkVername $1 $(verSecond))
 }
 bflist () 
 { 
@@ -197,6 +197,10 @@ bflist ()
 verfiles () 
 { 
     echo ${VERFILES:-.files}
+}
+verSecond () 
+{ 
+    date '+%Y_%m%d_%H%M%S'
 }
 thisSecond () 
 { 
@@ -284,8 +288,16 @@ vpreplist ()
 }
 bakVer () 
 { 
-    set -- $OLDHOME/$(rwd)/.ver/$(thisSecond);
     mkdir -p $1;
     cat .files | cpio -pduvm $1
+}
+qvslib_clog () 
+{ 
+    cat  <<EOF
+
+2012_0211, Sat, Feb 11   changed default verlocn to YYYY_MMDD_HHMMSS format, adding _s
+
+EOF
+
 }
 qvslib_init
