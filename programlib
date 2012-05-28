@@ -503,3 +503,7 @@ sameTime ()
     };
     touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
 }
+duplicates () 
+{ 
+    foreach whf $(functions *) | field 2 | sort | uniq -c | awk '$1 > 1 { print $2 }' | tee .duplicates
+}

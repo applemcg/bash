@@ -19,7 +19,7 @@ tflib ()
 { 
     tmp=/tmp/tflib;
     rm -f $tmp.*;
-    setenv F $1;
+    is F $1;
     canonflag $F | awk '$2 ~ /^\(\)$/ && NF>2' | tee $tmp.$$;
     [[ ! -s $tmp.$$ ]]
 }

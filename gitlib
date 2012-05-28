@@ -1,0 +1,19 @@
+gitapp_init () 
+{ 
+    return
+}
+gitlib_init () 
+{ 
+    source programlib 2> /dev/null;
+    gitapp_init
+}
+mods () 
+{ 
+    git status | findClean modified:;
+    git status | findClean "new file:"
+}
+findClean () 
+{ 
+    grep "$1" - | sed "s/.*$1 *//"
+}
+gitlib_init

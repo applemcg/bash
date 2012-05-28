@@ -1,14 +1,8 @@
-copyrightNotice () 
-{ 
-    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: $(author)"
-}
-comment () 
-{ 
-    echo "$@" 1>&2
-}
 awklib_doc () 
 { 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
+    comment bkup: 
     cat  <<EOF
 whch    
 
@@ -27,6 +21,10 @@ shlibtools
     \$ shlibtools \*lib
 EOF
 
+}
+shlibtools_doc ()
+{
+  awklib_doc 1>&2
 }
 whch () 
 { 
@@ -66,20 +64,16 @@ unsourced ()
 }
 awklib_init () 
 { 
-    setenv AWK $(getAwk);
+    source programlib 2>/dev/null
+    awkapp_init
+}
+awkapp_init ()
+{
+    is AWK $(getAwk);
     copyrightNotice;
     comment e.g. $ fbdy unsourced shlibtools;
     shlibtools_doc 1>&2;
     comment and \$AWK=$AWK;
     awklib_doc 1>&2
-}
-setenv () 
-{ 
-    eval $1=\"$2\";
-    export $1
-}
-fbdy () 
-{ 
-    declare -f ${*:-fbdy}
 }
 awklib_init

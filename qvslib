@@ -72,7 +72,7 @@ set_verbase ()
         comment p $p;
         case ${PWD} in 
             $p/*)
-                setenv VER_BASE $p;
+                is VER_BASE $p;
                 get_verbase;
                 return
             ;;
@@ -117,13 +117,13 @@ verhome ()
 }
 qvsfrom () 
 { 
-    setenv VER_BASE ${1:-$HOME};
-    setenv VER_HOME ${1:-$VER_BASE};
+    is VER_BASE ${1:-$HOME};
+    is VER_HOME ${1:-$VER_BASE};
     comment verhome, verbase
 }
 qvsto () 
 { 
-    setenv VER_HOME ${1:-$HOME};
+    is VER_HOME ${1:-$HOME};
     comment verhome
 }
 ver_rwd () 
