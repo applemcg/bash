@@ -25,3 +25,11 @@ git_modified ()
             ready && ($2 ~ /^modified:$/) { print $3 }
            '
 }
+git_push () 
+{ 
+    git@github.com:applemcg/$(basename $PWD).git
+}
+git_push () 
+{ 
+    git push git@github.com:applemcg/$(basename $PWD).git
+}

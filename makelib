@@ -1,0 +1,110 @@
+addlist () 
+{ 
+    eval $1=\"\$$1 $2\";
+    export $1
+}
+dmd () 
+{ 
+    [ -d $1 ] || doit mkdir -p $1
+}
+domk () 
+{ 
+    doit mk${1}
+}
+mkwhat ()
+{
+    functions $(is installed)/bin/makelib | grep '^mk'
+}
+domode () 
+{ 
+    doit chmod ${2:-\-w} $1
+}
+makelib_doc () 
+{ 
+    comment by the wayside: i am souced;
+    comment mkdigest: create an SHA1 digest of the archive $1.shar;
+    comment cmfmto source destination mode;
+    comment mkshar: build a shell archive of the current directory in $1.shar
+}
+makeapp_init () 
+{ 
+    comment Specific primary source makelib functions;
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 124701
+    is installed $HOME
+    comment mkthis $(mkwhat)
+    comment programlib bitmeld comment cpfmto doit foreach is
+
+    filetype shellscript execfile;
+    filetype shellfile binfile;
+    filetype perfile execfile;
+    filetype etcfile;
+    filetype docfile;
+    filetype manualpage manpage;
+    filetype shellarchive sharfile
+}
+makelib_init ()
+{
+	source programlib 2>/dev/null
+	makeapp_init
+}
+mk_all () 
+{ 
+    foreach domk ${*:-help}
+}
+mkall () 
+{ 
+    foreach mkthis "exec bin etc doc man"
+}
+mkbin () 
+{ 
+    mkcpfn _domk bin;
+    foreach _domk $_binfile
+}
+mkcpfn () 
+{ 
+    eval "$1() { doit cpfmto \$1 $(is installed)/$2 $3; }"
+}
+mkdigest () 
+{ 
+    doit openssl sha1 $1.shar > $1.shar.sha1
+}
+mkdoc () 
+{ 
+    mkcpfn _domk doc;
+    foreach _domk $_docfile
+}
+mketc () 
+{ 
+    mkcpfn _domk etc;
+    foreach _domk $_etcfile
+}
+mkexec () 
+{ 
+    mkcpfn _domk bin +x;
+    foreach _domk $_execfile
+}
+mkhelp () 
+{ 
+    comment 'mk [ all | bin | doc | etc | man | help ]'
+}
+mkman () 
+{ 
+    mkcpfn _domk man/man1;
+    foreach _domk $_manfile
+}
+mkpkg () 
+{ 
+    mkshar $1;
+    pushd ..;
+    mkdigest $1;
+    popd
+}
+mkshar () 
+{ 
+    doit shar $* > ../$1.shar
+}
+mkthis () 
+{ 
+    [ $(eval echo "\$_${1}file") ] && domk $1
+}
+makelib_init

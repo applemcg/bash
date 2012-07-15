@@ -1,0 +1,38 @@
+movie () 
+{ 
+    unset g;
+    for f in $*;
+    do
+        [[ -n $g ]] && { 
+            clear;
+            sdiff $g $f | ${MORE:-/usr/bin/more};
+            echo === $g .. $f ===;
+            echo NEXT?;
+            read a
+        };
+        g=$f;
+        echo $g $f;
+    done
+}
+mkRun () 
+{ 
+    ( fbdy movie;
+    echo movie $(find .bak -name $1) ) | tee $1.run
+}
+mkShar () 
+{ 
+    shar $(find .bak -type d | tail -1; find .bak -name $1 ) $1.run movielib | tee ../$1.txt
+}
+shoot () 
+{ 
+    mkRun $1;
+    mkShar $1
+}
+movielib_init () 
+{ 
+    source programlib 2> /dev/null;
+    comment "movielib: Copyright (C) 2102, Jyatl -- Just Yet Another Testing Lab";
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0623 162230
+    comment "shoot moviefile; sh moviefile.run "
+}
+movielib_init
