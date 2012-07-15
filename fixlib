@@ -115,7 +115,7 @@ integA ()
 integ_doc () 
 { 
     comment "# Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0625 161030;
+    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0714 230434;
     cat  <<'EOF'
 
     usage: integA libA libB
@@ -159,3 +159,13 @@ forgotAppend ()
     cat .bak/$1 $1 > .y;
     mv .y $1
 }
+functions_users () 
+{ 
+    ignore pushd ~/bin;
+    for l in *lib;
+    do
+        cgrepf functions $l | sed "s/^/$l$(tab)/";
+    done | sort | tee .functions.used | field 2 | sort -u | grep -v _doc;
+    ignore popd
+}
+fixlib_init

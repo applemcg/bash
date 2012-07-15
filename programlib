@@ -152,7 +152,7 @@ programlib_init ()
 { 
     comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0706 210129;
+    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0714 230448;
     obsolescent file_test fileTest;
     obsolescent piped pipe;
     obsolescent is_a_function isfunction;
@@ -792,7 +792,6 @@ undotf ()
         ln $f .dot/${f#?};
     done
 }
-programlib_init
 trimffrom () 
 { 
     [[ -f $1 ]] || { 
@@ -805,3 +804,13 @@ trimffrom ()
     echo ${1}_init ) > .$1.$$;
     mv .$1.$$ $1
 }
+functions_users () 
+{ 
+    ignore pushd ~/bin;
+    for l in *lib;
+    do
+        cgrepf functions $l | sed "s/^/$l$(tab)/";
+    done | sort | tee .functions.used | field 2 | sort -u | grep -v _doc;
+    ignore popd
+}
+programlib_init

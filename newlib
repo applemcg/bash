@@ -163,7 +163,7 @@ EOF
 }
 newlib_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0625 154141
+    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0714 230438;
     source programlib;
     logUse newlib sourced programlib;
     lx_init;
@@ -501,7 +501,7 @@ grepf ()
 { 
     p=$1;
     shift;
-    cat ${*:--} | egrep "(^[a-zA-Z_][a-z-Z0-9_]* *\(\) *$|$p)"
+    cat ${*:--} | egrep "(^[a-zA-Z_][a-zA-Z0-9_]* *\(\) *$|$p)"
 }
 ideas () 
 { 
@@ -710,7 +710,6 @@ argt ()
 { 
     eval "args_$1 () { echo \"\$1: \$($1 -\$1 2>/dev/null)\"; }"
 }
-newlib_init
 append_ref () 
 { 
     ref=$1;
@@ -725,11 +724,11 @@ bkrm ()
 }
 fun_prefix () 
 { 
-    set | functions | grep _ | grep -v '^_' | sed 's/_.*//' | sort -u
+    sfg _ | grep -v '^_' | sed 's/_.*//' | sort -u
 }
 fun_suf () 
 { 
-    set | functions | grep _ | grep -v '^_' | sed 's/.*_//' | sort -u
+    sfg _ | grep -v '^_' | sed 's/.*_//' | sort -u
 }
 hfun () 
 { 
@@ -790,11 +789,4 @@ with_suf ()
 { 
     set | functions | grep _${1:-suf} | grep -v '^_' | sed 's/_.*//' | sort -u
 }
-fun_prefix () 
-{ 
-    sfg _ | grep -v '^_' | sed 's/_.*//' | sort -u
-}
-fun_suf () 
-{ 
-    sfg _ | grep -v '^_' | sed 's/.*_//' | sort -u
-}
+newlib_init
