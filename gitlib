@@ -16,7 +16,6 @@ findClean ()
 { 
     grep "$1" - | sed "s/.*$1 *//"
 }
-gitlib_init
 git_modified () 
 { 
     git status | awk '
@@ -27,9 +26,10 @@ git_modified ()
 }
 git_push () 
 { 
-    git@github.com:applemcg/$(basename $PWD).git
-}
-git_push () 
-{ 
     git push git@github.com:applemcg/$(basename $PWD).git
 }
+git_add () 
+{ 
+    git add $(git_modified) $*
+}
+gitlib_init
