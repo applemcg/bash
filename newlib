@@ -84,11 +84,14 @@ files ()
 }
 fixname () 
 { 
-    a="$*"; b=${a// /\\ }; echo ${b//:/\\:}
+    a="$*";
+    b=${a// /\\ };
+    echo ${b//:/\\:}
 }
 undername () 
 { 
-    a="$*";                echo ${a// /_}
+    a="$*";
+    echo ${a// /_}
 }
 fun () 
 { 
@@ -135,7 +138,6 @@ namever ()
 }
 newlib () 
 { 
-    
     ignore pushd $(rBin)/bin;
     functions newlib;
     ignore popd
@@ -161,7 +163,7 @@ EOF
 }
 newlib_init () 
 { 
-  comment bkup: appleton.home./Users/applemcg/bin 2012_0318 105101
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0625 154141
     source programlib;
     logUse newlib sourced programlib;
     lx_init;
@@ -353,9 +355,9 @@ peekd ()
 swapd () 
 { 
     set -- $(peekd);
-    popd;
-    cd $1;
-    pushd $2
+    eval ignore popd;
+    eval cd "$1";
+    eval pushd "$2"
 }
 nipd () 
 { 
@@ -376,7 +378,7 @@ recent ()
 }
 savef () 
 { 
-    fbdy $* >> $(uBin)/.$(today)
+    fbdy $* | T append
 }
 sourceTcl () 
 { 
@@ -428,11 +430,9 @@ whf ()
 copyright () 
 { 
     source $1;
-    (
-      fbdy copyrightNotice $(functions $1| grep -v copyrightNotice) 
-      echo ${1}_init
-      ) > $1.nxt
-     comment new $1 in $1.nxt
+    ( fbdy copyrightNotice $(functions $1| grep -v copyrightNotice);
+    echo ${1}_init ) > $1.nxt;
+    comment new $1 in $1.nxt
 }
 hoy () 
 { 
@@ -501,7 +501,7 @@ grepf ()
 { 
     p=$1;
     shift;
-    egrep "(\(\)|$p)" $*
+    cat ${*:--} | egrep "(^[a-zA-Z_][a-z-Z0-9_]* *\(\) *$|$p)"
 }
 ideas () 
 { 
@@ -552,7 +552,7 @@ subna ()
 }
 system () 
 { 
-    echo $(uname -o).$(uname -m).$(uname -n)
+    echo $(uname -s) $(uname -r) $(uname -m) $(uname -n)
 }
 tsh () 
 { 
@@ -563,7 +563,7 @@ tsh ()
     echo '%%/*' removes longest trailing ${file%%/*};
     echo '%/*' removes shortest trailing ${file%/*} from $file =DIRNAME;
     echo $PWD;
-    echo '#$HOME/' removes HOME leading ${PWD#$HOME/} rw
+    echo '#$HOME/' removes HOME leading ${PWD#$HOME/} rw;
     echo '${var//foo/bar}' replaces all foo with bar in var
 }
 ua () 
@@ -643,7 +643,6 @@ fmdos ()
 { 
     cat ${*:--} | tr -d '\r'
 }
-newlib_init
 words () 
 { 
     cat ${*:--} | tr -cs a-zA-Z0-9_ " " | wpl | sort -u
@@ -686,4 +685,116 @@ likelyBigDup ()
 quse () 
 { 
     which $1 || fbdy $1
+}
+cgrepf () 
+{ 
+    grepf $* | awk "BEGIN { p = \"$1\" };"' $2 ~ /^\(\)$/ { f = $1; next}; { printf "%s\t%s\t%s\n", f, p, $0 }'
+}
+nhn () 
+{ 
+    sed 's/^ *[0-9]* *//' $*
+}
+nbkup () 
+{ 
+    grep -l bkup: *lib | tee .bkup | wc -l
+}
+new_bkup () 
+{ 
+    ls -t *lib | sed $(nbkup)q | sort | comm -3 - .bkup
+}
+trimdots () 
+{ 
+    pick $(onlyfiles $(ls -adt .* | ${*:-cat})) | tee .pick
+}
+argt () 
+{ 
+    eval "args_$1 () { echo \"\$1: \$($1 -\$1 2>/dev/null)\"; }"
+}
+newlib_init
+append_ref () 
+{ 
+    ref=$1;
+    shift;
+    list=$($ref);
+    eval "$ref () { \${1:-echo} $list $*; }"
+}
+bkrm () 
+{ 
+    [[ -f $1 ]] && bkup $1;
+    rm $1~
+}
+fun_prefix () 
+{ 
+    set | functions | grep _ | grep -v '^_' | sed 's/_.*//' | sort -u
+}
+fun_suf () 
+{ 
+    set | functions | grep _ | grep -v '^_' | sed 's/.*_//' | sort -u
+}
+hfun () 
+{ 
+    hfun_body | sort | comm $* - .nfunlist
+}
+hfun_body () 
+{ 
+    fbdy $(hfun_list | sort | tee .nfunlist) | tee .newfunbdy | functions
+}
+hfun_doc () 
+{ 
+    cat  <<EOF
+
+ hfun  looks at function history:  gh \(\), extracting
+the recently created functions, saving the list in .nfunlist
+and the function text in .newfunbd.  since not every function
+listed in the history may currently be enabled,  hfun lists,
+with a "comm" command, the 3-column output of function
+body names, functions in the history, and the intersection.
+e.g.   hfun -13    lists the functions in history whose
+bodies aren't in the environment.  if there are any, search
+the history for the command which created the function and
+re-execute it.
+EOF
+
+}
+hfun_list () 
+{ 
+    gh '()' | nhn | field 1 | printed
+}
+hfun_ref () 
+{ 
+    ${1:-echo} hfun_ref hfun hfun_body hfun_doc hfun_list gh nhn field printed
+}
+libscatter () 
+{ 
+    fbdy $(functions $1 | grep -v ${2:-man_}) | scatter | sort -k 3 -n
+}
+report_suf () 
+{ 
+    c=${1:-suf};
+    echo $c;
+    with_suf $c | sed 's/^/    /'
+}
+whenBiggerTo () 
+{ 
+    file=$1;
+    size=$2;
+    to=$3;
+    while true; do
+        set -- $(ls -l $file);
+        echo $5;
+        [[ $5 -gt $size ]] && echo $9 exceeds $size | mailx $to;
+        sleep 17;
+    done
+}
+with_suf () 
+{ 
+    set | functions | grep _${1:-suf} | grep -v '^_' | sed 's/_.*//' | sort -u
+}
+fun_prefix () 
+{ 
+    sfg _ | grep -v '^_' | sed 's/_.*//' | sort -u
+}
+fun_suf () 
+{ 
+    sfg _ | grep -v '^_' | sed 's/.*_//' | sort -u
 }

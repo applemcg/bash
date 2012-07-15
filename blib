@@ -1,22 +1,20 @@
-bapp_init ()
-{
+bapp_init () 
+{ 
     comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 090634
-
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0701 163349;
     testarg isdirectory d;
     testarg exists e;
     blib_help
 }
 blib_help () 
 { 
-  is installed $HOME
-
-  comment -- blib function list --;
-  functions $(is installed)/bin/blib 1>&2;
-  comment -- usage: ;
-  comment bkup file ... ; 
-  comment blib_doc
+    is installed $HOME;
+    comment -- blib function list --;
+    functions $(is installed)/bin/blib 1>&2;
+    comment -- usage:;
+    comment bkup file ...;
+    comment blib_doc
 }
 bkup () 
 { 
@@ -35,10 +33,10 @@ bkup ()
     { 
         indir $(dirof $1) lbkup false .bak $(basename $1)
     };
-    function sameas ()
-    {
-	cmp $*
-    }
+    function sameas () 
+    { 
+        cmp $*
+    };
     function lbkup () 
     { 
         isdirectory $2 || mkdir $2;
@@ -47,17 +45,20 @@ bkup ()
         };
         exists $2/$3 && indir $2 lbkup true $2 $3;
         $1 && domove $3 $2;
-        $1 || { 
-	   mkbkup   ./$3 > $2/$3
-	   sameTime ./$3   $2/$3
-	   docopy   $2/$3  ./$3
-	   sameTime $2/$3  ./$3
-	}
+        $1 || thisbk ./$3 $2/$3
+    };
+    function thisbk () 
+    { 
+        mkbkup $1 > $2;
+        sameTime $1 $2;
+        docopy $2 $1;
+        sameTime $2 $1;
+        chmod -w $2
     };
     function domove () 
     { 
         comment $PWD;
-	doit mv -f $*
+        doit mv -f $*
     };
     function docopy () 
     { 
@@ -67,7 +68,8 @@ bkup ()
 }
 blib_doc () 
 { 
-clear; cat << \EOF | more
+    clear;
+    ( cat  <<'EOF'
 
 blib (1)                    backup library                      blib (1)
 
@@ -138,6 +140,7 @@ AUTHOR
   mcgowan AT alum DOT mit DOT edu
 
 EOF
+ ) | more
 }
 bkfiles () 
 { 
@@ -146,18 +149,16 @@ bkfiles ()
 blib_init () 
 { 
     source programlib 2> /dev/null;
-    logUse blib sourced programlib
-
+    logUse blib sourced programlib;
     bapp_init
 }
 unbkfile () 
 { 
-    f=${1:-/dev/null}
-    bkup  $f
-    rm -f $f
-
-    pushd .bak
-    bkup  $f;
+    f=${1:-/dev/null};
+    bkup $f;
+    rm -f $f;
+    pushd .bak;
+    bkup $f;
     rm -f $f;
     popd
 }
@@ -165,19 +166,46 @@ bdeep ()
 { 
     [[ $1 -gt 0 ]] && echo .bak/$( bdeep $(( $1 - 1)) )
 }
-mkbkup ()
-{
-    sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S')=" $1
+mkbkup () 
+{ 
+    sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S;')=" $1
 }
 commentType () 
-{
-	case $1 in
-	*.c)	echo "/*";;
-	*.h)	echo "/*";;
-	*.cpp)	echo "//";;
-	*.java)	echo "//";;
-	*lib)	echo " *comment";;
-	*)	echo " *#";;
-	esac
+{ 
+    case $1 in 
+        *.c)
+            echo "/*"
+        ;;
+        *.h)
+            echo "/*"
+        ;;
+        *.cpp)
+            echo "//"
+        ;;
+        *.java)
+            echo "//"
+        ;;
+        *lib)
+            echo " *comment"
+        ;;
+        .*prof*)
+            echo " *comment"
+        ;;
+        *)
+            echo " *#"
+        ;;
+    esac
+}
+epoch () 
+{ 
+    [[ -f $1 ]] && perl -e "\$m=(stat(\"$1\"))[9]; print \$m"
+}
+sameTime () 
+{ 
+    [[ $# -lt 2 ]] && { 
+        comment sameTime file toTouch;
+        return
+    };
+    touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
 }
 blib_init

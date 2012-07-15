@@ -17,3 +17,11 @@ findClean ()
     grep "$1" - | sed "s/.*$1 *//"
 }
 gitlib_init
+git_modified () 
+{ 
+    git status | awk '
+            /not staged/ {ready++}; 
+            #            { print "debug: ", ready, $0 }
+            ready && ($2 ~ /^modified:$/) { print $3 }
+           '
+}

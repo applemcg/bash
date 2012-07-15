@@ -1,9 +1,3 @@
-copyrightNotice () 
-{ 
-    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 091609
-}
 functions () 
 { 
     cat ${*:--} | grep -v '^[ 	]' | sed 's/()/ & /' | awk '$1 ~ /^[a-zA-Z0-9_]*$/ && $2 ~ /\(\)/' | printfirst | field 1
@@ -156,6 +150,9 @@ EOF
 }
 programlib_init () 
 { 
+    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0706 210129;
     obsolescent file_test fileTest;
     obsolescent piped pipe;
     obsolescent is_a_function isfunction;
@@ -437,7 +434,6 @@ hhmmss ()
 { 
     date +%H%M%S
 }
-programlib_init
 onlyfiles () 
 { 
     for arg in $*;
@@ -445,16 +441,19 @@ onlyfiles ()
         [[ -f $arg ]] && echo $arg;
     done
 }
-namevalue ()
-{
+namevalue () 
+{ 
     eval "$1() { _doesnava $1 \$1; }"
 }
 _doesnava () 
-{
-#    echo doesnava $* 1>&2
+{ 
     case $2 in 
-    "")	 eval echo \$nava_$1;;
-    *)	 eval nava_$1=$2;;
+        "")
+            eval echo \$nava_$1
+        ;;
+        *)
+            eval nava_$1=$2
+        ;;
     esac
 }
 loaded () 
@@ -491,19 +490,318 @@ tolib ()
     };
     fbdy $* | tee -a $f
 }
-epoch () 
-{ 
-    [[ -f $1 ]] && perl -e "\$m=(stat(\"$1\"))[9]; print \$m"
-}
-sameTime () 
-{ 
-    [[ $# -lt 2 ]] && { 
-        comment sameTime file toTouch;
-        return
-    };
-    touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
-}
 duplicates () 
 { 
     foreach whf $(functions *) | field 2 | sort | uniq -c | awk '$1 > 1 { print $2 }' | tee .duplicates
+}
+_cflist () 
+{ 
+    functions $1 | sort -u > .$1
+}
+cfl () 
+{ 
+    foreach _cflist $*;
+    doit comm $3 .$1 .$2
+}
+ht () 
+{ 
+    history | tail -${1:-24}
+}
+lastf () 
+{ 
+    gh "$1 *()" | tail -1
+}
+nnfns () 
+{ 
+    fbdy $(functions $1 | sed ${2}q | tail -${3:-20}; )
+}
+pdx () 
+{ 
+    pushd "$(dirname "$*")"
+}
+printed () 
+{ 
+    awk 'printed[$0]++ < 1' $*
+}
+rotd () 
+{ 
+    set -- $(peekd);
+    [[ $# -lt 4 ]] && { 
+        peekd;
+        comment "need > 3";
+        return
+    };
+    ignore popd;
+    ignore popd;
+    ignore popd;
+    eval ignore pushd "$2";
+    eval ignore pushd "$1";
+    eval pushd "$3"
+}
+tawk () 
+{ 
+    awk -F"\t" "$@"
+}
+todaysF () 
+{ 
+    set -- ${*:-$HOME/.$(today)};
+    fbdy $(gh '()' | nhn | functions) | tee -a $1;
+    fbdy $(functions $1) > .y;
+    mv .y $1
+}
+trimthru () 
+{ 
+    sed "s/.*$1/$1/"
+}
+tab2sp () 
+{ 
+    sed 's/[ 	][	]*/ /' $*
+}
+popl () 
+{ 
+    sort $* | uniq -c
+}
+fofg () 
+{ 
+    sed 's/:.*//' $* | sort -u
+}
+dfr () 
+{ 
+    df | sed 's/ .*:/ /' | awk '$2 > 0 {
+		printf "%14s \t %5.1f %9d %9d\n", $1, 100*$4/$2, $2, $4
+	}'
+}
+fieldNum () 
+{ 
+    _csvFields $1 | wpl | pr -t -n | while read nf fname; do
+        echo ${fname}_n=$nf;
+    done
+}
+mkcksum () 
+{ 
+    grep -v " $4\$" .cksum;
+    echo $*
+}
+fileck () 
+{ 
+    _mkcksum $(date '+%y%m%d.%H%M%S'; cksum $1)
+}
+_mkcksum () 
+{ 
+    mkcksum $* > .x && mv .x .cksum
+}
+g2vi () 
+{ 
+    IFS=':';
+    while read file line stuff; do
+        echo view +$line $file;
+    done
+}
+nth () 
+{ 
+    awk "NR == $1 { print; exit; }"
+}
+_ffb () 
+{ 
+    eval echo $1 \$_fname_$1
+}
+inlast () 
+{ 
+    find ${2:-.} -type f -mtime -${1:-1}
+}
+prove () 
+{ 
+    date;
+    pwd;
+    doit "$@"
+}
+butnot () 
+{ 
+    egrep -v "$@"
+}
+sp2tab () 
+{ 
+    sed 's/  */	/' $*
+}
+spS2tab () 
+{ 
+    sed 's/  */	/g' $*
+}
+tabS2sp () 
+{ 
+    sed 's/[ 	][	]*/ /g' $*
+}
+cronl () 
+{ 
+    crontab -l | tabS2sp | sort -u +1 | sp2tab | sp2tab | awk -F'	' '{ printf "%02d %02d %s\n", $1, $2, $3 }'
+}
+vis () 
+{ 
+    _slib vi $1;
+    reme $1
+}
+viewer () 
+{ 
+    setenv VIEW ${1:-view}
+}
+dossyname () 
+{ 
+    sed 's/ /\\&/g'
+}
+onlyAN () 
+{ 
+    tr -cs '[:alnum:]' '[ *]'
+}
+filesin () 
+{ 
+    find ${*:-.} -type f -print | dossyname
+}
+_dosharch () 
+{ 
+    echo "cat<<\"EOF_$1\" > $1";
+    cat $1;
+    echo "EOF_$1"
+}
+_sharhead () 
+{ 
+    echo "# Execute this File"
+}
+_shartail () 
+{ 
+    echo "[[ -f $1 ]] && { chmod +x $1; cat $1; echo bash $1; }"
+}
+_sharchive () 
+{ 
+    [[ -f $1 ]] && doit _dosharch $1
+}
+shar () 
+{ 
+    _sharhead;
+    foreach _sharchive $*;
+    _shartail install.sh
+}
+mkinstall () 
+{ 
+    ( grep -v '^comment' $1;
+    echo comment INFOLIB $(date) ) > $2;
+    mv $2 $1
+}
+fullshar () 
+{ 
+    mkinstall install.sh /tmp/mkins.$$;
+    nshar install.sh $*
+}
+nshar () 
+{ 
+    _sharhead;
+    foreach _sharchive $*;
+    _shartail $1
+}
+libver () 
+{ 
+    grep '^comment' install.sh
+}
+trimTclArray () 
+{ 
+    sed 's/.*(//; s/}$//; s/{//; s/)[ 	][ 	]*/	/' $*
+}
+rdsDate () 
+{ 
+    date '+%Y%m%d %T.000000 -0500s'
+}
+ppc () 
+{ 
+    ( IFS='[:;]';
+    for p in ${1:-$PATH};
+    do
+        echo $p;
+    done )
+}
+logup () 
+{ 
+    ( prove $* 2>&1 ) >> /tmp/upgrade/$LOGNAME/update
+}
+envname () 
+{ 
+    eval "$1() { setenv $2 \$1; }"
+}
+allfunctions () 
+{ 
+    functions $1 | sed "s/^/$1 /"
+}
+cawk () 
+{ 
+    awk -F, "$@"
+}
+fsuse () 
+{ 
+    ftof=$1;
+    shift;
+    cat ${*:--} | cfsuse $ftof | functions | printed
+}
+isWpL () 
+{ 
+    set -- $(cat $1 | wc -lw);
+    [[ $1 -eq $2 ]]
+}
+latestFN () 
+{ 
+    ls $HOME/.20* | tail -1
+}
+oneInTwo () 
+{ 
+    cat ${*:--} | tr ' ()/-' _ | sed 's/__/_/g' | cawk '{  print $1 > $2 ".csv" }'
+}
+pickf () 
+{ 
+    source $1;
+    for f in $(functions $1);
+    do
+        ( fbdy $f;
+        echo -n "keep? " ) > /dev/tty;
+        read a < /dev/tty;
+        [[ $a == "y" ]] && echo $f;
+    done
+}
+qf () 
+{ 
+    set | functions | grep -i ${1:-fun}
+}
+self_ref () 
+{ 
+    eval "$1 () { \${1:-echo} $*; }"
+}
+smartF () 
+{ 
+    eval " $1 () { \${*:-echo} $2; }"
+}
+tab () 
+{ 
+    echo '	'
+}
+trimout () 
+{ 
+    bkup .${1%.txt}.out;
+    comm -23 - $1 | tee .${1%.txt}.out
+}
+undotf () 
+{ 
+    mkdir -p .dot;
+    for f in $(onlyfiles .*);
+    do
+        ln $f .dot/${f#?};
+    done
+}
+programlib_init
+trimffrom () 
+{ 
+    [[ -f $1 ]] || { 
+        comment ... library function;
+        return
+    };
+    source $1;
+    bkup $1;
+    ( fbdy $(functions $1| grep -v "^$2\$");
+    echo ${1}_init ) > .$1.$$;
+    mv .$1.$$ $1
 }

@@ -5,7 +5,8 @@ canonlib ()
     bkup $f;
     ( fbdy $(functions $f | ${*:-cat});
     echo ${f}_init ) > .y;
-    mv .y $f
+    mv .y $f;
+    bkup $f
 }
 fixlib () 
 { 
@@ -31,24 +32,24 @@ edsave ()
 { 
     vi $1;
     bkup $1;
-    source $1
+    source $1;
     logUse fixlib.edsave sourced $1
 }
 fixlib_idea () 
 { 
     echo "\"source newlib\" is way too generic for this library"
 }
-fixapp_init ()
-{
+fixapp_init () 
+{ 
     fixlib_help;
-    mkdir -p .names
+    mkdir -p .names;
     integ_doc 1>&2
 }
 fixlib_init () 
 { 
     source blib;
-    logUse fixlib sourced blib
-    logUse fixlib uses programlib
+    logUse fixlib sourced blib;
+    logUse fixlib uses programlib;
     fixapp_init
 }
 fixlib_help () 
@@ -91,7 +92,7 @@ samef ()
 savlibf () 
 { 
     source $1 2> /dev/null;
-    logUse  fixlib.savlibf sourced $1
+    logUse fixlib.savlibf sourced $1;
     foreachi sav1f $1 $(samef .$1 .$2)
 }
 integA () 
@@ -114,7 +115,7 @@ integA ()
 integ_doc () 
 { 
     comment "# Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 092755
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0625 161030;
     cat  <<'EOF'
 
     usage: integA libA libB
@@ -153,13 +154,8 @@ ffinlib ()
     ffun $1;
     fbdy $1 | append $(itsLib $1 )
 }
-fbdy () 
-{ 
-    declare -f ${*:-fbdy}
-}
 forgotAppend () 
 { 
     cat .bak/$1 $1 > .y;
     mv .y $1
 }
-fixlib_init

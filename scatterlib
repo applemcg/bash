@@ -72,6 +72,9 @@ antoken ()
 }
 scatterlib_init () 
 { 
-    source programlib
+    source programlib 2> /dev/null;
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0701 163501;
+    comment "Copyright (C) 2005-2012, JYATL, Just Yet Another Testing Lab"
+    comment $(functions scatterlib | grep man)
 }
 scatterlib_init
