@@ -12,7 +12,7 @@ mkdo ()
 }
 bkapp_init () 
 { 
-    comment "# Copyright (C) 2007-2012 Just Yet Another Testing Lab";
+    comment "# Copyright (C) 2007-2013 Just Yet Another Testing Lab";
     comment "mailto:mcgowan@alum.mit.edu";
     testarg isdirectory d;
     testarg exists e;

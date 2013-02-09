@@ -300,3 +300,8 @@ EOF
 
 }
 qvslib_init
+lastestDir () {  echo $1/$(ls –t $1 | sed 1q); }
+latestVer ()
+{
+    foreach lastestDir $(find $* -type –name .ver)
+}

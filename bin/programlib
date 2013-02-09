@@ -152,7 +152,7 @@ programlib_init ()
 { 
     comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0714 230448;
+    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0715 111143;
     obsolescent file_test fileTest;
     obsolescent piped pipe;
     obsolescent is_a_function isfunction;
@@ -806,11 +806,8 @@ trimffrom ()
 }
 functions_users () 
 { 
-    ignore pushd ~/bin;
-    for l in *lib;
-    do
-        cgrepf functions $l | sed "s/^/$l$(tab)/";
-    done | sort | tee .functions.used | field 2 | sort -u | grep -v _doc;
+    ignore pushd ~/bash-functions;
+    cgrepf functions *lib | awk '$1 !~ /_doc$/ && ! p[$1]++ { print $1 }';
     ignore popd
 }
 programlib_init

@@ -37,6 +37,17 @@ AUTHOR
 EOF
 
 }
+scatterlib_init () 
+{ 
+    source programlib 2> /dev/null;
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0701 163501;
+    comment "Copyright (C) 2005-2012, JYATL, Just Yet Another Testing Lab"
+    comment $(functions scatterlib | grep man)
+}
+antoken () 
+{ 
+    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$'
+}
 scatter () 
 { 
     cat ${*:--} | antoken | awk '
@@ -55,9 +66,9 @@ function outwdat( fmt2, w) {
 	printf fmt2, count[w], w, avgsq[w];
 }
 function upd( word, d) { sumsq[word] += d*d; totalsmsq += d*d; }
-function favg( w, n)  {
-	if(n > 1) {
-		avgsq[w] = sumsq[w] /(n - 1)
+function favg( w, num)  {
+	if(num > 1) {
+		avgsq[w] = sumsq[w] /(num - 1)
 	}
 }
 	{ 
@@ -65,16 +76,5 @@ function favg( w, n)  {
 		last[$1] = NR
 	}
 '
-}
-antoken () 
-{ 
-    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$'
-}
-scatterlib_init () 
-{ 
-    source programlib 2> /dev/null;
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0701 163501;
-    comment "Copyright (C) 2005-2012, JYATL, Just Yet Another Testing Lab"
-    comment $(functions scatterlib | grep man)
 }
 scatterlib_init

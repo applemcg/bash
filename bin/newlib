@@ -343,10 +343,6 @@ mktht ()
         tchtm $r;
     done
 }
-nhistory () 
-{ 
-    history | sed 's/^ *[0-9]* *//' | grep -v history
-}
 peekd () 
 { 
     ignore pushd .;
