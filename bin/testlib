@@ -1,43 +1,98 @@
-bitmeld () 
+ftrim () 
 { 
-    pushd ${1:-.} > /dev/null;
-    while true; do
-        for dir in src bin include tmp man etc lib doc;
-        do
-            [[ -d $dir ]] && break 2;
-        done;
-        cd ..;
-        case $PWD in 
-            /)
-                break
-            ;;
-        esac;
-    done;
-    pwd;
-    popd > /dev/null
-}
-testlib_init () 
-{ 
-    source newlib 2> /dev/null;
-    tsystem $(system)
-}
-tsystem () 
-{ 
+    function error () 
+    { 
+        echo $* 1>&2;
+        exit
+    };
+    function existing () 
+    { 
+        [[ -f $1 ]]
+    };
+    function anylib () 
+    { 
+        existing $1 || { 
+            error No Function library $1
+        };
+        source $1;
+        functions $1 | tee .$1.ord | sort > .$1.a2z
+    };
+    function tolib () 
+    { 
+        fbdy $(< .$1.ord);
+        echo ${1}_init
+    };
+    function fromlib () 
+    { 
+        fbdy $(fgrep -v -f .$1.not .$1.ord | tee .$1.lst);
+        echo ${1}_init
+    };
+    function mvreport () 
+    { 
+        comment "changes to $2";
+        diff $2 .$2.new 1>&2;
+        comment ...;
+        comment $1 is giving up:;
+        diff .$1.ord .$1.lst 1>&2;
+        comment;
+        comment "orignal function count:";
+        wc -l .*.ord | grep -v total 1>&2;
+        comment ...;
+        comment "next function count:";
+        wc -l .$1.lst .$2.ord | grep -v total 1>&2
+    };
+    function bothlib ()
+    {
+        tolib $2 > .$2.new;
+	comm -12 .$1.a2z .$2.a2z > .$1.not;
+        fromlib $1 > .$1.new;
+        mvreport $1 $2
+	echo bkup $1 $2;
+        echo cp .$1.new $1;
+        echo cp .$2.new $2;
+        echo bkup $1 $2
+    };
+    function fromto () 
+    { 
+        anylib $2;
+        anylib $1;
+	bothlib $*
+    }
+    function deleab () 
+    { 
+        anylib $1;
+        anylib $2;
+	bothlib $*;
+    };
     case $1 in 
-        Cygwin.*.*)
-            echo cygwin $1
-        ;;
-        *)
-            echo NOT Cyt $1
-        ;;
-    esac;
-    case $1 in 
-        *.*.eec-net)
-            echo EEC-NET $1
-        ;;
-        *)
-            echo NOT eec $1
-        ;;
+    (delab|fromto) $1 $2 $3;;
+    (*)  movef_help;;
     esac
 }
-testlib_init
+movef_help () 
+{ 
+    comment ftrim fromto alib blib;
+    comment takes common functions from alib to blib    
+    comment ftrim deleab alib blib;
+    comment takes deletes common functions from alib in behalf of blib functions
+}
+movef_init () 
+{ 
+    movef_help
+}
+mydups () 
+{ 
+    foreach dowhf $(functions $1) | field 1 | sort | uniq -c | awk '$1 >1 { print $2}'
+}
+dowhf () 
+{ 
+    whf $1 | sed "s/^/$1 /"
+}
+bothcopies () 
+{ 
+    source $1;
+    fbdy $3;
+    source $2;
+    fbdy $3
+}
+movef_init

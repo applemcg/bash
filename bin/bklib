@@ -50,7 +50,6 @@ sameas ()
 { 
     [[ -f $1 && -f $2 && $(cat $1|wc -c) -eq $(cat $2|wc -c) ]]
 }
-bklib_init
 obsf () 
 { 
     f=${1:-/dev/null};
@@ -61,3 +60,8 @@ obsf ()
     rm -f $f;
     cd ..
 }
+testarg () 
+{ 
+    eval "$1() { [[ -$2 \$1 ]]; }"
+}
+bklib_init

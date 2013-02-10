@@ -1,73 +1,59 @@
-nnfns () 
-{ 
-    fbdy $(functions $1 | sed ${2}q | tail -${3:-20}; )
-}
-savef () 
-{ 
-    fbdy $* | T append
-}
 _cflist () 
 { 
     functions $1 | sort -u > .$1
+}
+append () 
+{ 
+    tee -a $1
 }
 cfl () 
 { 
     foreach _cflist $*;
     doit comm $3 .$1 .$2
 }
+dirstack_ref () 
+{ 
+    ${1:-echo} dirstack_ref nipd rotd swapd dupd cleandirlist
+}
 ht () 
 { 
     history | tail -${1:-24}
 }
-pdx () 
+is () 
 { 
-    pushd "$(dirname "$*")"
-}
-todaysF () 
-{ 
-    set -- ${*:-$HOME/.$(today)};
-    fbdy $(gh '()' | nhn | functions) | tee -a $1;
-    fbdy $(functions $1) > .y;
-    mv .y $1
-}
-trimthru () 
-{ 
-    sed "s/.*$1/$1/"
+    [[ $# -gt 1 ]] && { 
+        eval _is_$1="$2"
+    };
+    eval echo \$_is_$1
 }
 lastf () 
 { 
     gh "$1 *()" | tail -1
 }
-rotd () 
+lastfuns () 
 { 
-    set -- $(peekd);
-    [[ $# -lt 4 ]] && { 
-        peekd;
-        comment "need > 3";
-        return
-    };
-    ignore popd;
-    ignore popd;
-    ignore popd;
-    eval ignore pushd "$2";
-    eval ignore pushd "$1";
-    eval pushd "$3"
+    ls $(ETCLIB)/.20* | grep -v '[#~]$' | tail -1
 }
-swapd () 
+logUse () 
 { 
-    set -- $(peekd);
-    ignore popd;
-    eval cd $1;
-    eval pushd $2
+    date "+%Y_%m%d_%H%M%S $*" >> $(LOGUSE)
+}
+nnfns () 
+{ 
+    fbdy $(functions $1 | sed ${2}q | tail -${3:-20}; )
+}
+pdx () 
+{ 
+    pushd "$(dirname "$*")"
 }
 refreshT () 
 { 
     [[ "$(lastfuns)" == "$(T)" ]] && return;
     fbdy $(functions $(lastfuns)) | T append
 }
-append () 
+savef () 
 { 
-    tee -a $1
+    fbdy $* | T append
 }
 smartf () 
 { 
@@ -75,52 +61,24 @@ smartf ()
 }
 smartflib_init () 
 { 
-    source programlib;
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0713 144605;
-    smartf T '$HOME/.$(today)';
-    smartf smartflib $HOME/bin/smartflib
+    source bootlib;
+    sourceOneTime programlib 2> /dev.null;
+    sourceOneTime dirlib 2> /dev.null;
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0907 120048;
+    smartf ETCLIB $HOME/etc/lib;
+    smartf T $(ETCLIB)/.$(today);
+    smartf smartflib $HOME/bin/smartflib;
+    smartf LOGUSE $HOME/lib/logUse
 }
-lastfuns () 
+todaysF () 
 { 
-    ls $HOME/.20* | grep -v '[#~]$' | tail -1
+    set -- ${*:-$(ETCLIB)/.$(today)};
+    fbdy $(gh '()' | nhn | functions) | tee -a $1;
+    fbdy $(functions $1) > .y;
+    mv .y $1
 }
-nipd () 
+trimthru () 
 { 
-    ignore swapd;
-    popd
-}
-dupd () 
-{ 
-    pushd .
-}
-cleandirlist () 
-{ 
-    wpd=;
-    rpd=;
-    for d in $(peekd);
-    do
-        case $wpd in 
-            *":$d:"* | *":$d" | "$d:"*)
-
-            ;;
-            *)
-                wpd="$d:$wpd";
-                rpd="$d $rpd"
-            ;;
-        esac;
-        popd > /dev/null 2>&1;
-    done;
-    set -- $rpd;
-    eval cd $1;
-    shift;
-    for d in $*;
-    do
-        eval pushd $d > /dev/null;
-    done;
-    peekd
-}
-dirstack_ref () 
-{ 
-    ${1:-echo} dirstack_ref nipd rotd swapd dupd cleandirlist
+    sed "s/.*$1/$1/"
 }
 smartflib_init

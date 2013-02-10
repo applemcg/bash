@@ -1,6 +1,21 @@
-functions () 
+programlib_init () 
 { 
-    cat ${*:--} | grep -v '^[ 	]' | sed 's/()/ & /' | awk '$1 ~ /^[a-zA-Z0-9_]*$/ && $2 ~ /\(\)/' | printfirst | field 1
+    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    source bootlib;
+    obsolescent file_test testarg;
+    obsolescent fileTest testarg;
+    obsolescent piped pipe;
+    obsolescent is_a_function isfunction;
+    setenv AWK $(getawk);
+    testarg empty z;
+    testarg executable x;
+    testarg existingdir d;
+    testarg exists e;
+    testarg existingfile f;
+    testarg nonempty s;
+    testarg writeable w;
+    self_ref programlib_eval myfunctions obsolescent rlib testarg self_ref
 }
 stdout () 
 { 
@@ -22,46 +37,33 @@ comment ()
 }
 foreach () 
 { 
-    cmd=$1;
+    local cmd=$1;
     shift;
     for arg in "$@";
     do
         $cmd $arg;
     done
 }
-doit () 
-{ 
-    comment "$@";
-    $@
-}
 nonempty () 
 { 
-    [[ -s ${1:-/dev/null} ]]
+    [[ -s $1 ]]
 }
 shifted () 
 { 
     shift;
     echo "$@"
 }
-rlib_comment () 
-{ 
-    cat  <<EOF
- EDIT MARK -- have to do a better job with this.  sourceing 
-    has to be free of "PWD = ~/bin" dependency
-EOF
-
-}
 liblib_obsolescent () 
 { 
     foreach rlib $(liblib_users)
 }
+Mkdir () 
+{ 
+    doit mkdir -p $*
+}
 ignore () 
 { 
     "$@" > /dev/null
-}
-fbdy () 
-{ 
-    declare -f ${*:-fbdy}
 }
 setenv () 
 { 
@@ -74,10 +76,6 @@ libfunc ()
      $2 ~ /^\(\)$/ && printed[$1]++ < 1	{ print $1 }
      '
 }
-subcmds () 
-{ 
-    fbdy $1 | grep ')$' | sed 's/^  *//; s/.$//'
-}
 obsolescent () 
 { 
     eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"
@@ -86,109 +84,13 @@ nonUnderscore ()
 { 
     grep -v _ $*
 }
-fUses () 
-{ 
-    isfunction ${1}_uses && echo $1 $( ${1}_uses )
-}
-fDoc () 
-{ 
-    isfunction ${1}_doc && ${1}_doc
-}
-programlib_doc () 
-{ 
-    cat  <<EOF
-	 
-     programlib \[arg\] performs functions on arguments defined in the library
-
-     basename a/long/path/to/file returns file 
-
-     dated ... formats ... with a sortable YYYY-MM-DD HH:mm:ss  date  for logging
-     dirname a/long/path/to/file returns a/long/path/to
-     doit evaluates (executes) the arguments
-
-     error comments and exits with Number of Arguments
-
-     fbdy ... displays ... function bodies defaulting to fbdy itself
-     field N ... returns the Nth field from the file arguments defaulting to STDIN; "USAGE: indir directory cmd ..."
-     fileTest name x creates a new function name, excuting the file test argument
-     foreach cmd arg ... executes cmd on successive args
-     foreachi cmd arg0 args ... executes cmd arg0 on successive args
-     functions lib ... lists canonical function names in lib ...
-
-     getawk finds preferred AWK program	 
-
-     ignore executes a command and ignores the result. used to preserve comments	 
-     intersection f1 \[f2 -\] reports the intersection of the lists f1 and f2
-     isfunction returns the truth of the argument being a function     libfunc trims a search for function names into just the names
-
-     logUse  ...  stores ... in a usage log
-     logLog cmd   excutes cmd (defaulting to echo) on the logfile
-
-     nava prints the NAME and the VALUE of the shell variable
-     newest target file ... is; TRUE when the target is newer than the file ... arguments
-     nonUnderscore \[file ... \]removes lines with underscores from the input    
-
-     obsolescent old new declares the old function obsolescent in behalf new	 
-
-     pipe cmmb cmmda ... pipes cmmds .. to cmmdb	
-     printfirst prints only the first occurence of lines based on the first field     not cmmd returns FALSE if cmmd is true. vice versa
- 
-     setenv NAME value sets NAME into the Environment with value
-     shifted arg1 arg2 ... returns arg2 ...
-     shift2 arg1 arg2 arg3 ... returns arg3 ...
-     stdout file cmmd args ... stores cmmd args ... in file	 
-     subcmds ...lib returns sub-commands from a ...lib function library
-     subtract f1 \[f2 - \] subtracts the list f2 from f1
-
-     toupper transliterats STDIN to UPPER case
-     tolower transliterats STDIN to lower case
-
-     wh cmmd returns PATHname of cmmd defending against ugly BSD which
-     wpl file ... seprates file ... contents to one Word Per Line
-EOF
-
-}
-programlib_init () 
-{ 
-    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0715 111143;
-    obsolescent file_test fileTest;
-    obsolescent piped pipe;
-    obsolescent is_a_function isfunction;
-    logUse programlib;
-    setenv AWK $(getawk);
-    fileTest empty z;
-    fileTest executable x;
-    fileTest existingdir d;
-    fileTest existingfile f;
-    fileTest nonempty s;
-    fileTest writeable w;
-    ( fbdy programlib_init;
-    programlib_doc ) 1>&2
-}
 generic_lib () 
 { 
     lib=${1:-programlib};
     case $2 in 
-        "")
-            libfunc $($lib location)/$lib
-        ;;
-        location)
-            echo $BASE/bin
-        ;;
         init)
             copyrightNotice;
             ${lib}_init
-        ;;
-        doc)
-            foreach fDoc $($lib|nonUnderscore)
-        ;;
-        uses)
-            foreach fUses $($lib|nonUnderscore)
-        ;;
-        subcmds)
-            subcmds $lib
         ;;
         start)
             $lib init;
@@ -200,43 +102,8 @@ generic_lib ()
             comment --------------------;
             comment "e.g. fbdy"
         ;;
-        general)
-            $lib | sed -n 1,/_init/p | grep -v $lib;
-            $lib | grep $lib
-        ;;
-        install)
-            [[ -d $3 ]] || { 
-                comment "$0 install {dir}; $3 is NOT a directory";
-                return
-            };
-            [[ -f .$lib ]] || { 
-                comment "$0 install {dir}; NO .$lib in $PWD";
-                return
-            };
-            cd $($lib location);
-            cp $(< .$lib) $3
-        ;;
-        export)
-            fbdy $($lib general) | sed "s/$lib/exportlib/g"
-        ;;
-        restore)
-            fbdy $($lib);
-            grep '^comment.*--' $lib;
-            echo generic_lib $lib start
-        ;;
         *)
             $lib help
-        ;;
-    esac
-}
-programlib () 
-{ 
-    case $1 in 
-        location)
-            echo $BASE/bin/
-        ;;
-        *)
-            generic_lib programlib $*
         ;;
     esac
 }
@@ -255,7 +122,7 @@ error ()
 }
 foreachi () 
 { 
-    par="$1 $2";
+    local par="$1 $2";
     shift 2;
     for a in "$@";
     do
@@ -280,15 +147,18 @@ not ()
 }
 dirname () 
 { 
-    echo ${1%/*}
+    case $1 in 
+        */*)
+            echo ${1%/*}
+        ;;
+        *)
+            echo .
+        ;;
+    esac
 }
 basename () 
 { 
     echo ${1##*/}
-}
-fileTest () 
-{ 
-    eval "$1() { [[ -$2 \${1:-/dev/null} ]]; }"
 }
 newest () 
 { 
@@ -303,7 +173,7 @@ newest ()
 }
 wpl () 
 { 
-    cat ${*:--} | tr -cs "[A-Z][a-z][0-9]_" '[\012*]'
+    cat ${*:--} | /usr/bin/tr -cs "[A-Z][a-z][0-9]_" '[\012*]'
 }
 toupper () 
 { 
@@ -312,10 +182,6 @@ toupper ()
 tolower () 
 { 
     tr '[A-Z]' '[a-z]'
-}
-intersection () 
-{ 
-    cat ${2:--} | sort -u | comm -12 $1 -
 }
 subtract () 
 { 
@@ -332,10 +198,6 @@ indir ()
     $@;
     ignore popd
 }
-isfunction () 
-{ 
-    typeset -f $1 > /dev/null
-}
 nava () 
 { 
     eval echo $1 \$$1
@@ -343,10 +205,6 @@ nava ()
 printfirst () 
 { 
     awk 'printed [$1]++ < 1' $*
-}
-programlib_loaded () 
-{ 
-    return
 }
 cleanlib () 
 { 
@@ -365,6 +223,15 @@ programIdea ()
 { 
     echo "remove the _uses in behalf of uses function, has ..."
 }
+de () 
+{ 
+    f=/tmp/de.$$;
+    rm -f $f;
+    ${EDITOR:-vi} $f;
+    ( _de_hdr;
+    cat $f .diary ) > .y.$$;
+    mv .y.$$ .diary
+}
 fnames () 
 { 
     [[ -d .names ]] || mkdir -p .names;
@@ -372,442 +239,157 @@ fnames ()
     libfunc $* | tee .names.$suf | sort -u > .names/$suf;
     cat .names.$suf && rm -f .names.$suf
 }
+system () 
+{ 
+    uname -s
+}
+uc () 
+{ 
+    tr a-z A-Z
+}
 lc () 
 { 
     cat ${*:--} | tr '[A-Z]' '[a-z]'
-}
-newer () 
-{ 
-    existing $1 || return 1;
-    set -- $(ls -drt $* | awk "
-        printing > 0    { print; next }
-        \$1 ~ /^$1\$/   { printing++ }");
-    echo $* 1>&2;
-    return $#
-}
-cpfmto () 
-{ 
-    doit cp -f $1 $2;
-    if test -f $2; then
-        domode $2 $3;
-    else
-        domode $2/$1 $3;
-    fi
-}
-piped () 
-{ 
-    comment OBSOLESCENT in behalf of pipe;
-    pipe $@
-}
-dated () 
-{ 
-    date +"%F %T %a%t$*"
-}
-logUse () 
-{ 
-    dated $* >> ~/lib/logUse.txt
-}
-logLog () 
-{ 
-    eval "${*:-echo}" ~/lib/logUse.txt
-}
-dirfile () 
-{ 
-    case $1 in 
-        */*)
-            dirname $1
-        ;;
-        *)
-            echo .
-        ;;
-    esac
 }
 today () 
 { 
     date +%Y%m%d
 }
-HHMMSS () 
-{ 
-    echo $(today)_$(hhmmss)
-}
-hhmmss () 
-{ 
-    date +%H%M%S
-}
-onlyfiles () 
-{ 
-    for arg in $*;
-    do
-        [[ -f $arg ]] && echo $arg;
-    done
-}
-namevalue () 
-{ 
-    eval "$1() { _doesnava $1 \$1; }"
-}
-_doesnava () 
-{ 
-    case $2 in 
-        "")
-            eval echo \$nava_$1
-        ;;
-        *)
-            eval nava_$1=$2
-        ;;
-    esac
-}
-loaded () 
-{ 
-    for f in $(set | grep '_init () *$' | sed 's/ ().*//');
-    do
-        whf $f;
-    done | sed 's/ .*//'
-}
-is () 
-{ 
-    [[ $# -lt 1 ]] && { 
-        echo "is name [value]" 1>&2
-    };
-    [[ $# -lt 2 ]] && eval echo \$$1 || setenv $1 $2
-}
-obsf () 
-{ 
-    f=${1:-/dev/null};
-    bkup $f;
-    rm -f $f;
-    cd .bak;
-    bkup $f;
-    rm -f $f;
-    cd ..
-}
-tolib () 
-{ 
-    f=$1;
-    shift;
-    [[ -f $f ]] || { 
-        echo no Library $f 1>&2;
-        return
-    };
-    fbdy $* | tee -a $f
-}
-duplicates () 
-{ 
-    foreach whf $(functions *) | field 2 | sort | uniq -c | awk '$1 > 1 { print $2 }' | tee .duplicates
-}
-_cflist () 
-{ 
-    functions $1 | sort -u > .$1
-}
-cfl () 
-{ 
-    foreach _cflist $*;
-    doit comm $3 .$1 .$2
-}
-ht () 
-{ 
-    history | tail -${1:-24}
-}
-lastf () 
-{ 
-    gh "$1 *()" | tail -1
-}
-nnfns () 
-{ 
-    fbdy $(functions $1 | sed ${2}q | tail -${3:-20}; )
-}
-pdx () 
-{ 
-    pushd "$(dirname "$*")"
-}
-printed () 
-{ 
-    awk 'printed[$0]++ < 1' $*
-}
-rotd () 
-{ 
-    set -- $(peekd);
-    [[ $# -lt 4 ]] && { 
-        peekd;
-        comment "need > 3";
-        return
-    };
-    ignore popd;
-    ignore popd;
-    ignore popd;
-    eval ignore pushd "$2";
-    eval ignore pushd "$1";
-    eval pushd "$3"
-}
-tawk () 
-{ 
-    awk -F"\t" "$@"
-}
-todaysF () 
-{ 
-    set -- ${*:-$HOME/.$(today)};
-    fbdy $(gh '()' | nhn | functions) | tee -a $1;
-    fbdy $(functions $1) > .y;
-    mv .y $1
-}
-trimthru () 
-{ 
-    sed "s/.*$1/$1/"
-}
-tab2sp () 
-{ 
-    sed 's/[ 	][	]*/ /' $*
-}
-popl () 
-{ 
-    sort $* | uniq -c
-}
-fofg () 
-{ 
-    sed 's/:.*//' $* | sort -u
-}
-dfr () 
-{ 
-    df | sed 's/ .*:/ /' | awk '$2 > 0 {
-		printf "%14s \t %5.1f %9d %9d\n", $1, 100*$4/$2, $2, $4
-	}'
-}
-fieldNum () 
-{ 
-    _csvFields $1 | wpl | pr -t -n | while read nf fname; do
-        echo ${fname}_n=$nf;
-    done
-}
-mkcksum () 
-{ 
-    grep -v " $4\$" .cksum;
-    echo $*
-}
-fileck () 
-{ 
-    _mkcksum $(date '+%y%m%d.%H%M%S'; cksum $1)
-}
-_mkcksum () 
-{ 
-    mkcksum $* > .x && mv .x .cksum
-}
-g2vi () 
-{ 
-    IFS=':';
-    while read file line stuff; do
-        echo view +$line $file;
-    done
-}
-nth () 
-{ 
-    awk "NR == $1 { print; exit; }"
-}
-_ffb () 
-{ 
-    eval echo $1 \$_fname_$1
-}
-inlast () 
-{ 
-    find ${2:-.} -type f -mtime -${1:-1}
-}
-prove () 
-{ 
-    date;
-    pwd;
-    doit "$@"
-}
-butnot () 
-{ 
-    egrep -v "$@"
-}
-sp2tab () 
-{ 
-    sed 's/  */	/' $*
-}
-spS2tab () 
-{ 
-    sed 's/  */	/g' $*
-}
-tabS2sp () 
-{ 
-    sed 's/[ 	][	]*/ /g' $*
-}
-cronl () 
-{ 
-    crontab -l | tabS2sp | sort -u +1 | sp2tab | sp2tab | awk -F'	' '{ printf "%02d %02d %s\n", $1, $2, $3 }'
-}
-vis () 
-{ 
-    _slib vi $1;
-    reme $1
-}
-viewer () 
-{ 
-    setenv VIEW ${1:-view}
-}
-dossyname () 
-{ 
-    sed 's/ /\\&/g'
-}
-onlyAN () 
-{ 
-    tr -cs '[:alnum:]' '[ *]'
-}
-filesin () 
-{ 
-    find ${*:-.} -type f -print | dossyname
-}
-_dosharch () 
-{ 
-    echo "cat<<\"EOF_$1\" > $1";
-    cat $1;
-    echo "EOF_$1"
-}
-_sharhead () 
-{ 
-    echo "# Execute this File"
-}
-_shartail () 
-{ 
-    echo "[[ -f $1 ]] && { chmod +x $1; cat $1; echo bash $1; }"
-}
-_sharchive () 
-{ 
-    [[ -f $1 ]] && doit _dosharch $1
-}
-shar () 
-{ 
-    _sharhead;
-    foreach _sharchive $*;
-    _shartail install.sh
-}
-mkinstall () 
-{ 
-    ( grep -v '^comment' $1;
-    echo comment INFOLIB $(date) ) > $2;
-    mv $2 $1
-}
-fullshar () 
-{ 
-    mkinstall install.sh /tmp/mkins.$$;
-    nshar install.sh $*
-}
-nshar () 
-{ 
-    _sharhead;
-    foreach _sharchive $*;
-    _shartail $1
-}
-libver () 
-{ 
-    grep '^comment' install.sh
-}
-trimTclArray () 
-{ 
-    sed 's/.*(//; s/}$//; s/{//; s/)[ 	][ 	]*/	/' $*
-}
-rdsDate () 
-{ 
-    date '+%Y%m%d %T.000000 -0500s'
-}
-ppc () 
-{ 
-    ( IFS='[:;]';
-    for p in ${1:-$PATH};
-    do
-        echo $p;
-    done )
-}
-logup () 
-{ 
-    ( prove $* 2>&1 ) >> /tmp/upgrade/$LOGNAME/update
-}
-envname () 
-{ 
-    eval "$1() { setenv $2 \$1; }"
-}
-allfunctions () 
-{ 
-    functions $1 | sed "s/^/$1 /"
-}
-cawk () 
-{ 
-    awk -F, "$@"
-}
-fsuse () 
-{ 
-    ftof=$1;
-    shift;
-    cat ${*:--} | cfsuse $ftof | functions | printed
-}
-isWpL () 
-{ 
-    set -- $(cat $1 | wc -lw);
-    [[ $1 -eq $2 ]]
-}
-latestFN () 
-{ 
-    ls $HOME/.20* | tail -1
-}
-oneInTwo () 
-{ 
-    cat ${*:--} | tr ' ()/-' _ | sed 's/__/_/g' | cawk '{  print $1 > $2 ".csv" }'
-}
-pickf () 
-{ 
-    source $1;
-    for f in $(functions $1);
-    do
-        ( fbdy $f;
-        echo -n "keep? " ) > /dev/tty;
-        read a < /dev/tty;
-        [[ $a == "y" ]] && echo $f;
-    done
-}
-qf () 
-{ 
-    set | functions | grep -i ${1:-fun}
+programlib_doc () 
+{ 
+    cat  <<'EOF'
+	-- programlib defines: 
+auname	--
+basename	-- file portion of the argument, see dirname
+cleanlib	--
+comment	-- echos to the standard error
+copyrightNotice	--
+de	--
+dirname	-- the directory portion of the argument, default "."
+doit	-- comment, then eval
+error	-- comment, then exit
+field	-- the Nth blank-separated field
+fnames	--
+foreach	-- ~ cmd ...   execuctes  "cmd" on each arg
+foreachi	-- ~ cmd One arg ... executes "cmd One" on each arg
+generic_lib	--
+getawk	-- who's your "awk"
+ignore	-- executes command, disposing stdout
+indir	-- ~ DIR cmd ...  executes "cmd ..." in DIR
+isfunction	-- true if argument is a function
+lc	-- Lower Case, see tolower, toupper, uc
+libfunc	--
+libfunctions	--
+liblib_obsolescent	--
+Mkdir	-- 
+myfunctions	-- CONSTRUCTOR: ~ alib [drive B], is alias for "functions alib"
+nava	-- NAme VAlue 
+newest	-- ~ FileA fileb ...  TRUE, when filea is the newest
+nonempty	--
+nonUnderscore	--
+not	-- ~ cmd ... inverts logical sense of the cmd ...
+obsolescent	--
+pipe	-- 
+printfirst	-- prints first occurrence of line of text
+programIdea	--
+programlib_init	--
+run_test	--
+self_ref	-- CONSTRUCTOR: namea nameb ...  "namea" lists namea ... z
+setenv	-- ~ NAME Value,   just like the csh built-in
+shift2	-- ~ a b c d e ... returns "c d e ..."
+shifted	-- ~ a b c d e ... returns "b c d e ..."
+stdout	-- ~ arg cmd args ...  "cmd args ... > arg"
+subtract	-- set subtraction 2nd list from first with comm -23
+system	-- uname -s
+testarg	-- CONSTRUCTOR: ~ name [a-z]; creates "name", function uses test arg
+today	-- YYMMDD
+tolower	--
+toupper	--
+uc	-- Upper Case	--
+wh	-- which 	--
+wpl	-- Words Per Line	--
+
+EOF
+
 }
 self_ref () 
 { 
     eval "$1 () { \${1:-echo} $*; }"
 }
-smartF () 
+bitbucket () 
 { 
-    eval " $1 () { \${*:-echo} $2; }"
+    eval $@ 2> /dev/null
 }
-tab () 
+onlyfiles () 
 { 
-    echo '	'
-}
-trimout () 
-{ 
-    bkup .${1%.txt}.out;
-    comm -23 - $1 | tee .${1%.txt}.out
-}
-undotf () 
-{ 
-    mkdir -p .dot;
-    for f in $(onlyfiles .*);
+    for arg in ${*:-*};
     do
-        ln $f .dot/${f#?};
+        [[ -f $arg ]] && echo $arg;
     done
 }
-trimffrom () 
+onlydirs () 
 { 
-    [[ -f $1 ]] || { 
-        comment ... library function;
-        return
-    };
-    source $1;
-    bkup $1;
-    ( fbdy $(functions $1| grep -v "^$2\$");
-    echo ${1}_init ) > .$1.$$;
-    mv .$1.$$ $1
+    for arg in ${*:-*};
+    do
+        [[ -d $arg ]] && echo $arg;
+    done
 }
-functions_users () 
+fmdos () 
 { 
-    ignore pushd ~/bash-functions;
-    cgrepf functions *lib | awk '$1 !~ /_doc$/ && ! p[$1]++ { print $1 }';
-    ignore popd
+    cat ${*:--} | tr -d '\015'
+}
+append () 
+{ 
+    tee -a $1
+}
+script_path () 
+{ 
+    function _scrpath_zero () 
+    { 
+        while ( [ -h "$1" ] ); do
+            set -- $(readlink "$1");
+        done;
+        pushd . > /dev/null;
+        cd $(dirname "$1");
+        pwd;
+        popd > /dev/null
+    };
+    _scrpath_zero ${BASH_SOURCE[0]}
+}
+defExe () 
+{ 
+    which $1 > /dev/null 2>&1 && echo $1 || echo $2
+}
+repeated () 
+{ 
+    count=${2:-2};
+    result=;
+    while [ $count -gt 0 ]; do
+        result=$result$1;
+        let count-=1;
+    done;
+    echo $result
+}
+popla () 
+{ 
+    sort -n | field 1 | uniq -c
+}
+mac2unix () 
+{ 
+    cat ${*:--} | tr '\r' '\n';
+    echo
+}
+collect_eval () 
+{ 
+    indir ~/bin cgrepf eval '*lib' | grep '1 *()' | field 1 | sort -u
+}
+foreachij () 
+{ 
+    local par="$1 $2 $3";
+    shift 3;
+    for a in "$@";
+    do
+        $par $a;
+    done
 }
 programlib_init

@@ -47,7 +47,8 @@ fixapp_init ()
 }
 fixlib_init () 
 { 
-    source blib;
+    source bootlib;
+    sourceOneTime blib;
     logUse fixlib sourced blib;
     logUse fixlib uses programlib;
     fixapp_init
@@ -114,8 +115,8 @@ integA ()
 }
 integ_doc () 
 { 
-    comment "# Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
-    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0714 230434;
+    comment "# Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
+    comment bkup: appleton.home./Users/applemcg/bin 2013_0117 153649;
     cat  <<'EOF'
 
     usage: integA libA libB
@@ -167,5 +168,20 @@ functions_users ()
         cgrepf functions $l | sed "s/^/$l$(tab)/";
     done | sort | tee .functions.used | field 2 | sort -u | grep -v _doc;
     ignore popd
+}
+foreach () 
+{ 
+    local cmd=$1;
+    shift;
+    for arg in "$@";
+    do
+        $cmd $arg;
+    done
+}
+canlib () 
+{ 
+    source $1;
+    fbdy $(functions $1);
+    echo ${2:-${1}_init}
 }
 fixlib_init

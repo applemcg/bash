@@ -57,14 +57,6 @@ eupLibTags ()
 { 
     redundantFunction | grep $1 | $AWK '{ print $1, $2 }' | wpl | sort -u
 }
-f () 
-{ 
-    $AWK '
-	{ e[$5 $2 $3 $7] = e[ $5 $2 $3 $7] " " $6 }
-END	{ for(n in e) printf "%s\t%s\n",  n, e[n] }
-
-' $*
-}
 f2l () 
 { 
     f=$($2 echo);
@@ -163,9 +155,8 @@ EOF
 }
 newlib_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/bash-functions 2012_0714 230438;
+    comment bkup: appleton.home./Users/applemcg/bin 2012_0905 133936;
     source programlib;
-    logUse newlib sourced programlib;
     lx_init;
     mkuBin;
     obsolescent toss_fnames tossFnames;
@@ -343,22 +334,9 @@ mktht ()
         tchtm $r;
     done
 }
-peekd () 
+nhistory () 
 { 
-    ignore pushd .;
-    popd
-}
-swapd () 
-{ 
-    set -- $(peekd);
-    eval ignore popd;
-    eval cd "$1";
-    eval pushd "$2"
-}
-nipd () 
-{ 
-    ignore swapd;
-    popd
+    history | sed 's/^ *[0-9]* *//' | grep -v history
 }
 procDef () 
 { 
@@ -419,24 +397,9 @@ uses ()
 { 
     labelfunct $* | wpl | whouses | sort -u | grep USES
 }
-whf () 
-{ 
-    grep "^$1 *()" *lib | sed 's/ .*//; s/:/ /'
-}
-copyright () 
-{ 
-    source $1;
-    ( fbdy copyrightNotice $(functions $1| grep -v copyrightNotice);
-    echo ${1}_init ) > $1.nxt;
-    comment new $1 in $1.nxt
-}
 hoy () 
 { 
     ${*:-echo} $(uBin)/.$(today)
-}
-gh () 
-{ 
-    history | grep $*
 }
 defaultInit () 
 { 
@@ -548,7 +511,7 @@ subna ()
 }
 system () 
 { 
-    echo $(uname -s) $(uname -r) $(uname -m) $(uname -n)
+    uname -s
 }
 tsh () 
 { 
@@ -631,13 +594,13 @@ shudBTcl ()
 }
 ffun () 
 { 
-    fbdy $1 > .y;
+    fbdy $* > .y;
     vi .y;
     source .y
 }
 fmdos () 
 { 
-    cat ${*:--} | tr -d '\r'
+    cat ${*:--} | tr -d '\015'
 }
 words () 
 { 
@@ -784,5 +747,20 @@ whenBiggerTo ()
 with_suf () 
 { 
     set | functions | grep _${1:-suf} | grep -v '^_' | sed 's/_.*//' | sort -u
+}
+sfg () 
+{ 
+    set | functions | grep -i $*
+}
+pitb () 
+{ 
+    sed 's/^/. /' $*
+}
+trimFidCash () 
+{ 
+    o=FidCash_$(today).csv;
+    [[ -f $o ]] && return;
+    awk -F, 'NF > 1 { printf "%s, %s, %s\n", $1, $2, $11 }' $* | tee $o;
+    [[ -f $1 ]] && echo rm -f *X70808808*
 }
 newlib_init

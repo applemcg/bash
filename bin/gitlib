@@ -4,7 +4,8 @@ gitapp_init ()
 }
 gitlib_init () 
 { 
-    source programlib 2> /dev/null;
+    source bootlib;
+    sourceOneTime programlib 2> /dev/null;
     gitapp_init
 }
 mods () 
@@ -19,10 +20,17 @@ findClean ()
 git_modified () 
 { 
     git status | awk '
-            /not staged/ {ready++}; 
+            /not staged/      {ready++};
+            /to be committed/ {ready++}; 
             #            { print "debug: ", ready, $0 }
             ready && ($2 ~ /^modified:$/) { print $3 }
+            ready && ($3 ~ /^file:$/)     { print $4 }
            '
+}
+git_remo () 
+{ 
+    git remote add origin git@github.com:applemcg/$(basename $PWD).git
+    git push -u origin master
 }
 git_push () 
 { 
@@ -32,4 +40,28 @@ git_add ()
 { 
     git add $(git_modified) $*
 }
+git_name () 
+{ 
+    ignore pushd .;
+    while [[ $PWD != "/" ]]; do
+        [[ -d .git ]] && { 
+            basename $PWD;
+            break
+        };
+        cd ..;
+    done;
+    ignore popd
+}
 gitlib_init
+git_list () 
+{ 
+    indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//';
+}
+git_help () 
+{ 
+    functions ~/bin/gitlib
+}
+git_files () 
+{ 
+    git ls-files $*
+}

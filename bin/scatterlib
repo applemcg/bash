@@ -1,52 +1,64 @@
-man_scatter () 
+scatter_man () 
 { 
     cat  <<EOF
-
+<title>
 scatter(1)                                                         scatter(1)
+</title>
+###	NAME 
 
-NAME -- scatter
+>	**scatter** -- detect the token "scatter" of an ascii text
 
-	detect the token "scatter" of an ascii text
+###	SYNOPSIS 
 
-SYNOPSIS 
-	source scatterlib   
-	scatter [ file ... ]
+>	$ source scatterlib   
 
-	scatter reads from the standard input or the named files on the
-	command line and computes a collective "scatter" function for the
-	input.  as a TOTAL, it also reports the number of separate tokens
-	and the total scatter for the input.
+>	$ scatter [ file ... ]
 
-	"scatter" is the sum of the squares of the separation of successive
-	appearance of an individual token,  where separation is measured
-	in units of tokens.  successive appearances of a single token have
-	a separation of 1.
+###	DESCRIPTION
 
-	a token is  the longest sequence of alphabetic and numeric characters,
+> scatter reads from the standard input or the named files on the
+	command line and computes a collective "scatter" function for
+	the input.  as a TOTAL, it also reports the number of separate
+	tokens and the total scatter for the input.
+
+>	**scatter** is the square root of the sum of the squares of the
+    separation of successive appearance of an individual token,
+    where separation is measured in units of tokens.  successive
+    appearances of a single token have a separation of 1.
+
+>	a token is  the longest sequence of alphabetic and numeric characters,
 	to include the underscore.
 
-BUGS
-	none known.
+###	BUGS
 
-USES
-	nothing -- self-contained bash.
+>	none known.
 
-AUTHOR
-	mcgowan@alum.mit.edu
+###	USES
+
+>	nothing -- self-contained bash.
+
+###	AUTHOR
+
+>	mcgowan@alum.mit.edu
 
 EOF
+}
+scatter_page () {
 
+     source pmkdnlib
+     mkd_page scatter
 }
 scatterlib_init () 
 { 
     source programlib 2> /dev/null;
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0701 163501;
-    comment "Copyright (C) 2005-2012, JYATL, Just Yet Another Testing Lab"
+
+    comment bkup: appleton.home./Users/applemcg/bin 2013_0116 165142;
+    comment "Copyright (C) 2005-2013, JYATL, Just Yet Another Testing Lab"
     comment $(functions scatterlib | grep man)
 }
 antoken () 
 { 
-    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$'
+    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$' | tee ontoken.txt 
 }
 scatter () 
 { 
@@ -58,12 +70,12 @@ END	{
 	for (w in sumsq) {
 		outwdat( fmt2, w)
 	}
-	printf fmt2,TWC, "_TOTAL",  totalsmsq/TWC
+	printf fmt2,TWC, "_TOTAL",  sqrt(totalsmsq/TWC)
 }
 function outwdat( fmt2, w) {
 	TWC++;
 	favg( w, count[w]);
-	printf fmt2, count[w], w, avgsq[w];
+	printf fmt2, count[w], w, sqrt(avgsq[w]);
 }
 function upd( word, d) { sumsq[word] += d*d; totalsmsq += d*d; }
 function favg( w, num)  {

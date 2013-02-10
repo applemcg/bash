@@ -31,23 +31,24 @@ shoot ()
 movielib_init () 
 { 
     source programlib 2> /dev/null;
-    comment "movielib: Copyright (C) 2102, Jyatl -- Just Yet Another Testing Lab";
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0623 162230
-    comment "shoot moviefile; sh moviefile.run "
+    comment "movielib: Copyright (C) 2012-2013, Jyatl -- Just Yet Another Testing Lab";
+    comment bkup: appleton.home./Users/applemcg/bin 2013_0117 153650;
+    comment movie_frames FILE,... then "movie .movie/*"
 }
-movielib_init
-nback () 
+movie_nback () 
 { 
     allback $1 | wc -l
 }
-allback () 
+movie_allback () 
 { 
     find .bak -name $1
 }
-mkmframes () 
+movie_frames () 
 { 
-    allback $1 | awk -F/ "BEGIN { frames = $(nback $1) + 2; }"'{ printf "%s %03d\n", $0, frames-NF }' | while read f n; do
+    [[ -d .movie ]] || mkdir .movie
+    movie_allback $1 | awk -F/ "BEGIN { frames = $(movie_nback $1) + 2; }"'{ printf "%s %03d\n", $0, frames-NF }' | while read f n; do
         ln $f .movie/$1.$n;
         echo $n;
     done
 }
+movielib_init
