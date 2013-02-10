@@ -49,6 +49,7 @@ EOF
 infolib_init () 
 { 
     source newlib 2> /dev/null;
+    source smartflib 2> /dev/null;
     comment bkup: appleton.home./Users/applemcg/bin 2012_0625 161339;
     logUse infolib sourced newlib;
     infobits_init;

@@ -1,7 +1,3 @@
-comment ()
-{
-	echo "$@" 1>&2
-}
 setpath () 
 { 
     function _presolve () 
@@ -11,6 +7,7 @@ setpath ()
         PWD=`pwd`;
         case $PATH in 
             *:$PWD:* | *:$PWD | $PWD:*)
+
             ;;
             *)
                 PATH=$PATH:$PWD;
@@ -53,97 +50,18 @@ require ()
     shift;
     bin=$1/bin;
     shift;
-    paths | grep $bin || return
-    set -- $(which $tool)
-    [[ "$1" == $bin/$tool ]] && return
+    paths | grep $bin || return;
+    set -- $(which $tool);
+    [[ "$1" == $bin/$tool ]] && return;
     setpath $bin
 }
 setpathlib_doc () 
 { 
     comment bkup: appleton.home./Users/applemcg/bin 2012_0527 091440
-    cat  <<\EOF | ${MORE:-more}
-
-setpathlib (1)              JYATL Tool Shed               setpathlib (1)  
-
-NAME
-
-  setpathlib -- set the Users PATH variable
-
-SYNOPSIS
-
- $ source setpathlib          # necessary to use the functions
- $ bitmeld                    # where is the BITMELD
- $ paths    [name defaulting to PATH]
- $ require  BITMELD    tooln  
- $ setpath  {name ending with}/bin 
- $ setpathlib_doc 
- $ set_path {a BITMELD name, e.g. include}
- $ whipath  file
-
-DESCRIPTION
-
-  After  "source setpathlib" the functions are enabled.
-
-  setpath appends the directory argument to the user's PATH variable.
-In an effort to enforce a bit of a standard practice, any directory
-name must conclude with the name "bin" -- just plain "bin".
-
-  paths reports the list of the user's PATH, or other supplied
-path-delimited variable name, e.g.  INCLUDE_PATH
-
-  whipath returns the full path to the requested "file" argument from
-the user's INCLUDE_PATH variable. this is similar to "which" for files
-on the user's PATH.
-
-  bitmeld  returns the nearest BITMELD anchor directory.
-
-  setpathlib_doc  produces user documentation, such as this man page.
-
-  set_path  constructs a BITMELD-related path variable from the 
-current PATH.  
-
-  require adds the BITMELD/bin to the users path if the tool is not
-found on the current path
-
-EXAMPLES
-
-  $ setpath $HOME/bin     appends  HOME/bin to the user's PATH if not
-                          already included
-
-  $ whipath stdio.h      returns   /usr/include/stdio.h 
-                          on many systems
-
-  $ INCLUDE_PATH=$(set_path include)   is the default
-
-  $ setpath $(bitmeld)/bin  adds the local bin to the users path.
-
-     e.g. if in the directory /home/group/apps/src/this
-     and a directory          /home/group/apps/bin
-     exists, then it's added to the PATH
-
-SEE ALSO
-
-  which(1), sh(1), bash(1), ...
-
-ENVIRONMENT
-
-  PATH  is the list of directories to search for any command at the
-shell prompt or execution by other commands or functions.
-
-  INCLUDE_PATH  is set to the users PATH by replacing any /bin
-                with /include.  the user may set to any directory list
-
-AUTHOR
-
-  mcgowan@alum.mit.edu
-
-EOF
-
 }
 setpathlib_init () 
 { 
     : ${INCLUDE_PATH:=$(set_path include)};
-    # source programlib 2> /dev/null;
     comment setpathlib_doc
 }
 paths () 

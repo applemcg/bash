@@ -1,7 +1,8 @@
+/usr/bin/awk
 awklib_doc () 
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
     comment bkup: appleton.home./Users/applemcg/bin 2013_0117 153648;
     cat  <<EOF
 whch    
@@ -22,9 +23,9 @@ shlibtools
 EOF
 
 }
-shlibtools_doc ()
-{
-  awklib_doc 1>&2
+shlibtools_doc () 
+{ 
+    awklib_doc 1>&2
 }
 whch () 
 { 
@@ -52,7 +53,7 @@ shlibtools ()
 }
 onlyfiles () 
 { 
-    for arg in $*;
+    for arg in ${*:-*};
     do
         [[ -f $arg ]] && echo $arg;
     done
@@ -64,11 +65,11 @@ unsourced ()
 }
 awklib_init () 
 { 
-    source programlib 2>/dev/null
+    source programlib 2> /dev/null;
     awkapp_init
 }
-awkapp_init ()
-{
+awkapp_init () 
+{ 
     is AWK $(getAwk);
     copyrightNotice;
     comment e.g. $ fbdy unsourced shlibtools;

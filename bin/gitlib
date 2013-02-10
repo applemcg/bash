@@ -29,7 +29,7 @@ git_modified ()
 }
 git_remo () 
 { 
-    git remote add origin git@github.com:applemcg/$(basename $PWD).git
+    git remote add origin git@github.com:applemcg/$(basename $PWD).git;
     git push -u origin master
 }
 git_push () 
@@ -52,10 +52,9 @@ git_name ()
     done;
     ignore popd
 }
-gitlib_init
 git_list () 
 { 
-    indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//';
+    indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//'
 }
 git_help () 
 { 
@@ -65,3 +64,4 @@ git_files ()
 { 
     git ls-files $*
 }
+gitlib_init

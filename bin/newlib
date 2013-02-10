@@ -763,4 +763,12 @@ trimFidCash ()
     awk -F, 'NF > 1 { printf "%s, %s, %s\n", $1, $2, $11 }' $* | tee $o;
     [[ -f $1 ]] && echo rm -f *X70808808*
 }
+lntobin () 
+{ 
+    set -- ${*:-/dev/null};
+    pushd ~/bin;
+    rm -f $*;
+    popd;
+    ln $* ~/bin
+}
 newlib_init

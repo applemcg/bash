@@ -42,23 +42,23 @@ scatter(1)                                                         scatter(1)
 >	mcgowan@alum.mit.edu
 
 EOF
-}
-scatter_page () {
 
-     source pmkdnlib
-     mkd_page scatter
+}
+scatter_page () 
+{ 
+    source pmkdnlib;
+    mkd_page scatter
 }
 scatterlib_init () 
 { 
     source programlib 2> /dev/null;
-
     comment bkup: appleton.home./Users/applemcg/bin 2013_0116 165142;
-    comment "Copyright (C) 2005-2013, JYATL, Just Yet Another Testing Lab"
+    comment "Copyright (C) 2005-2013, JYATL, Just Yet Another Testing Lab";
     comment $(functions scatterlib | grep man)
 }
 antoken () 
 { 
-    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$' | tee ontoken.txt 
+    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$' | tee ontoken.txt
 }
 scatter () 
 { 

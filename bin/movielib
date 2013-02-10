@@ -45,7 +45,7 @@ movie_allback ()
 }
 movie_frames () 
 { 
-    [[ -d .movie ]] || mkdir .movie
+    [[ -d .movie ]] || mkdir .movie;
     movie_allback $1 | awk -F/ "BEGIN { frames = $(movie_nback $1) + 2; }"'{ printf "%s %03d\n", $0, frames-NF }' | while read f n; do
         ln $f .movie/$1.$n;
         echo $n;

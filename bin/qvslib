@@ -2,12 +2,13 @@ qvslib_init ()
 { 
     source bootlib;
     sourceOneTime blib;
+    sourceOneTime smartflib;
     logUse qvslib sourced blib
 }
-qvs_page () {
-
-	 source pmkdnlib
-	 mkd_page qvs
+qvs_page () 
+{ 
+    source pmkdnlib;
+    mkd_page qvs
 }
 qvs_doc () 
 { 
@@ -66,8 +67,8 @@ directory, Both need to be on the same file system.
     $ rollupV  LikeNamedFeature [ userA, userB, ... ]
 
 EOF
-}
 
+}
 set_verbase () 
 { 
     comment PWD $PWD;
@@ -84,8 +85,8 @@ set_verbase ()
         esac;
     done
 }
-get_verbase () {
- 
+get_verbase () 
+{ 
     comment "VER_BASE=$VER_BASE, PWD=${PWD}, RWD=$(ver_rwd)"
 }
 verbase () 
@@ -253,7 +254,7 @@ de ()
 }
 qvs_man () 
 { 
-    cat  <<\EOF
+    cat  <<'EOF'
 <title>
   qvslib -- Quick Version System
 </title>
@@ -276,6 +277,7 @@ qvs_man ()
 *  SYSTEM_DEPENDENT&#95;USER&#95;HOME -- places to look to Root the Version Tree
 
 EOF
+
 }
 newVprog () 
 { 
@@ -314,7 +316,6 @@ latestVer ()
 { 
     foreach latestDir $(find $* -type d -name .ver)
 }
-qvslib_init
 needver () 
 { 
     set -- $(ls -t .ver);
@@ -332,3 +333,4 @@ byversion ()
 { 
     changes | sort | sed 's/.ver.//; s/\/.*//'
 }
+qvslib_init
