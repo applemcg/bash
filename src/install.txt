@@ -21,3 +21,4 @@ bin/templatelib
 bin/testlib
 man/man1/blib.txt
 man/man1/setpath.txt
+man/man1/dirlib.txt

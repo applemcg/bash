@@ -45,7 +45,8 @@ dirlib_init ()
 }
 dirlib_list () 
 { 
-    ${1:-echo} dirlib_list peekd nipd swapd rotd dirlib_init dupd dirlib_doc
+    ${1:-echo} cleandirlist depthd dirlib_doc dirlib_init dirlib_list \
+               dupd nipd nthdir peekd rotd swapd tuckd
 }
 dupd () 
 { 
@@ -89,7 +90,7 @@ cleandirlist ()
     shift;
     for d in $*;
     do
-        ignore pushd $d;
+        ignore eval pushd $d;
     done;
     peekd
 }
