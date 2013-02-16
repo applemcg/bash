@@ -3,6 +3,7 @@ bin/awklib
 bin/bklib
 bin/bldapplib
 bin/blib
+bin/dirlib
 bin/fixlib
 bin/gitlib
 bin/infolib

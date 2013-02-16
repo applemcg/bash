@@ -82,7 +82,7 @@ movef_init ()
 }
 mydups () 
 { 
-    foreach dowhf $(functions $1) | field 1 | sort | uniq -c | awk '$1 >1 { print $2}'
+    foreach dowhf $(functions ${1:-*lib}) | field 1 | sort | uniq -c | awk '$1 >1 { print $2}'
 }
 dowhf () 
 { 

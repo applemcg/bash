@@ -27,14 +27,19 @@ git_modified ()
             ready && ($3 ~ /^file:$/)     { print $4 }
            '
 }
+git_hub () 
+{
+	echo git@github.com:applemcg/$(basename $PWD).git;
+}
 git_remo () 
 { 
-    git remote add origin git@github.com:applemcg/$(basename $PWD).git;
+    git remote add origin $(git_hub) 
     git push -u origin master
 }
 git_push () 
 { 
-    git push git@github.com:applemcg/$(basename $PWD).git
+    git push $(git_hub)
+    git pull $(git_hub)
 }
 git_add () 
 { 

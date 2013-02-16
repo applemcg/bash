@@ -180,13 +180,15 @@ foreach ()
 }
 canlib () 
 { 
-    source $1;
-    fbdy $(functions $1);
+    f=$1
+    exists ${1}lib && f=${1}lib
+    source $f >/dev/null;
+    fbdy $(functions $f);
     echo ${2:-${1}_init}
 }
 prepnew () 
 { 
-    canlib $1 | tee .$1.new | diff $1 - 1>&2;
+    canlib $* | tee .$1.new | diff $1 - 1>&2;
     echo mv .$1.new $1
 }
 fixlib_init

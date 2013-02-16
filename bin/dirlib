@@ -1,0 +1,107 @@
+peekd () 
+{ 
+    ignore pushd .;
+    popd
+}
+nipd () 
+{ 
+    ignore swapd;
+    popd
+}
+swapd () 
+{ 
+    set -- $(peekd);
+    eval ignore popd;
+    eval cd "$1";
+    eval pushd "$2"
+}
+tuckd () 
+{
+        ignore pushd ${1:-.}
+        swapd 
+}
+rotd () 
+{ 
+    [[ $(depthd) < 3 ]] && {
+        peekd;
+        comment "need > 2";
+        return
+    };
+    set -- $(peekd);
+    ignore popd;
+    ignore popd;
+    [[ $(depthd) < 2 ]] && ignore tuckd .
+    ignore popd;
+    ignore eval pushd "$2";
+    ignore eval pushd "$1";
+    eval pushd "$3"
+}
+dirlib_init () 
+{ 
+    source bootlib;
+    sourceOneTime programlib 2> /dev/null;
+    sourceOneTime testlib 2> /dev/null;
+    comment $(dirlib_list)
+}
+dirlib_list () 
+{ 
+    ${1:-echo} dirlib_list peekd nipd swapd rotd dirlib_init dupd dirlib_doc
+}
+dupd () 
+{ 
+    pushd .
+}
+dirlib_doc () 
+{ 
+    cat  <<EOF
+	
+appends useful directory functions to existing bash   pushd, popd   with
+
+	swapd   --  a b c d ...     ->   b a c d ...
+	nipd    --  a b c d ...     ->   a c d ...
+	rotd    --  a b c d ...     ->   c a b d ...
+	dupd    --  a b c d ...     ->   a a b c d ...
+	peekd   --  shows the stack ->   a b c d ...	
+        cleandirlist a b b a c b .. ->   a b c ...
+	
+EOF
+
+}
+cleandirlist () 
+{ 
+    wpd=;
+    rpd=;
+    for d in $(peekd|lc);
+    do
+        case $wpd in 
+            *":$d:"* | *":$d" | "$d:"*)
+
+            ;;
+            *)
+                wpd="$d:$wpd";
+                rpd="$d $rpd"
+            ;;
+        esac;
+        ignore popd 2> /dev/null;
+    done;
+    set -- $rpd;
+    eval cd "$1";
+    shift;
+    for d in $*;
+    do
+        ignore pushd $d;
+    done;
+    peekd
+}
+nthdir () 
+{ 
+    n=${1:-2};
+    set -- $(peekd);
+    eval echo \$$n
+}
+dirlib_init
+depthd () 
+{ 
+    set -- $(peekd);
+    echo $#
+}
