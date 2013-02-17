@@ -1,4 +1,4 @@
-programlib_init () 
+oprogramlib_init () 
 { 
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
@@ -40,10 +40,6 @@ foreach ()
         $cmd $arg;
     done
 }
-nonempty () 
-{ 
-    [[ -s $1 ]]
-}
 shifted () 
 { 
     shift;
@@ -68,9 +64,8 @@ setenv ()
 }
 libfunc () 
 { 
-    sed 's/ *( *) */ () /' $* | egrep -v '["\$]' | awk '
-     $2 ~ /^\(\)$/ && printed[$1]++ < 1	{ print $1 }
-     '
+    functions $*
+    comment obsolescent in behalf of functions
 }
 obsolescent () 
 { 
@@ -204,20 +199,17 @@ printfirst ()
 }
 cleanlib () 
 { 
-    fbdy $(libfunc $1 | printfirst);
-    echo ${1}_init
+    source fixlib
+    canonlib $*
 }
 libfunctions () 
 { 
-    sed 's/( *)/ () /' $* | tee .sh.in | awk '$2 ~ /\(\)/ {print $1}'
+    functions $*
+    comment obsolescent in behalf of canonlib
 }
 testarg () 
 { 
     eval "$1() { [[ -$2 \$1 ]]; }"
-}
-programIdea () 
-{ 
-    echo "remove the _uses in behalf of uses function, has ..."
 }
 de () 
 { 
@@ -251,45 +243,69 @@ today ()
 { 
     date +%Y%m%d
 }
+programlib_ck ()
+{
+    pglibck ()
+    {
+
+
+      case $1 in 
+      (2) comm -23 .program.doc -; echo DOC, not LIB;; 
+      (1) comm -13 .program.doc -; echo LIB, not DOC;;
+      (3) comm -13 .program.doc - | sed 's/$/	-- /';;
+      (*) comment "programlib_ck [123 {2}]"; return;;
+      esac
+     }
+     programlib_doc | field 1 | sort > .program.doc
+     functions ~/bin/programlib | sort | pglibck ${*:-2} |
+      sort  | tee .program.nxt
+}
 programlib_doc () 
 { 
     cat  <<'EOF'
-	-- programlib defines: 
-auname	--
+    
+Mkdir	-- superseeded by mkdir -p
+append	-- stdin to a file
 basename	-- file portion of the argument, see dirname
+bitbucket	-- should be IGNORE
 cleanlib	--
-comment	-- echos to the standard error
-copyrightNotice	--
-de	--
+cleanlib	-- obsolescent, canonlib
+collect_eval	-- USES cgrepf, belongs whf cgrepf
+de	-- obsolescent
+defExe	-- ~ a b; echos "a", if found,  else "b"
 dirname	-- the directory portion of the argument, default "."
-doit	-- comment, then eval
 error	-- comment, then exit
 field	-- the Nth blank-separated field
-fnames	--
+fmdos	-- converts CR-LF files to NL
+fnames	-- wrap on libfunc, 
 foreach	-- ~ cmd ...   execuctes  "cmd" on each arg
 foreachi	-- ~ cmd One arg ... executes "cmd One" on each arg
-generic_lib	--
+foreachij	-- ~ cmd a b ..i... executes "cmd a b i" on each i
+generic_lib	-- obsolescent
 getawk	-- who's your "awk"
 ignore	-- executes command, disposing stdout
 indir	-- ~ DIR cmd ...  executes "cmd ..." in DIR
-isfunction	-- true if argument is a function
 lc	-- Lower Case, see tolower, toupper, uc
-libfunc	--
-libfunctions	--
-liblib_obsolescent	--
-Mkdir	-- 
-myfunctions	-- CONSTRUCTOR: ~ alib [drive B], is alias for "functions alib"
+libfunc	-- obsolescent on behalf of functions
+libfunctions	--  obsolescent on behalf of functions
+liblib_obsolescent	-- USES rlib on liblib_users
+mac2unix	-- like fmdos
 nava	-- NAme VAlue 
 newest	-- ~ FileA fileb ...  TRUE, when filea is the newest
-nonempty	--
-nonUnderscore	--
+nonUnderscore	-- lines w/o an Underscore
 not	-- ~ cmd ... inverts logical sense of the cmd ...
-obsolescent	--
-pipe	-- 
+obsolescent	-- place holder for ~ 
+onlydirs	-- the directories in $*
+onlyfiles	-- the files
+pipe	-- ~ a b c ...;  b c ... > a
+popla	-- POPuLAtion of a numeric First Field
 printfirst	-- prints first occurrence of line of text
-programIdea	--
-programlib_init	--
-run_test	--
+programlib_ck	-- how to rebuild this list
+programlib_doc	-- this list
+programlib_init	-- source ...
+repeated	-- ~ [n 2] => n..21
+run_test	-- wraps "doit"
+script_path	-- where is the source of this executable
 self_ref	-- CONSTRUCTOR: namea nameb ...  "namea" lists namea ... z
 setenv	-- ~ NAME Value,   just like the csh built-in
 shift2	-- ~ a b c d e ... returns "c d e ..."
@@ -299,13 +315,14 @@ subtract	-- set subtraction 2nd list from first with comm -23
 system	-- uname -s
 testarg	-- CONSTRUCTOR: ~ name [a-z]; creates "name", function uses test arg
 today	-- YYMMDD
-tolower	--
-toupper	--
-uc	-- Upper Case	--
-wh	-- which 	--
-wpl	-- Words Per Line	--
-
+tolower	-- obsolescent in behalf of lc
+toupper	-- obsolescent in behalf of uc, UC
+uc	-- Upper Case
+wh	-- which
+wpl	-- output a Word Per Line
+    
 EOF
+
 
 }
 self_ref () 
