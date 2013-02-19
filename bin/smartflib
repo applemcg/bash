@@ -61,7 +61,6 @@ smartf ()
 }
 smartflib_init () 
 { 
-    source bootlib;
     sourceOneTime programlib 2> /dev.null;
     sourceOneTime dirlib 2> /dev.null;
     comment bkup: appleton.home./Users/applemcg/bin 2012_0907 120048;

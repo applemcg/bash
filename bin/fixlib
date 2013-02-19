@@ -47,7 +47,6 @@ fixapp_init ()
 }
 fixlib_init () 
 { 
-    source bootlib;
     sourceOneTime blib;
     logUse fixlib sourced blib;
     logUse fixlib uses programlib;

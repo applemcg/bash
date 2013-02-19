@@ -1,6 +1,5 @@
 qvslib_init () 
 { 
-    source bootlib;
     sourceOneTime blib;
     sourceOneTime smartflib;
     logUse qvslib sourced blib

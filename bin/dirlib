@@ -38,7 +38,6 @@ rotd ()
 }
 dirlib_init () 
 { 
-    source bootlib;
     sourceOneTime programlib 2> /dev/null;
     sourceOneTime testlib 2> /dev/null;
     comment $(dirlib_list)

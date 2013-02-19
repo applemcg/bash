@@ -2,7 +2,6 @@ programlib_init ()
 { 
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    source bootlib;
     obsolescent file_test testarg;
     obsolescent fileTest testarg;
     obsolescent piped pipe;
