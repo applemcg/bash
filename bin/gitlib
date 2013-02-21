@@ -4,7 +4,7 @@ gitapp_init ()
 }
 gitlib_init () 
 { 
-    sourceOneTime programlib 2> /dev/null;
+    source programlib 2> /dev/null;
     gitapp_init
 }
 mods () 

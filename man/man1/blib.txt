@@ -6,50 +6,49 @@
 
 ###	SYNOPSIS
 
-       $ source blib
-       $ bkup file ...    -- modified files are backed up
-       $ bkfiles          -- lists all the currently backed-up files
-       $ bkup $(bkfiles)  -- the second time should be "quiet", it's done
-       $ unbkfile file    -- remove a file from the list for routine backup.
-       $ bdeep N          -- returns the name of the N-deep backup directory
-       $ commentType file -- returns the comment sentinal for the file
+>__source blib__
+>__bkup file ...__     -- modified files are backed up
+>__bkfiles__           -- lists all the currently backed-up files
+>__dbkup $(bkfiles)__  -- the second time should be "quiet", it's done
+>__unbkfile file__     -- remove a file from the list for routine backup.
+>__bdeep N__           -- returns the name of the N-deep backup directory
+>__commentType file__  -- returns the comment sentinal for the file
 
 ###	DESCRIPTION
 
->  "bkup" uses recursive descent into a local backup tree to save only
-modified copies of text and binary files.
+>__bkup__ recursively descends into a local backup tree to save only
+ modified copies of text and binary files.
 
->  "bkfiles" lists the files in the backup directory. since all files
-in a directory needn't be backed up, this saves a user from having to
-maintain a separate list.  the following utility is a to to filter the
-available backups.
+>__bkfiles__ lists the files in the backup directory. since all files
+ in a directory needn't be backed up, this saves a user from having to
+ maintain a separate list.  the following utility is a to to filter the
+ available backups.
 
-> "unbkfile" preserves the most recent backup file (by backing it up),
-and removes it and the current backup file.  this allows the bkfiles
-utility to produce just the list of needed backups.
+>__unbkfile__ preserves the most recent backup file (by backing it up),
+ and removes it and the current backup file.  this allows the bkfiles
+ utility to produce just the list of needed backups.
 
 ###	VERSIONS
 
->  when backing up a textfile which includes a leading comment with
+>when backing up a textfile which includes a leading comment with
 "blib:", an identification including the user's network name, the
 working directory and a time stamp are appended after the "blib:".
 
->  the "commentType" function returns the comment sentinal for a file, 
+>the "commentType" function returns the comment sentinal for a file, 
 defaulting to the scripting "#".
 
 ###	   FILES
 
-*  ./.bak      -- the initial backup directory, holds the latest copy
-*  ./.bak/.bak -- the prior backup copy, anyfile in this directory is
+*./.bak      -- the initial backup directory, holds the latest copy
+*./.bak/.bak -- the prior backup copy, anyfile in this directory is
                  necessarily different from the current copy of a file.
-*  ./.bak/.bak/.bak ... etc.
-*  ...
+*./.bak/.bak/.bak ... etc.
 
 ###	BUGS
 
 > since the backup chain can get arbitrarily deep, a user will
-occasionally need to do some tree trimming. the author has found a
-depth of about 33 to begin breaking limbs.
+  occasionally need to do some tree trimming. the author has found a
+  depth of about 33 to begin breaking limbs.
 
 >  an experimental tree pruning might be built as follows:
 
@@ -57,12 +56,20 @@ depth of about 33 to begin breaking limbs.
 *  $ find $(bdeep 15) -mtime +180 | xargs rm -fr
 *  $  ...
 
-###  ALSO
+###	SEE ALSO
 
->  see programlib (1), for lower-level utilities, and
-      qvslib (1) for a companion, simple versioning tool.
+>[qvs](./qvslib.html) -- a __Q__uick __V__ersion __S__ystem based on
+ these backups.
+
+>[programlib (1)](./programlib.html), for lower-level utilities, and
+      [qvslib (1)](./qvslib.html) for a companion, simple versioning
+      tool.
+
+>any other versioning system, such as CVS, or the author's preferred
+ [github](http://github.com/applemcg), for a thorough treatment of
+ software version control, archive, and escrow.
 
 ###   AUTHOR
 
->  mcgowan AT alum DOT mit DOT edu
+>[Marty McGowan](mailto:mcgowan@alum.mit.edu?subject=Manual_Page_blib)
 

@@ -302,6 +302,7 @@ printfirst	-- prints first occurrence of line of text
 programlib_ck	-- how to rebuild this list
 programlib_doc	-- this list
 programlib_init	-- source ...
+quiet	-- executes command, disposing stderr. "quiet ignore ... "
 repeated	-- ~ [n 2] => n..21
 run_test	-- wraps "doit"
 script_path	-- where is the source of this executable
@@ -405,3 +406,7 @@ foreachij ()
     done
 }
 programlib_init
+quiet () 
+{ 
+    $@ 2> /dev/null
+}

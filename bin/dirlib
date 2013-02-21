@@ -38,8 +38,8 @@ rotd ()
 }
 dirlib_init () 
 { 
-    sourceOneTime programlib 2> /dev/null;
-    sourceOneTime testlib 2> /dev/null;
+    source programlib 2> /dev/null;
+    source testlib 2> /dev/null;
     comment $(dirlib_list)
 }
 dirlib_list () 

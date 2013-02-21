@@ -1,72 +1,11 @@
 qvslib_init () 
 { 
-    sourceOneTime blib;
-    sourceOneTime smartflib;
-    logUse qvslib sourced blib
-}
-qvs_page () 
-{ 
-    source pmkdnlib;
-    mkd_page qvs
-}
-qvs_doc () 
-{ 
-    report "Environment Variables" foreach nava VER_BASE VER_HOME VERFILES SYSTEM_DEPENDENT_USER_HOME EDITOR;
-    report "Entry Points" fbdy verfiles verhome ver_rwd verbase get_verbase set_verbase verlocn qvs verSecond lastNameVer verDirectory rollupV lastVer de;
-    qvs_help
+    source blib;
+    source smartflib;
 }
 qvs_help () 
 { 
     comment qvs_doc, qvs_note, qvs_help, qvs, qvs_page
-}
-qvs_note () 
-{ 
-    clear;
-    cat 1>&2  <<'EOF'
-
- QVS is a Quick Version System.  As such, it relies on the "bkup"
-tool, using the "backup.tcl" file to do the heavy lifting.  See the
-discussion there.  essetially, "bkup" creates an ever deeper tree of
-".bak/.bak/..."  directories, with the newest on top.
-
- 1.  bkup the VERFILES, defaulting to the list of files in the
-   ".files" file; (which itself should be "qvs"d; HINT: ls $(<
-   $(verfiles)) ).
-
- 2. A new version is created in the ".ver/" directory, with a
-	sub-directory whose name is "verSecond: YYYY_mmdd_HHMMSS
-	format".
-
- 3. files in the .bak direcory are linked to the .ver/YYmmddHHMMSS
- copy of the file
-
- the copy in the common parent directory is then suitable for editing.
-
- after you have confidence in the yymmdd... versioning, you may delete
-the deepest .bak/.bak/... directories without fear of losing your
-content. (Since, so long as there is a link to a file somewhere, the
-contest is available).
-
- VER_BASE and VER_HOME both default to $HOME.  If you are synching to
-a remote or central versioning location, set VER_HOME to that
-location. e.g. /home/mygroup.  VER_BASE _must_ be in your current
-directory path;
-
-all this results in setting your versioning location to:
-
-   $(verhome)/$(ver_rwd)/.ver/$(verSecond)
-
- VER_BASE files are stored in VER_HOME in the same realtive working
-directory, Both need to be on the same file system.
-
-  Finally, rollupV permits the collection of like-named versions from
- disparate sources. e.g.
- 
-    $ cd /home/group
-    $ rollupV  LikeNamedFeature [ userA, userB, ... ]
-
-EOF
-
 }
 set_verbase () 
 { 
@@ -110,11 +49,6 @@ cleanlist ()
 { 
     ( grep '^\.' $VERFILES;
     ls ) | sort | comm -3 - $VERFILES
-}
-dotfile () 
-{ 
-    eval "add2${1}() { (echo \$1; cat .$1) | sort -u >.x.$1; mv .x.$1 .$1; }";
-    eval "rmFm${1}() { grep -v "^\$1\\\$" .$1 	 >.y.$1; mv .y.$1 .$1; }"
 }
 verhome () 
 { 
@@ -218,13 +152,15 @@ _doqvs ()
         [[ -f .bak/$f ]] && echo .bak/$f;
     done
 }
-lastVer () 
-{ 
-    ls -t $(verlocn) | sed 1q
-}
-lastNameVer () 
-{ 
-    ls -t $(verlocn) | grep -v '^2[0-9][0-9]*$' | sed 1q
+qver ()
+{
+   set -- ${1:-last}
+   case $1 in 
+    (last)      ls -t $(verlocn) | sed 1q;;
+    (names)     ls -t $(verlocn) | grep -v '^2[0-9][0-9]*$';;
+    (named)     qver names | sed 1q;;
+    (*)         comment "qver [last|names|named -> last]";;
+   esac
 }
 verDirectory () 
 { 
@@ -238,45 +174,9 @@ rollupV ()
     mkdir -p $odir;
     find ${*:-.} -type f | grep $vname | sed "s/.ver.$vname\///" | cpio -pdluvm $odir
 }
-_de_hdr () 
-{ 
-    printf "\n=====\t$(date '+%F %T %A')\t==\n\n"
-}
-de () 
-{ 
-    f=/tmp/de.$$;
-    rm -f $f;
-    ${EDITOR:-vi} $f;
-    ( _de_hdr;
-    cat $f .diary ) > .y.$$;
-    mv .y.$$ .diary
-}
 qvs_man () 
 { 
-    cat  <<'EOF'
-<title>
-  qvslib -- Quick Version System
-</title>
-
-###	COMMANDS
-
-* qvs_help 
-* source qvslib
-* qvs 
-
-###	FILES
-
->    $VERFILES, defautls to ".files", the list of files to version
-  
-###	ENVIRONMENT
-
-*  VERFILES -- list of files to version
-*  VER_BASE -- 
-*  VER_HOME -- 
-*  SYSTEM_DEPENDENT&#95;USER&#95;HOME -- places to look to Root the Version Tree
-
-EOF
-
+    open ~/man/man1/qvslib.html
 }
 newVprog () 
 { 

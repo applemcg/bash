@@ -61,8 +61,8 @@ smartf ()
 }
 smartflib_init () 
 { 
-    sourceOneTime programlib 2> /dev.null;
-    sourceOneTime dirlib 2> /dev.null;
+    source programlib 2> /dev.null;
+    source dirlib 2> /dev.null;
     comment bkup: appleton.home./Users/applemcg/bin 2012_0907 120048;
     smartf ETCLIB $HOME/etc/lib;
     smartf T $(ETCLIB)/.$(today);
