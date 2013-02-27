@@ -60,7 +60,7 @@ git ()
         help)
             functions ~/bin/gitlib;
             fbdy git | grep '^ *[a-z[a-z]*)$' | sed 's/)$//; s/ */git /' | sort;
-            git --help
+            command git help $*
         ;;
         files)
             shift;
@@ -74,4 +74,3 @@ git ()
         ;;
     esac
 }
-gitlib_init
