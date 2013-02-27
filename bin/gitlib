@@ -74,3 +74,4 @@ git ()
         ;;
     esac
 }
+gitlib_init
