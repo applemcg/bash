@@ -70,7 +70,7 @@ git ()
             echo https://github.com/applemcg/$(basename $PWD).git
         ;;
         *)
-            command git $*
+            command git "$@"
         ;;
     esac
 }
