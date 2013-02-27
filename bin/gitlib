@@ -16,56 +16,61 @@ findClean ()
 { 
     grep "$1" - | sed "s/.*$1 *//"
 }
-git_modified () 
+git () 
 { 
-    git status | awk '
+    case $1 in 
+        modified)
+            command git status | awk '
             /not staged/      {ready++};
             /to be committed/ {ready++}; 
             #            { print "debug: ", ready, $0 }
             ready && ($2 ~ /^modified:$/) { print $3 }
             ready && ($3 ~ /^file:$/)     { print $4 }
            '
+        ;;
+        hub)
+            echo git@github.com:applemcg/$(basename $PWD).git
+        ;;
+        remo)
+            command git remote add origin $(git hub);
+            command git push -u origin master
+        ;;
+        push)
+            command git push $(git hub);
+            command git pull $(git hub)
+        ;;
+        add)
+            shift;
+            command git add $(git modified) $*
+        ;;
+        name)
+            ignore pushd .;
+            while [[ $PWD != "/" ]]; do
+                [[ -d .git ]] && { 
+                    basename $PWD;
+                    break
+                };
+                cd ..;
+            done;
+            ignore popd
+        ;;
+        list)
+            indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//'
+        ;;
+        help)
+            functions ~/bin/gitlib;
+            fbdy git | grep '^ *[a-z[a-z]*)$' | sed 's/)$//; s/ */git /' | sort;
+            git --help
+        ;;
+        files)
+            shift;
+            command git ls-files $*
+        ;;
+        ssh)
+            echo https://github.com/applemcg/$(basename $PWD).git
+        ;;
+        *)
+            command git $*
+        ;;
+    esac
 }
-git_hub () 
-{
-	echo git@github.com:applemcg/$(basename $PWD).git;
-}
-git_remo () 
-{ 
-    git remote add origin $(git_hub) 
-    git push -u origin master
-}
-git_push () 
-{ 
-    git push $(git_hub)
-    git pull $(git_hub)
-}
-git_add () 
-{ 
-    git add $(git_modified) $*
-}
-git_name () 
-{ 
-    ignore pushd .;
-    while [[ $PWD != "/" ]]; do
-        [[ -d .git ]] && { 
-            basename $PWD;
-            break
-        };
-        cd ..;
-    done;
-    ignore popd
-}
-git_list () 
-{ 
-    indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//'
-}
-git_help () 
-{ 
-    functions ~/bin/gitlib
-}
-git_files () 
-{ 
-    git ls-files $*
-}
-gitlib_init

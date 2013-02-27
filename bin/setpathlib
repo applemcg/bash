@@ -1,48 +1,59 @@
 setpath () 
 { 
-    function _presolve () 
-    { 
-        here=${PWD};
-        cd $1;
-        PWD=`pwd`;
-        case $PATH in 
-            *:$PWD:* | *:$PWD | $PWD:*)
-
-            ;;
-            *)
-                PATH=$PATH:$PWD;
-                export PATH
-            ;;
-        esac;
-        cd $here
-    };
     case $1 in 
         */bin)
-            _presolve $1
+            pushd $1 > /dev/null;
+            case $PATH in 
+                *:$PWD:* | *:$PWD | $PWD:*)
+
+                ;;
+                *)
+                    PATH=$PATH:$PWD;
+                    export PATH
+                ;;
+            esac;
+            popd > /dev/null
         ;;
         *)
             echo "USAGE: setpath {some}/bin" 1>&2
         ;;
     esac
 }
-do_set_path () 
+pathlib () 
 { 
-    echo .;
-    echo $PATH | tr ':' '\012' | grep /bin | sed "s/\/bin/\/$1/"
+    function do_set_path () 
+    { 
+        echo .;
+        echo $PATH | tr ':' '\012' | grep /bin | sed "s/\/bin/\/$1/"
+    };
+    function do_which_path () 
+    { 
+        for dir in $(do_set_path include);
+        do
+            [[ -f $dir/$1 ]] && { 
+                printf "%s" $dir/$1;
+                return
+            };
+        done
+    };
+    case $1 in 
+        set | which)
+            c=$1;
+            shift;
+            do_${c}_path $*
+        ;;
+        *)
+            comment set_path OR whipath
+        ;;
+    esac
 }
 set_path () 
 { 
-    do_set_path $1 | tr '\012' ':'
+    pathlib set $1 | tr '\012' ':'
 }
 whipath () 
 { 
-    for dir in $(do_set_path include);
-    do
-        [[ -f $dir/$1 ]] && { 
-            printf "%s" $dir/$1;
-            return
-        };
-    done
+    pathlib which $*
 }
 require () 
 { 
@@ -72,14 +83,16 @@ bitmeld ()
 { 
     pushd ${1:-.} > /dev/null;
     while true; do
-        for dir in src bin include tmp man etc lib doc;
-        do
-            [[ -d $dir ]] && break 2;
-        done;
-        cd ..;
         case $PWD in 
             /)
                 break
+            ;;
+            *)
+                for dir in src bin include tmp man etc lib doc;
+                do
+                    [[ -d $dir ]] && break 2;
+                done;
+                cd ..
             ;;
         esac;
     done;

@@ -20,3 +20,15 @@ properties:
 * any output from the source {lib}, which necessarily 
     invokes {lib}_init must be on stderr
 
+###	current challenges
+
+* how to supply local functions to multiple functions
+  in the same library?
+
+* consider low-level libraries, like __programlib__ to
+  have two sub-libraries:  one from only commnads, and
+  the other which uses local functions.
+
+* what is the exposure of the embedded function outside
+  it's enclosing function?
+

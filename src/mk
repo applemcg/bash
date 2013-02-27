@@ -1,7 +1,4 @@
 source ~/.profile
 source profilemk
-source pmkdnlib
 
 runit $*
-
-manpp
