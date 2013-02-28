@@ -58,9 +58,11 @@ git ()
             indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//'
         ;;
         help)
+	    command git help $*;
+	    echo FUNCTIONS
             functions ~/bin/gitlib;
+	    echo SUB-FUNCTIONS
             fbdy git | grep '^ *[a-z[a-z]*)$' | sed 's/)$//; s/ */git /' | sort;
-            command git help $*
         ;;
         files)
             shift;

@@ -410,3 +410,21 @@ quiet ()
 { 
     $@ 2> /dev/null
 }
+iso_y-m-d () 
+{ 
+    date +%F
+}
+lookat () 
+{ 
+    o=${1%txt}html;
+    pmkdn $1 > $o;
+    open $o
+}
+dodate () 
+{ 
+    echo "$1: $(date +%$1)"
+}
+stdout () 
+{ 
+    $(shifted $@) > $1
+}
