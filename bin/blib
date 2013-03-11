@@ -2,7 +2,7 @@ bapp_init ()
 { 
     comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0701 163349;
+    comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104641;
     testarg isdirectory d;
     testarg exists e;
     blib_help

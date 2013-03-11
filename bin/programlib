@@ -18,9 +18,7 @@ programlib_init ()
 }
 stdout () 
 { 
-    o=$1;
-    shift;
-    "$@" > $o
+    $(shifted $@) > $1
 }
 pipe () 
 { 
@@ -52,10 +50,6 @@ Mkdir ()
 { 
     doit mkdir -p $*
 }
-ignore () 
-{ 
-    "$@" > /dev/null
-}
 setenv () 
 { 
     eval $1=\"$2\";
@@ -63,7 +57,7 @@ setenv ()
 }
 libfunc () 
 { 
-    functions $*
+    functions $*;
     comment obsolescent in behalf of functions
 }
 obsolescent () 
@@ -198,12 +192,12 @@ printfirst ()
 }
 cleanlib () 
 { 
-    source fixlib
+    source fixlib;
     canonlib $*
 }
 libfunctions () 
 { 
-    functions $*
+    functions $*;
     comment obsolescent in behalf of canonlib
 }
 testarg () 
@@ -242,22 +236,30 @@ today ()
 { 
     date +%Y%m%d
 }
-programlib_ck ()
-{
-    pglibck ()
-    {
-
-
-      case $1 in 
-      (2) comm -23 .program.doc -; echo DOC, not LIB;; 
-      (1) comm -13 .program.doc -; echo LIB, not DOC;;
-      (3) comm -13 .program.doc - | sed 's/$/	-- /';;
-      (*) comment "programlib_ck [123 {2}]"; return;;
-      esac
-     }
-     programlib_doc | field 1 | sort > .program.doc
-     functions ~/bin/programlib | sort | pglibck ${*:-2} |
-      sort  | tee .program.nxt
+programlib_ck () 
+{ 
+    function pglibck () 
+    { 
+        case $1 in 
+            2)
+                comm -23 .program.doc -;
+                echo DOC, not LIB
+            ;;
+            1)
+                comm -13 .program.doc -;
+                echo LIB, not DOC
+            ;;
+            3)
+                comm -13 .program.doc - | sed 's/$/	-- /'
+            ;;
+            *)
+                comment "programlib_ck [123 {2}]";
+                return
+            ;;
+        esac
+    };
+    programlib_doc | field 1 | sort > .program.doc;
+    functions ~/bin/programlib | sort | pglibck ${*:-2} | sort | tee .program.nxt
 }
 programlib_doc () 
 { 
@@ -322,7 +324,6 @@ wh	-- which
 wpl	-- output a Word Per Line
     
 EOF
-
 
 }
 self_ref () 
@@ -405,7 +406,6 @@ foreachij ()
         $par $a;
     done
 }
-programlib_init
 quiet () 
 { 
     $@ 2> /dev/null
@@ -424,7 +424,8 @@ dodate ()
 { 
     echo "$1: $(date +%$1)"
 }
-stdout () 
+loadedlibs () 
 { 
-    $(shifted $@) > $1
+    sfg _init | sed 's/_init//'
 }
+programlib_init

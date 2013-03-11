@@ -68,7 +68,7 @@ require ()
 }
 setpathlib_doc () 
 { 
-    comment bkup: appleton.home./Users/applemcg/bin 2012_0527 091440
+    comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104649;
 }
 setpathlib_init () 
 { 

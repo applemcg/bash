@@ -3,7 +3,7 @@ awklib_doc ()
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/bin 2013_0117 153648;
+    comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104641;
     cat  <<EOF
 whch    
 

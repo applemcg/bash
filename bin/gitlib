@@ -18,6 +18,14 @@ findClean ()
 }
 git () 
 { 
+    subcmmd ()
+    {
+        grep '^ *[a-z[a-z]*)$' | sed 's/)$//; s/ */git /' $*
+    }
+    mygithub ()
+    {
+        echo ${1}github.com:applemcg/$(basename $PWD).git
+    }
     case $1 in 
         modified)
             command git status | awk '
@@ -29,7 +37,10 @@ git ()
            '
         ;;
         hub)
-            echo git@github.com:applemcg/$(basename $PWD).git
+            mygithub git@
+	;;
+        ssh)
+            mygithub https://
         ;;
         remo)
             command git remote add origin $(git hub);
@@ -58,21 +69,21 @@ git ()
             indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//'
         ;;
         help)
+	    shift;
 	    command git help $*;
 	    echo FUNCTIONS
             functions ~/bin/gitlib;
 	    echo SUB-FUNCTIONS
-            fbdy git | grep '^ *[a-z[a-z]*)$' | sed 's/)$//; s/ */git /' | sort;
+            fbdy git | subcmmd  | sort;
+
         ;;
         files)
             shift;
             command git ls-files $*
-        ;;
-        ssh)
-            echo https://github.com/applemcg/$(basename $PWD).git
         ;;
         *)
             command git "$@"
         ;;
     esac
 }
+gitlib_init

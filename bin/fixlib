@@ -113,7 +113,7 @@ integA ()
 integ_doc () 
 { 
     comment "# Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
-    comment bkup: appleton.home./Users/applemcg/bin 2013_0117 153649;
+    comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104502;
     cat  <<'EOF'
 
     usage: integA libA libB
