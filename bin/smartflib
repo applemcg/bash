@@ -36,7 +36,8 @@ EOF
 }
 smartflib_init () 
 { 
-    source programlib 2> /dev.null;
+    quietly source programlib 
+    isfunction today || { comment NO today function; return; }
     comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104649;
     smartf ETCLIB $HOME/etc/lib;
     smartf T $(ETCLIB)/.$(today);
