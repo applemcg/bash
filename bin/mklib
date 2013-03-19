@@ -116,6 +116,5 @@ mklib_init ()
 { 
     source programlib 2> /dev/null
     source smartflib 2> /dev/null
-    logUse mklib sourced programlib
 }
 mklib_init

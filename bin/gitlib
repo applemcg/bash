@@ -87,3 +87,11 @@ git ()
     esac
 }
 gitlib_init
+untracked () 
+{ 
+    git status | sed '1,/Untracked files:/d; s/^#[ 	]*//' | tail +3
+}
+untracked () 
+{ 
+    git status | sed '1,/Untracked files:/d; s/^#[ 	]*//' | tail +3
+}

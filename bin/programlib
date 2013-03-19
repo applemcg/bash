@@ -2,6 +2,7 @@ programlib_init ()
 { 
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    . ~/.profile
     obsolescent file_test testarg;
     obsolescent fileTest testarg;
     obsolescent piped pipe;
@@ -68,29 +69,6 @@ nonUnderscore ()
 { 
     grep -v _ $*
 }
-generic_lib () 
-{ 
-    lib=${1:-programlib};
-    case $2 in 
-        init)
-            copyrightNotice;
-            ${lib}_init
-        ;;
-        start)
-            $lib init;
-            $lib help
-        ;;
-        help)
-            comment -- $lib function list --;
-            generic_lib $lib | sort -u 1>&2;
-            comment --------------------;
-            comment "e.g. fbdy"
-        ;;
-        *)
-            $lib help
-        ;;
-    esac
-}
 wh () 
 { 
     which $1
@@ -148,9 +126,15 @@ newest ()
 { 
     target=$1;
     shift;
-    [[ -f $target ]] || return 1;
+    [[ -f $target ]] || {
+        comment NEWEST with NO $target
+        return 1;
+	}
     while [[ -n $1 ]]; do
-        [[ $target -ot $1 ]] && return 1;
+        [[ $target -ot $1 ]] && {
+	   comment NEWEST with $1 NEWER than $target
+	   return 1;
+	   }
         shift;
     done;
     return 0
@@ -427,5 +411,13 @@ dodate ()
 loadedlibs () 
 { 
     sfg _init | sed 's/_init//'
+}
+f2 () 
+{ 
+    f2_usage () { comment f2 function ...lib -- $*; }
+    isfunction $1 || { f2_usage no Function $1; return 1; }
+    set -- $1 ~/git/bash-functions/bin/$2
+    existingfile $2 || { f2_usage no File $2; return 1; }
+    fbdy $1 | append $2
 }
 programlib_init
