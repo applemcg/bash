@@ -188,15 +188,6 @@ testarg ()
 { 
     eval "$1() { [[ -$2 \$1 ]]; }"
 }
-de () 
-{ 
-    f=/tmp/de.$$;
-    rm -f $f;
-    ${EDITOR:-vi} $f;
-    ( _de_hdr;
-    cat $f .diary ) > .y.$$;
-    mv .y.$$ .diary
-}
 fnames () 
 { 
     [[ -d .names ]] || mkdir -p .names;
@@ -248,32 +239,34 @@ programlib_ck ()
 programlib_doc () 
 { 
     cat  <<'EOF'
+
     
 Mkdir	-- superseeded by mkdir -p
 append	-- stdin to a file
 basename	-- file portion of the argument, see dirname
 bitbucket	-- should be IGNORE
-cleanlib	--
-cleanlib	-- obsolescent, canonlib
 collect_eval	-- USES cgrepf, belongs whf cgrepf
-de	-- obsolescent
 defExe	-- ~ a b; echos "a", if found,  else "b"
 dirname	-- the directory portion of the argument, default "."
+dodate	-- ~ {x} :  date +%x
 error	-- comment, then exit
+f2	-- ~ function {some}lib 
+f2_usage
 field	-- the Nth blank-separated field
 fmdos	-- converts CR-LF files to NL
 fnames	-- wrap on libfunc, 
 foreach	-- ~ cmd ...   execuctes  "cmd" on each arg
 foreachi	-- ~ cmd One arg ... executes "cmd One" on each arg
 foreachij	-- ~ cmd a b ..i... executes "cmd a b i" on each i
-generic_lib	-- obsolescent
 getawk	-- who's your "awk"
-ignore	-- executes command, disposing stdout
 indir	-- ~ DIR cmd ...  executes "cmd ..." in DIR
+iso_y-m-d	-- : yyyy-mm-dd
 lc	-- Lower Case, see tolower, toupper, uc
 libfunc	-- obsolescent on behalf of functions
 libfunctions	--  obsolescent on behalf of functions
 liblib_obsolescent	-- USES rlib on liblib_users
+loadedlibs	-- : which libs are loaded
+lookat	-- ~ text-in-markdown OPENS .HTML
 mac2unix	-- like fmdos
 nava	-- NAme VAlue 
 newest	-- ~ FileA fileb ...  TRUE, when filea is the newest
@@ -421,3 +414,11 @@ f2 ()
     fbdy $1 | append $2
 }
 programlib_init
+qpfs () 
+{ 
+    fbdy $* | egrep -v '(\(\)|^[{}]) *$' | wpl | sort -u
+}
+fname () 
+{ 
+    isfunction $1 && echo $1
+}
