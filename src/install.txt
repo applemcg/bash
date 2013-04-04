@@ -7,6 +7,7 @@ bin/dirlib
 bin/fixlib
 bin/gitlib
 bin/infolib
+bin/maillib
 bin/makelib
 bin/mklib
 bin/movielib
