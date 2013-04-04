@@ -1,23 +1,23 @@
 bapp_init () 
 { 
-    comment "Copyright (C) 2005-2012, JYATL - Just Yet Another Testing Lab";
+    comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104641;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0328 172209;
     testarg isdirectory d;
     testarg exists e;
     blib_help
 }
 blib_help () 
 { 
-    is installed $HOME;
     comment -- blib function list --;
-    functions $(is installed)/bin/blib 1>&2;
+    functions ~/bin/blib 1>&2;
     comment -- usage:;
     comment bkup file ...;
     comment blib_doc
 }
 bkup () 
 { 
+    comment TRACE bkup $*
     function dirof () 
     { 
         case $1 in 
@@ -72,9 +72,9 @@ bkfiles ()
 }
 blib_init () 
 { 
-    source programlib 2> /dev/null;
-    source smartflib 2> /dev/null;
-    logUse blib sourced programlib;
+    . programlib 2> /dev/null;    
+    comment TRACE  blib_init 
+    . smartflib 2> /dev/null;
     bapp_init
 }
 unbkfile () 
@@ -93,10 +93,13 @@ bdeep ()
 }
 mkbkup () 
 { 
+
+    comment TRACE mkbkup
     sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S;')=" $1
 }
 commentType () 
 { 
+    comment TRACE commentType type $1
     case $1 in 
         *.c)
             echo "/*"
@@ -123,14 +126,19 @@ commentType ()
 }
 epoch () 
 { 
+    comment TRACE epoch file: $1
     [[ -f $1 ]] && perl -e "\$m=(stat(\"$1\"))[9]; print \$m"
 }
 sameTime () 
 { 
-    [[ $# -lt 2 ]] && { 
-        comment sameTime file toTouch;
-        return
-    };
+    sameTime_usage () { comment USAGE sameTime file: $1 toTouch: $2: $3; }
+
+    comment TRACE sameTime file: $1 toTouch: $2
+
+    [[ $# -lt 2 ]]  && { sameTime_usage .. .. "args < 2, =$#"; return; }
+    existingfile $1 || { sameTime_usage $1 $2 "$1 NOT a file"; return; }
+    existingfile $2 || { sameTime_usage $1 $2 "$2 NOT a file"; return; }
+
     touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
 }
 blib_init

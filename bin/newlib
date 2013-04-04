@@ -155,7 +155,7 @@ EOF
 }
 newlib_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104646;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0321 105554;
     source programlib;
     lx_init;
     mkuBin;

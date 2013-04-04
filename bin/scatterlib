@@ -52,7 +52,7 @@ scatter_page ()
 scatterlib_init () 
 { 
     source programlib 2> /dev/null;
-    comment bkup: appleton.home./Users/applemcg/bin 2013_0307 104649;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0321 105555;
     comment "Copyright (C) 2005-2013, JYATL, Just Yet Another Testing Lab";
     comment $(functions scatterlib | grep man)
 }

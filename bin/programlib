@@ -1,8 +1,10 @@
 programlib_init () 
 { 
+    . ~/.profile
+
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    . ~/.profile
+
     obsolescent file_test testarg;
     obsolescent fileTest testarg;
     obsolescent piped pipe;
