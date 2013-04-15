@@ -1,194 +1,56 @@
-programlib_init () 
-{ 
-    . ~/.profile
-
-    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-
-    obsolescent file_test testarg;
-    obsolescent fileTest testarg;
-    obsolescent piped pipe;
-    obsolescent is_a_function isfunction;
-    setenv AWK $(getawk);
-    testarg empty z;
-    testarg executable x;
-    testarg existingdir d;
-    testarg exists e;
-    testarg existingfile f;
-    testarg nonempty s;
-    testarg writeable w;
-    self_ref programlib_eval myfunctions obsolescent rlib testarg self_ref
-}
-stdout () 
-{ 
-    $(shifted $@) > $1
-}
-pipe () 
-{ 
-    eval $(shifted $@) | $1
-}
-run_test () 
-{ 
-    doit $*
-}
-foreach () 
-{ 
-    local cmd=$1;
-    shift;
-    for arg in "$@";
-    do
-        $cmd $arg;
-    done
-}
-shifted () 
-{ 
-    shift;
-    echo "$@"
-}
-liblib_obsolescent () 
-{ 
-    foreach rlib $(liblib_users)
-}
 Mkdir () 
 { 
     doit mkdir -p $*
-}
-setenv () 
-{ 
-    eval $1=\"$2\";
-    export $1
-}
-libfunc () 
-{ 
-    functions $*;
-    comment obsolescent in behalf of functions
-}
-obsolescent () 
-{ 
-    eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"
-}
-nonUnderscore () 
-{ 
-    grep -v _ $*
-}
-wh () 
-{ 
-    which $1
-}
-getawk () 
-{ 
-    wh gawk || wh nawk || wh awk
-}
-error () 
-{ 
-    comment "$@";
-    exit $#
-}
-foreachi () 
-{ 
-    local par="$1 $2";
-    shift 2;
-    for a in "$@";
-    do
-        $par $a;
-    done
-}
-shift2 () 
-{ 
-    shift;
-    shift;
-    echo $*
-}
-not () 
-{ 
-    if { 
-        eval "$@"
-    }; then
-        false;
-    else
-        true;
-    fi
-}
-dirname () 
-{ 
-    case $1 in 
-        */*)
-            echo ${1%/*}
-        ;;
-        *)
-            echo .
-        ;;
-    esac
-}
-basename () 
-{ 
-    echo ${1##*/}
-}
-newest () 
-{ 
-    target=$1;
-    shift;
-    [[ -f $target ]] || {
-        comment NEWEST with NO $target
-        return 1;
-	}
-    while [[ -n $1 ]]; do
-        [[ $target -ot $1 ]] && {
-	   comment NEWEST with $1 NEWER than $target
-	   return 1;
-	   }
-        shift;
-    done;
-    return 0
-}
-wpl () 
-{ 
-    cat ${*:--} | /usr/bin/tr -cs "[A-Z][a-z][0-9]_" '[\012*]'
-}
-toupper () 
-{ 
-    tr '[a-z]' '[A-Z]'
-}
-tolower () 
-{ 
-    tr '[A-Z]' '[a-z]'
-}
-subtract () 
-{ 
-    cat ${2:--} | sort -u | comm -23 $1 -
-}
-field () 
-{ 
-    awk "{ print \$$1 }"
-}
-indir () 
-{ 
-    ignore pushd $1;
-    shift;
-    $@;
-    ignore popd
-}
-nava () 
-{ 
-    eval echo $1 \$$1
-}
-printfirst () 
-{ 
-    awk 'printed [$1]++ < 1' $*
 }
 cleanlib () 
 { 
     source fixlib;
     canonlib $*
 }
-libfunctions () 
+collect_eval () 
 { 
-    functions $*;
-    comment obsolescent in behalf of canonlib
+    indir ~/bin cgrepf eval '*lib' | grep '1 *()' | field 1 | sort -u
 }
-testarg () 
+defExe () 
 { 
-    eval "$1() { [[ -$2 \$1 ]]; }"
+    which $1 > /dev/null 2>&1 && echo $1 || echo $2
+}
+dodate () 
+{ 
+    echo "$1: $(date +%$1)"
+}
+f2 () 
+{ 
+    function f2_usage () 
+    { 
+        comment f2 function ...lib -- $*
+    };
+    isfunction $1 || { 
+        f2_usage no Function $1;
+        return 1
+    };
+    set -- $1 ~/git/bash-functions/bin/$2;
+    existingfile $2 || { 
+        f2_usage no File $2;
+        return 1
+    };
+    fbdy $1 | append $2
+}
+ff () 
+{ 
+    fbdy $(functions $*)
+}
+field () 
+{ 
+    awk "{ print \$$1 }"
+}
+fmdos () 
+{ 
+    cat ${*:--} | tr -d '\015'
+}
+fname () 
+{ 
+    isfunction $1 && echo $1
 }
 fnames () 
 { 
@@ -197,21 +59,87 @@ fnames ()
     libfunc $* | tee .names.$suf | sort -u > .names/$suf;
     cat .names.$suf && rm -f .names.$suf
 }
-system () 
+getawk () 
 { 
-    uname -s
+    wh gawk || wh nawk || wh awk
 }
-uc () 
+gzfiles () 
 { 
-    tr a-z A-Z
+    file ${*:-*.gz} | grep 'gzip compressed' | sed 's/:.*//'
+}
+iso_y-m-d () 
+{ 
+    date +%F
 }
 lc () 
 { 
     cat ${*:--} | tr '[A-Z]' '[a-z]'
 }
-today () 
+libfunc () 
 { 
-    date +%Y%m%d
+    functions $*;
+    comment obsolescent in behalf of functions
+}
+libfunctions () 
+{ 
+    functions $*;
+    comment obsolescent in behalf of canonlib
+}
+liblib_obsolescent () 
+{ 
+    foreach rlib $(liblib_users)
+}
+loadedlibs () 
+{ 
+    sfg _init | sed 's/_init//'
+}
+lookat () 
+{ 
+    o=${1%txt}html;
+    pmkdn $1 > $o;
+    open $o
+}
+mac2unix () 
+{ 
+    cat ${*:--} | tr '\r' '\n';
+    echo
+}
+nava () 
+{ 
+    eval echo $1 \$$1
+}
+newest () 
+{ 
+    target=$1;
+    shift;
+    [[ -f $target ]] || { 
+        comment NEWEST with NO $target;
+        return 1
+    };
+    while [[ -n $1 ]]; do
+        [[ $target -ot $1 ]] && { 
+            comment NEWEST with $1 NEWER than $target;
+            return 1
+        };
+        shift;
+    done;
+    return 0
+}
+nonUnderscore () 
+{ 
+    grep -v _ $*
+}
+obsolescent () 
+{ 
+    eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"
+}
+popla () 
+{ 
+    sort -n | field 1 | uniq -c
+}
+printfirst () 
+{ 
+    awk 'printed [$1]++ < 1' $*
 }
 programlib_ck () 
 { 
@@ -305,35 +233,37 @@ wpl	-- output a Word Per Line
 EOF
 
 }
-self_ref () 
+programlib_init () 
 { 
-    eval "$1 () { \${1:-echo} $*; }"
+    . ~/.profile;
+    . shelllib;
+    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 083952;
+    obsolescent file_test testarg;
+    obsolescent fileTest testarg;
+    obsolescent piped pipe;
+    obsolescent is_a_function isfunction;
+    setenv AWK $(getawk);
+    self_ref programlib_eval myfunctions obsolescent rlib testarg self_ref
 }
-bitbucket () 
+qpfs () 
 { 
-    eval $@ 2> /dev/null
+    fbdy $* | egrep -v '(\(\)|^[{}]) *$' | wpl | sort -u
 }
-onlyfiles () 
+repeated () 
 { 
-    for arg in ${*:-*};
-    do
-        [[ -f $arg ]] && echo $arg;
-    done
+    count=${2:-2};
+    result=;
+    while [ $count -gt 0 ]; do
+        result=$result$1;
+        let count-=1;
+    done;
+    echo $result
 }
-onlydirs () 
+run_test () 
 { 
-    for arg in ${*:-*};
-    do
-        [[ -d $arg ]] && echo $arg;
-    done
-}
-fmdos () 
-{ 
-    cat ${*:--} | tr -d '\015'
-}
-append () 
-{ 
-    tee -a $1
+    doit $*
 }
 script_path () 
 { 
@@ -349,82 +279,45 @@ script_path ()
     };
     _scrpath_zero ${BASH_SOURCE[0]}
 }
-defExe () 
+self_ref () 
 { 
-    which $1 > /dev/null 2>&1 && echo $1 || echo $2
+    eval "$1 () { \${1:-echo} $*; }"
 }
-repeated () 
+setenv () 
 { 
-    count=${2:-2};
-    result=;
-    while [ $count -gt 0 ]; do
-        result=$result$1;
-        let count-=1;
-    done;
-    echo $result
+    eval $1=\"$2\";
+    export $1
 }
-popla () 
+subtract () 
 { 
-    sort -n | field 1 | uniq -c
+    cat ${2:--} | sort -u | comm -23 $1 -
 }
-mac2unix () 
+system () 
 { 
-    cat ${*:--} | tr '\r' '\n';
-    echo
+    uname -s
 }
-collect_eval () 
+today () 
 { 
-    indir ~/bin cgrepf eval '*lib' | grep '1 *()' | field 1 | sort -u
+    date +%Y%m%d
 }
-foreachij () 
+tolower () 
 { 
-    local par="$1 $2 $3";
-    shift 3;
-    for a in "$@";
-    do
-        $par $a;
-    done
+    tr '[A-Z]' '[a-z]'
 }
-quiet () 
+toupper () 
 { 
-    $@ 2> /dev/null
+    tr '[a-z]' '[A-Z]'
 }
-iso_y-m-d () 
+uc () 
 { 
-    date +%F
+    tr a-z A-Z
 }
-lookat () 
+wh () 
 { 
-    o=${1%txt}html;
-    pmkdn $1 > $o;
-    open $o
+    which $1
 }
-dodate () 
+wpl () 
 { 
-    echo "$1: $(date +%$1)"
+    cat ${*:--} | /usr/bin/tr -cs "[A-Z][a-z][0-9]_" '[\012*]'
 }
-loadedlibs () 
-{ 
-    sfg _init | sed 's/_init//'
-}
-f2 () 
-{ 
-    f2_usage () { comment f2 function ...lib -- $*; }
-    isfunction $1 || { f2_usage no Function $1; return 1; }
-    set -- $1 ~/git/bash-functions/bin/$2
-    existingfile $2 || { f2_usage no File $2; return 1; }
-    fbdy $1 | append $2
-}
-programlib_init
-qpfs () 
-{ 
-    fbdy $* | egrep -v '(\(\)|^[{}]) *$' | wpl | sort -u
-}
-fname () 
-{ 
-    isfunction $1 && echo $1
-}
-gzfiles () 
-{ 
-    file ${*:-*.gz} | grep 'gzip compressed' | sed 's/:.*//'
-}
+program_init

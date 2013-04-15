@@ -17,10 +17,11 @@ bin/programlib
 bin/qvslib
 bin/scatterlib
 bin/setpathlib
+bin/shelllib
 bin/smartflib
 bin/tasklib
 bin/templatelib
 bin/testlib
 man/man1/blib.txt
-man/man1/setpath.txt
 man/man1/dirlib.txt
+man/man1/setpath.txt

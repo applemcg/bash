@@ -1,22 +1,17 @@
 is () 
 { 
-    [[ $# -gt 1 ]] && { 
-        eval _is_$1="$2"
-    };
-    eval echo \$_is_$1
+    comment OBSOLESCENT is USING smartf_is;
+    smartf_is $*
 }
 refreshT () 
 { 
-    function lastfuns () 
-    { 
-        ls $(ETCLIB)/.20* | grep -v '[#~]$' | tail -1
-    };
-    [[ "$(lastfuns)" == "$(T)" ]] && return;
-    fbdy $(functions $(lastfuns)) | T append
+    comment OBSOLESCENT refreshT USING smartf_refreshT;
+    smartf_refreshT $*
 }
 savef () 
 { 
-    fbdy $* | T append
+    comment OBSOLESCENT savef USING smartf_savef;
+    smartf_savef $*
 }
 smartf () 
 { 
@@ -41,7 +36,7 @@ smartf_init ()
         comment NO today function;
         return
     };
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0414 093306;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0414 204341;
     smartf_smartf ETCLIB $HOME/etc/lib;
     smartf_smartf T $(ETCLIB)/.$(today);
     smartf_smartf smartflib $HOME/bin/smartflib;
@@ -67,8 +62,3 @@ smartf_savef ()
 { 
     fbdy $* | T append
 }
-smartf_smartf () 
-{ 
-    eval " $1 () { \${*:-echo} $2; }"
-}
-smartf_init

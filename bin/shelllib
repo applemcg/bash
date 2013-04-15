@@ -1,0 +1,140 @@
+stdout () 
+{ 
+    $(shifted $@) > $1
+}
+pipe () 
+{ 
+    eval $(shifted $@) | $1
+}
+foreach () 
+{ 
+    local cmd=$1;
+    shift;
+    for arg in "$@";
+    do
+        $cmd $arg;
+    done
+}
+shifted () 
+{ 
+    shift;
+    echo "$@"
+}
+error () 
+{ 
+    comment "$@";
+    exit $#
+}
+foreachi () 
+{ 
+    local par="$1 $2";
+    shift 2;
+    for a in "$@";
+    do
+        $par $a;
+    done
+}
+shift2 () 
+{ 
+    shift;
+    shift;
+    echo $*
+}
+not () 
+{ 
+    if { 
+        eval "$@"
+    }; then
+        false;
+    else
+        true;
+    fi
+}
+dirname () 
+{ 
+    case $1 in 
+        */*)
+            echo ${1%/*}
+        ;;
+        *)
+            echo .
+        ;;
+    esac
+}
+basename () 
+{ 
+    echo ${1##*/}
+}
+indir () 
+{ 
+    ignore pushd $1;
+    shift;
+    $@;
+    ignore popd
+}
+testarg () 
+{ 
+    eval "$1() { [[ -$2 \$1 ]]; }"
+}
+bitbucket () 
+{ 
+    eval $@ 2> /dev/null
+}
+onlyfiles () 
+{ 
+    for arg in ${*:-*};
+    do
+        [[ -f $arg ]] && echo $arg;
+    done
+}
+onlydirs () 
+{ 
+    for arg in ${*:-*};
+    do
+        [[ -d $arg ]] && echo $arg;
+    done
+}
+append () 
+{ 
+    tee -a $1
+}
+foreachij () 
+{ 
+    local par="$1 $2 $3";
+    shift 3;
+    for a in "$@";
+    do
+        $par $a;
+    done
+}
+quiet () 
+{ 
+    $@ 2> /dev/null
+}
+cfe () 
+{ 
+    eval "xx() { $1; }";
+    shift;
+    foreach xx $*
+}
+missing () 
+{ 
+    [[ -f $1 ]] || echo $1
+}
+out2err () 
+{ 
+    "$@" 1>&2
+}
+shell_init () 
+{ 
+    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 083341;
+    testarg empty z;
+    testarg executable x;
+    testarg existingdir d;
+    testarg exists e;
+    testarg existingfile f;
+    testarg nonempty s;
+    testarg writeable w
+}

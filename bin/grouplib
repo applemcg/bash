@@ -33,13 +33,25 @@ group_collect ()
 group_doc () 
 { 
     cat  <<EOF
-group library -- supplies functions to collect functions in groups
------
-* appinit -- when you initialize the appliction
-* init -- the only permissible default behavior when sourceing
-* name -- ~ group function, turns function into  group_function
-* collect -- ~ group, collects groups functions, tacks on init
+
+group library    -- functions to collect functions in groups
+-------------
+group_appinit -- when you initialize the appliction
+group_init    -- the only permissible default behavior when sourceing
+group_collect -- ~ group      collects groups functions, tacks on init
+group_ungroup -- ~ group      takes all the ungrouped in the group library.
+group_name    -- ~ group function     turns function into  group_function
+group_takes   -- ~ group function     redefines function as using group_function
+
 EOF
 
+}
+group_takes () 
+{ 
+    eval "$2 () { comment OBSOLESCENT $2 USING ${1}_$2; ${1}_$2 \$*; }"
+}
+group_ungroup () 
+{ 
+    foreachi group_takes $1 $(functions ${1}lib | grep -v $1)
 }
 group_init
