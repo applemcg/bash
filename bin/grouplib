@@ -1,17 +1,19 @@
 group_appinit () 
 { 
+    comment "Copyright (C) 2013, JYATL, Just Yet Another Test Lab";
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 104546;
     group_doc 1>&2;
     fbdy group_appinit 1>&2
 }
 group_init () 
 { 
-    source programlib 2> /dev/null;
+    source shelllib 2> /dev/null;
     group_appinit
 }
 group_name () 
 { 
     set -- ${1:-empty} ${2:-EMPTY};
-    fbdy $2 || { 
+    ignore fbdy $2 || { 
         comment $2 is NOT a function;
         return
     };
@@ -39,7 +41,7 @@ group library    -- functions to collect functions in groups
 group_appinit -- when you initialize the appliction
 group_init    -- the only permissible default behavior when sourceing
 group_collect -- ~ group      collects groups functions, tacks on init
-group_ungroup -- ~ group      takes all the ungrouped in the group library.
+group_regroup -- ~ group      takes all the ungrouped in the group library.
 group_name    -- ~ group function     turns function into  group_function
 group_takes   -- ~ group function     redefines function as using group_function
 
@@ -50,8 +52,27 @@ group_takes ()
 { 
     eval "$2 () { comment OBSOLESCENT $2 USING ${1}_$2; ${1}_$2 \$*; }"
 }
-group_ungroup () 
+group_regroup () 
 { 
-    foreachi group_takes $1 $(functions ${1}lib | grep -v $1)
+    function errmsg () 
+    { 
+        comment group_ungroup LIBRARY -- $*
+    };
+    function gboth () 
+    { 
+        group_name $1 $2 > .$1.tmp ;
+	. ./.$1.tmp
+        group_takes $1 $2
+    };
+    [[ $# -lt 1 ]] && { 
+        errmsg no library;
+        return
+    };
+    set -- ${1%lib};
+    [[ -f ${1}lib ]] || { 
+        errmsg ${1}lib is NOT a file;
+        return
+    };
+    foreachi gboth $1 $(functions ${1}lib | grep -v $1)
 }
 group_init

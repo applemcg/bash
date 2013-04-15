@@ -1,56 +1,140 @@
 stdout () 
 { 
-    $(shifted $@) > $1
+    comment OBSOLESCENT stdout USING shell_stdout;
+    shell_stdout $*
 }
 pipe () 
 { 
-    eval $(shifted $@) | $1
+    comment OBSOLESCENT pipe USING shell_pipe;
+    shell_pipe $*
 }
 foreach () 
 { 
-    local cmd=$1;
-    shift;
-    for arg in "$@";
-    do
-        $cmd $arg;
-    done
+    comment OBSOLESCENT foreach USING shell_foreach;
+    shell_foreach $*
 }
 shifted () 
 { 
-    shift;
-    echo "$@"
+    comment OBSOLESCENT shifted USING shell_shifted;
+    shell_shifted $*
 }
 error () 
 { 
-    comment "$@";
-    exit $#
+    comment OBSOLESCENT error USING shell_error;
+    shell_error $*
 }
 foreachi () 
 { 
-    local par="$1 $2";
-    shift 2;
-    for a in "$@";
-    do
-        $par $a;
-    done
+    comment OBSOLESCENT foreachi USING shell_foreachi;
+    shell_foreachi $*
 }
 shift2 () 
 { 
-    shift;
-    shift;
-    echo $*
+    comment OBSOLESCENT shift2 USING shell_shift2;
+    shell_shift2 $*
 }
 not () 
 { 
-    if { 
-        eval "$@"
-    }; then
-        false;
-    else
-        true;
-    fi
+    comment OBSOLESCENT not USING shell_not;
+    shell_not $*
 }
 dirname () 
+{ 
+    comment OBSOLESCENT dirname USING shell_dirname;
+    shell_dirname $*
+}
+basename () 
+{ 
+    comment OBSOLESCENT basename USING shell_basename;
+    shell_basename $*
+}
+indir () 
+{ 
+    comment OBSOLESCENT indir USING shell_indir;
+    shell_indir $*
+}
+testarg () 
+{ 
+    comment OBSOLESCENT testarg USING shell_testarg;
+    shell_testarg $*
+}
+bitbucket () 
+{ 
+    comment OBSOLESCENT bitbucket USING shell_bitbucket;
+    shell_bitbucket $*
+}
+onlyfiles () 
+{ 
+    comment OBSOLESCENT onlyfiles USING shell_onlyfiles;
+    shell_onlyfiles $*
+}
+onlydirs () 
+{ 
+    comment OBSOLESCENT onlydirs USING shell_onlydirs;
+    shell_onlydirs $*
+}
+append () 
+{ 
+    comment OBSOLESCENT append USING shell_append;
+    shell_append $*
+}
+foreachij () 
+{ 
+    comment OBSOLESCENT foreachij USING shell_foreachij;
+    shell_foreachij $*
+}
+quiet () 
+{ 
+    comment OBSOLESCENT quiet USING shell_quiet;
+    shell_quiet $*
+}
+cfe () 
+{ 
+    comment OBSOLESCENT cfe USING shell_cfe;
+    shell_cfe $*
+}
+missing () 
+{ 
+    comment OBSOLESCENT missing USING shell_missing;
+    shell_missing $*
+}
+out2err () 
+{ 
+    comment OBSOLESCENT out2err USING shell_out2err;
+    shell_out2err $*
+}
+shell_init () 
+{ 
+    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 100807;
+    testarg empty z;
+    testarg executable x;
+    testarg existingdir d;
+    testarg exists e;
+    testarg existingfile f;
+    testarg nonempty s;
+    testarg writeable w
+}
+shell_append () 
+{ 
+    tee -a $1
+}
+shell_basename () 
+{ 
+    echo ${1##*/}
+}
+shell_bitbucket () 
+{ 
+    eval $@ 2> /dev/null
+}
+shell_cfe () 
+{ 
+    eval "xx() { $1; }";
+    shift;
+    foreach xx $*
+}
+shell_dirname () 
 { 
     case $1 in 
         */*)
@@ -61,44 +145,30 @@ dirname ()
         ;;
     esac
 }
-basename () 
+shell_error () 
 { 
-    echo ${1##*/}
+    comment "$@";
+    exit $#
 }
-indir () 
+shell_foreach () 
 { 
-    ignore pushd $1;
+    local cmd=$1;
     shift;
-    $@;
-    ignore popd
-}
-testarg () 
-{ 
-    eval "$1() { [[ -$2 \$1 ]]; }"
-}
-bitbucket () 
-{ 
-    eval $@ 2> /dev/null
-}
-onlyfiles () 
-{ 
-    for arg in ${*:-*};
+    for arg in "$@";
     do
-        [[ -f $arg ]] && echo $arg;
+        $cmd $arg;
     done
 }
-onlydirs () 
+shell_foreachi () 
 { 
-    for arg in ${*:-*};
+    local par="$1 $2";
+    shift 2;
+    for a in "$@";
     do
-        [[ -d $arg ]] && echo $arg;
+        $par $a;
     done
 }
-append () 
-{ 
-    tee -a $1
-}
-foreachij () 
+shell_foreachij () 
 { 
     local par="$1 $2 $3";
     shift 3;
@@ -107,29 +177,18 @@ foreachij ()
         $par $a;
     done
 }
-quiet () 
+shell_indir () 
 { 
-    $@ 2> /dev/null
-}
-cfe () 
-{ 
-    eval "xx() { $1; }";
+    ignore pushd $1;
     shift;
-    foreach xx $*
-}
-missing () 
-{ 
-    [[ -f $1 ]] || echo $1
-}
-out2err () 
-{ 
-    "$@" 1>&2
+    $@;
+    ignore popd
 }
 shell_init () 
 { 
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 083341;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 100807;
     testarg empty z;
     testarg executable x;
     testarg existingdir d;
@@ -137,4 +196,63 @@ shell_init ()
     testarg existingfile f;
     testarg nonempty s;
     testarg writeable w
+}
+shell_missing () 
+{ 
+    [[ -f $1 ]] || echo $1
+}
+shell_not () 
+{ 
+    if { 
+        eval "$@"
+    }; then
+        false;
+    else
+        true;
+    fi
+}
+shell_onlydirs () 
+{ 
+    for arg in ${*:-*};
+    do
+        [[ -d $arg ]] && echo $arg;
+    done
+}
+shell_onlyfiles () 
+{ 
+    for arg in ${*:-*};
+    do
+        [[ -f $arg ]] && echo $arg;
+    done
+}
+shell_out2err () 
+{ 
+    "$@" 1>&2
+}
+shell_pipe () 
+{ 
+    eval $(shifted $@) | $1
+}
+shell_quiet () 
+{ 
+    $@ 2> /dev/null
+}
+shell_shift2 () 
+{ 
+    shift;
+    shift;
+    echo $*
+}
+shell_shifted () 
+{ 
+    shift;
+    echo "$@"
+}
+shell_stdout () 
+{ 
+    $(shifted $@) > $1
+}
+shell_testarg () 
+{ 
+    eval "$1() { [[ -$2 \$1 ]]; }"
 }
