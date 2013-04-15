@@ -1,15 +1,16 @@
 template () 
 { 
-    ( fbdy $(functions templatelib | grep _)
-    echo templatelib_init ) | sed "s/template/$1/" >> ${1}lib
+    set -- ${1:-empty};
+    ( fbdy $(functions templatelib | grep _);
+    echo template_init ) | sed "s/template/$1/" | tee -a ${1}lib
 }
-templateapp_init () 
+template_appinit () 
 { 
     return
 }
-templatelib_init () 
+template_init () 
 { 
     source programlib 2> /dev/null;
-    templateapp_init
+    template_appinit
 }
-templatelib_init
+template_init

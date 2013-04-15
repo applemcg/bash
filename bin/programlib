@@ -424,3 +424,7 @@ fname ()
 { 
     isfunction $1 && echo $1
 }
+gzfiles () 
+{ 
+    file ${*:-*.gz} | grep 'gzip compressed' | sed 's/:.*//'
+}

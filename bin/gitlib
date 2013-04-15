@@ -1,34 +1,33 @@
-gitapp_init () 
+git_appinit () 
 { 
-    return
+    git help 1>&2
 }
-gitlib_init () 
+git_init () 
 { 
     source programlib 2> /dev/null;
-    gitapp_init
-}
-mods () 
-{ 
-    git status | findClean modified:;
-    git status | findClean "new file:"
-}
-findClean () 
-{ 
-    grep "$1" - | sed "s/.*$1 *//"
+    git_appinit
 }
 git () 
 { 
-    subcmmd ()
-    {
+    function findClean () 
+    { 
+        grep "$1" - | sed "s/.*$1 *//"
+    };
+    function subcmmd () 
+    { 
         grep '^ *[a-z[a-z]*)$' | sed 's/)$//; s/ */git /' $*
-    }
-    mygithub ()
-    {
+    };
+    function mygithub () 
+    { 
         echo ${1}github.com:applemcg/$(basename $PWD).git
-    }
+    };
+    function cgit () 
+    { 
+        command git $*
+    };
     case $1 in 
         modified)
-            command git status | awk '
+            cgit status | awk '
             /not staged/      {ready++};
             /to be committed/ {ready++}; 
             #            { print "debug: ", ready, $0 }
@@ -36,23 +35,27 @@ git ()
             ready && ($3 ~ /^file:$/)     { print $4 }
            '
         ;;
+        mods)
+            cgit status | findClean modified:;
+            git status | findClean "new file:"
+        ;;
         hub)
             mygithub git@
-	;;
+        ;;
         ssh)
             mygithub https://
         ;;
         remo)
-            command git remote add origin $(git hub);
-            command git push -u origin master
+            cgit remote add origin $(git hub);
+            cgit push -u origin master
         ;;
         push)
-            command git push $(git hub);
-            command git pull $(git hub)
+            cgit push $(git hub);
+            cgit pull $(git hub)
         ;;
         add)
             shift;
-            command git add $(git modified) $*
+            cgit add $(git modified) $*
         ;;
         name)
             ignore pushd .;
@@ -69,29 +72,23 @@ git ()
             indir $HOME ls -d */.git src/*/.git git/*/.git | sed 's/..git$//'
         ;;
         help)
-	    shift;
-	    command git help $*;
-	    echo FUNCTIONS
+            shift;
+            cgit help $*;
+            echo FUNCTIONS;
             functions ~/bin/gitlib;
-	    echo SUB-FUNCTIONS
-            fbdy git | subcmmd  | sort;
-
+            echo SUB-FUNCTIONS;
+            fbdy git | subcmmd | sort
         ;;
         files)
             shift;
-            command git ls-files $*
+            cgit ls-files $*
+        ;;
+        untracked)
+            cgit status | sed '1,/Untracked files:/d; s/^#[ 	]*//' | tail +3
         ;;
         *)
             command git "$@"
         ;;
     esac
 }
-gitlib_init
-untracked () 
-{ 
-    git status | sed '1,/Untracked files:/d; s/^#[ 	]*//' | tail +3
-}
-untracked () 
-{ 
-    git status | sed '1,/Untracked files:/d; s/^#[ 	]*//' | tail +3
-}
+git_init

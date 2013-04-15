@@ -22,7 +22,7 @@ smartf ()
 { 
     eval " $1 () { \${*:-echo} $2; }"
 }
-smartflib_doc () 
+smartf_doc () 
 { 
     ( cat  <<EOF
 is -- ~ a b, such that "is a" returns b
@@ -34,14 +34,41 @@ refreshT -- saves copies of new functions in T
 EOF
  ) | sed 's/^/    /; s/ --/	--/'
 }
-smartflib_init () 
+smartf_init () 
 { 
-    quietly source programlib 
-    isfunction today || { comment NO today function; return; }
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0321 105555;
-    smartf ETCLIB $HOME/etc/lib;
-    smartf T $(ETCLIB)/.$(today);
-    smartf smartflib $HOME/bin/smartflib;
-    smartflib_doc 1>&2
+    . programlib;
+    isfunction today || { 
+        comment NO today function;
+        return
+    };
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0414 093306;
+    smartf_smartf ETCLIB $HOME/etc/lib;
+    smartf_smartf T $(ETCLIB)/.$(today);
+    smartf_smartf smartflib $HOME/bin/smartflib;
+    smartf_doc 1>&2
 }
-smartflib_init
+smartf_is () 
+{ 
+    [[ $# -gt 1 ]] && { 
+        eval _smartf_is_$1="$2"
+    };
+    eval echo \$_smartf_is_$1
+}
+smartf_refreshT () 
+{ 
+    function lastfuns () 
+    { 
+        ls $(ETCLIB)/.20* | grep -v '[#~]$' | tail -1
+    };
+    [[ "$(lastfuns)" == "$(T)" ]] && return;
+    fbdy $(functions $(lastfuns)) | T append
+}
+smartf_savef () 
+{ 
+    fbdy $* | T append
+}
+smartf_smartf () 
+{ 
+    eval " $1 () { \${*:-echo} $2; }"
+}
+smartf_init

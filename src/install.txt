@@ -6,6 +6,7 @@ bin/blib
 bin/dirlib
 bin/fixlib
 bin/gitlib
+bin/grouplib
 bin/infolib
 bin/maillib
 bin/makelib

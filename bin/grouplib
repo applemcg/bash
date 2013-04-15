@@ -1,0 +1,45 @@
+group_appinit () 
+{ 
+    group_doc 1>&2;
+    fbdy group_appinit 1>&2
+}
+group_init () 
+{ 
+    source programlib 2> /dev/null;
+    group_appinit
+}
+group_name () 
+{ 
+    set -- ${1:-empty} ${2:-EMPTY};
+    fbdy $2 || { 
+        comment $2 is NOT a function;
+        return
+    };
+    fbdy $2 | sed "s/$2/${1}_$2/"
+}
+group_collect () 
+{ 
+    set -- ${1%lib};
+    set -- ${1}lib $(basename $1);
+    comment TRACE group_collect LIBRARY $1 BASENAME $2;
+    [[ -f ${1} ]] || { 
+        comment ${1} is NOT a lib;
+        return
+    };
+    . $1;
+    fbdy $(functions ${1});
+    echo ${2}_init
+}
+group_doc () 
+{ 
+    cat  <<EOF
+group library -- supplies functions to collect functions in groups
+-----
+* appinit -- when you initialize the appliction
+* init -- the only permissible default behavior when sourceing
+* name -- ~ group function, turns function into  group_function
+* collect -- ~ group, collects groups functions, tacks on init
+EOF
+
+}
+group_init

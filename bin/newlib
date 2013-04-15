@@ -772,3 +772,15 @@ lntobin ()
     ln $* ~/bin
 }
 newlib_init
+sfwc () 
+{ 
+    sfg . | wc
+}
+name () 
+{ 
+    fbdy $2 | sed "s/$2/${1}_$2/"
+}
+agh () 
+{ 
+    foreach gh $* | sort -u
+}
