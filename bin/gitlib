@@ -55,6 +55,7 @@ git ()
         ;;
         add)
             shift;
+	    quietly chmod 775 bin/* 
             cgit add $(git modified) $*
         ;;
         name)
