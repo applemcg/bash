@@ -1,0 +1,17 @@
+ff () 
+{ 
+    fbdy $(functions $*)
+}
+fsfg () 
+{ 
+    fbdy $(sfg $*)
+}
+topsuf () 
+{ 
+    ls *.* | grep -v '[~#]$' | sed 's/.*\.//' | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2}'
+}
+pdl () 
+{ 
+    peekd;
+    ls -t | grep -v '[~#]$' | sed 10q
+}

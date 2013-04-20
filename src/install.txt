@@ -22,3 +22,7 @@ bin/testlib
 man/man1/blib.txt
 man/man1/dirlib.txt
 man/man1/setpath.txt
+bin/bkuplib
+bin/cmdlib
+bin/notefmtlib
+man/man1/qvslib.txt
