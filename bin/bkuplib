@@ -2,9 +2,9 @@ bkup_appinit ()
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 104546;
-    testarg isdirectory d;
-    testarg exists e;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 113358;
+    shell_testarg isdirectory d;
+    shell_testarg exists e;
     bkup_help
 }
 bkup_help () 
@@ -72,6 +72,38 @@ bkup ()
         };
         touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
     };
+    function mkbkup () 
+    { 
+        function commentType () 
+        { 
+            comment TRACE commentType type $1;
+            case $1 in 
+                *.c)
+                    echo "/*"
+                ;;
+                *.h)
+                    echo "/*"
+                ;;
+                *.cpp)
+                    echo "//"
+                ;;
+                *.java)
+                    echo "//"
+                ;;
+                *lib)
+                    echo " *comment"
+                ;;
+                .*prof*)
+                    echo " *comment"
+                ;;
+                *)
+                    echo " *#"
+                ;;
+            esac
+        };
+        comment TRACE mkbkup;
+        sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S;')=" $1
+    };
     function thisbk () 
     { 
         mkbkup $1 > $2;
@@ -93,7 +125,8 @@ bkup ()
 }
 bkfiles () 
 { 
-    shell_onlyfiles $(shell_indir .bak ls -a)
+    comment OBSOLESCENT bkfiles USING bkup_bkfiles;
+    bkup_bkfiles $*
 }
 bkup_init () 
 { 
@@ -104,6 +137,24 @@ bkup_init ()
 }
 unbkfile () 
 { 
+    comment OBSOLESCENT unbkfile USING bkup_unbkfile;
+    bkup_unbkfile $*
+}
+bdeep () 
+{ 
+    comment OBSOLESCENT bdeep USING bkup_bdeep;
+    bkup_bdeep $*
+}
+bkup_bdeep () 
+{ 
+    [[ $1 -gt 0 ]] && echo .bak/$( bkup_bdeep $(( $1 - 1)) )
+}
+bkup_bkfiles () 
+{ 
+    shell_onlyfiles $(shell_indir .bak ls -a)
+}
+bkup_unbkfile () 
+{ 
     f=${1:-/dev/null};
     bkup $f;
     rm -f $f;
@@ -112,40 +163,19 @@ unbkfile ()
     rm -f $f;
     popd
 }
-bdeep () 
+bkup_timestamp () 
 { 
-    [[ $1 -gt 0 ]] && echo .bak/$( bdeep $(( $1 - 1)) )
+    grep 'comment bkup:' ${*:-*lib} | sed 's/:.*bin//; s/;//' | awk '{ print $2, $3, $1 }'
 }
-mkbkup () 
+exists () 
 { 
-    function commentType () 
-    { 
-        comment TRACE commentType type $1;
-        case $1 in 
-            *.c)
-                echo "/*"
-            ;;
-            *.h)
-                echo "/*"
-            ;;
-            *.cpp)
-                echo "//"
-            ;;
-            *.java)
-                echo "//"
-            ;;
-            *lib)
-                echo " *comment"
-            ;;
-            .*prof*)
-                echo " *comment"
-            ;;
-            *)
-                echo " *#"
-            ;;
-        esac
-    };
-    comment TRACE mkbkup;
-    sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S;')=" $1
+    [[ -e $1 ]]
 }
-bkup_init
+isdirectory () 
+{ 
+    [[ -d $1 ]]
+}
+existingfile () 
+{ 
+    [[ -f $1 ]]
+}

@@ -170,14 +170,11 @@ programlib_doc ()
 { 
     cat  <<'EOF'
 
-    
 Mkdir	-- superseeded by mkdir -p
 append	-- stdin to a file
-basename	-- file portion of the argument, see dirname
 bitbucket	-- should be IGNORE
 collect_eval	-- USES cgrepf, belongs whf cgrepf
 defExe	-- ~ a b; echos "a", if found,  else "b"
-dirname	-- the directory portion of the argument, default "."
 dodate	-- ~ {x} :  date +%x
 error	-- comment, then exit
 f2	-- ~ function {some}lib 
@@ -233,23 +230,9 @@ wpl	-- output a Word Per Line
 EOF
 
 }
-programlib_init () 
-{ 
-    . ~/.profile;
-    . shelllib;
-    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 083952;
-    obsolescent file_test testarg;
-    obsolescent fileTest testarg;
-    obsolescent piped pipe;
-    obsolescent is_a_function isfunction;
-    setenv AWK $(getawk);
-    self_ref programlib_eval myfunctions obsolescent rlib testarg self_ref
-}
 qpfs () 
 { 
-    fbdy $* | egrep -v '(\(\)|^[{}]) *$' | wpl | sort -u
+    fbdy $* | grep -vE '(\(\)|^[{}]) *$' | wpl | sort -u
 }
 repeated () 
 { 
@@ -319,5 +302,31 @@ wh ()
 wpl () 
 { 
     cat ${*:--} | /usr/bin/tr -cs "[A-Z][a-z][0-9]_" '[\012*]'
+}
+fun_finder () 
+{ 
+    grep $* $(T shell_dirname)/.*
+}
+program_init () 
+{ 
+    . ~/.profile;
+    . smartflib;
+    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0420 150045;
+    obsolescent file_test testarg;
+    obsolescent fileTest testarg;
+    obsolescent piped pipe;
+    obsolescent is_a_function isfunction;
+    setenv AWK $(getawk);
+    self_ref programlib_eval myfunctions obsolescent rlib testarg self_ref
+}
+latestFileIn () 
+{ 
+    find ${1:-git} -mtime -1 -type f | xargs ls -t | sed 1q
+}
+fofg () 
+{ 
+    sed 's/:.*//' $* | sort -u
 }
 program_init

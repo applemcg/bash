@@ -108,13 +108,13 @@ shell_init ()
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
     comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 100807;
-    testarg empty z;
-    testarg executable x;
-    testarg existingdir d;
-    testarg exists e;
-    testarg existingfile f;
-    testarg nonempty s;
-    testarg writeable w
+    shell_testarg empty z;
+    shell_testarg executable x;
+    shell_testarg existingdir d;
+    shell_testarg exists e;
+    shell_testarg existingfile f;
+    shell_testarg nonempty s;
+    shell_testarg writeable w
 }
 shell_append () 
 { 

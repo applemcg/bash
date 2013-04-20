@@ -31,15 +31,15 @@ EOF
 }
 smartf_init () 
 { 
-    . programlib;
+    . shelllib;
     isfunction today || { 
         comment NO today function;
         return
     };
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0414 204341;
-    smartf_smartf ETCLIB $HOME/etc/lib;
-    smartf_smartf T $(ETCLIB)/.$(today);
-    smartf_smartf smartflib $HOME/bin/smartflib;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0420 150841;
+    smartf ETCLIB $HOME/etc/lib;
+    smartf T $(ETCLIB)/.$(today);
+    smartf smartflib $HOME/bin/smartflib;
     smartf_doc 1>&2
 }
 smartf_is () 
@@ -60,5 +60,6 @@ smartf_refreshT ()
 }
 smartf_savef () 
 { 
-    fbdy $* | T append
+    fbdy $* | T shell_append
 }
+smartf_init

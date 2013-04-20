@@ -19,7 +19,7 @@ git ()
     };
     function mygithub () 
     { 
-        echo ${1}github.com:applemcg/$(basename $PWD).git
+        echo ${1}github.com:applemcg/$(shell_basename $PWD).git
     };
     function cgit () 
     { 
@@ -61,7 +61,7 @@ git ()
             ignore pushd .;
             while [[ $PWD != "/" ]]; do
                 [[ -d .git ]] && { 
-                    basename $PWD;
+                    shell_basename $PWD;
                     break
                 };
                 cd ..;
