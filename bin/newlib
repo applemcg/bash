@@ -155,7 +155,7 @@ EOF
 }
 newlib_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 104546;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0429 200958;
     source programlib;
     lx_init;
     mkuBin;
@@ -771,7 +771,6 @@ lntobin ()
     popd;
     ln $* ~/bin
 }
-newlib_init
 sfwc () 
 { 
     sfg . | wc
@@ -784,3 +783,37 @@ agh ()
 { 
     foreach gh $* | sort -u
 }
+existingfile () 
+{ 
+    [[ -f $1 ]]
+}
+flines () 
+{ 
+    echo $1 $(fbdy $1 | wc -l )
+}
+fsfg () 
+{ 
+    fbdy $(sfg $*)
+}
+hlines () 
+{ 
+    awk "\$1 >= $1 && \$1 < ${2:-99999}"
+}
+hoypref () 
+{ 
+    sed "s/^/$(today) /" $*
+}
+inclall () 
+{ 
+    grep '<!-- include' *txt | sed 's/:.*include / /; s/ *--.*//; s/^/..\/txt\//' | grep -vE '\.(end|toc)$' | awk '{ incl[$1] = incl[$1] " " $2; print incl[$1], $0 }'
+}
+pdl () 
+{ 
+    peekd;
+    ls -t | grep -v '[~#]$' | sed 10q
+}
+topsuf () 
+{ 
+    ls *.* | grep -v '[~#]$' | sed 's/.*\.//' | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2}'
+}
+new_init

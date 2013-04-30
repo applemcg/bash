@@ -30,19 +30,19 @@ bkup ()
     };
     function backup () 
     { 
-        shell_indir $(dirof $1) lbkup false .bak $(shell_basename $1)
-    };
+        shell_indir $(dirof $1) recursebkup false .bak $(shell_basename $1)
+    }
     function sameas () 
     { 
         cmp $*
     };
-    function lbkup () 
+    function recursebkup () 
     { 
         isdirectory $2 || mkdir -p $2;
         $1 || { 
             sameas $3 $2/$3 > /dev/null 2>&1 && return
         };
-        exists $2/$3 && shell_indir $2 lbkup true $2 $3;
+        exists $2/$3 && shell_indir $2 recursebkup true $2 $3;
         $1 && domove $3 $2;
         $1 || thisbk ./$3 $2/$3
     };
@@ -165,7 +165,7 @@ bkup_unbkfile ()
 }
 bkup_timestamp () 
 { 
-    grep 'comment bkup:' ${*:-*lib} | sed 's/:.*bin//; s/;//' | awk '{ print $2, $3, $1 }'
+    grep 'comment bkup:' ${*:-*lib} /dev/null | sed 's/:.*bin//; s/;//' | awk '{ print $2, $3, $1 }'
 }
 exists () 
 { 

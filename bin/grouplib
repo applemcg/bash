@@ -79,6 +79,6 @@ group_obslog ()
 { 
     ( eval $* ) 2>> ~/lib/obsolescent.log;
     set -- $(today) ~/lib/obsolescent.log;
-    grep $* > /dev/null || echo $1 >> $2
+    grep $* /dev/null > /dev/null || echo $1 >> $2
 }
 group_init

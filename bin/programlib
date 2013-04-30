@@ -112,6 +112,7 @@ newest ()
 { 
     target=$1;
     shift;
+    comment TRACE newest TARGET $target DEPENDENT $*;
     [[ -f $target ]] || { 
         comment NEWEST with NO $target;
         return 1
@@ -127,7 +128,7 @@ newest ()
 }
 nonUnderscore () 
 { 
-    grep -v _ $*
+    grep -v _ $* /dev/null
 }
 obsolescent () 
 { 
@@ -170,11 +171,14 @@ programlib_doc ()
 { 
     cat  <<'EOF'
 
+    
 Mkdir	-- superseeded by mkdir -p
 append	-- stdin to a file
+basename	-- file portion of the argument, see dirname
 bitbucket	-- should be IGNORE
 collect_eval	-- USES cgrepf, belongs whf cgrepf
 defExe	-- ~ a b; echos "a", if found,  else "b"
+dirname	-- the directory portion of the argument, default "."
 dodate	-- ~ {x} :  date +%x
 error	-- comment, then exit
 f2	-- ~ function {some}lib 
@@ -305,15 +309,16 @@ wpl ()
 }
 fun_finder () 
 { 
-    grep $* $(T shell_dirname)/.*
+    grep $* $(T shell_dirname)/.* /dev/null
 }
 program_init () 
 { 
     . ~/.profile;
+    . shelllib;
     . smartflib;
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0420 150045;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0429 200708;
     obsolescent file_test testarg;
     obsolescent fileTest testarg;
     obsolescent piped pipe;
@@ -328,5 +333,11 @@ latestFileIn ()
 fofg () 
 { 
     sed 's/:.*//' $* | sort -u
+}
+qi () 
+{ 
+    rm -f ~/bin/$1;
+    chmod 755 $1;
+    ln $1 ~/bin
 }
 program_init
