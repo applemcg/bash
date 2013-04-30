@@ -270,7 +270,7 @@ prefile ()
 }
 tab2sp () 
 { 
-    sed 's/[ 	][	]*/ /' $*
+    sed 's/[ 	][	]*/ /' $* /dev/null
 }
 duplicate1st () 
 { 

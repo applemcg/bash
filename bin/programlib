@@ -332,7 +332,7 @@ latestFileIn ()
 }
 fofg () 
 { 
-    sed 's/:.*//' $* | sort -u
+    sed 's/:.*//' $* /dev/null | sort -u
 }
 qi () 
 { 
