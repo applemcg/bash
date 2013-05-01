@@ -817,3 +817,15 @@ topsuf ()
     ls *.* | grep -v '[~#]$' | sed 's/.*\.//' | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2}'
 }
 new_init
+new_init () 
+{ 
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0429 200958;
+    source programlib;
+    lx_init;
+    mkuBin;
+    obsolescent toss_fnames tossFnames;
+    obsolescent mfx mvx;
+    obsolescent does doit;
+    obsolescent tags echo;
+    reRoot HOME
+}
