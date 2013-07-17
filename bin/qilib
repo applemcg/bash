@@ -1,0 +1,52 @@
+qi () 
+{ 
+    comment OBSOLESCENT use qib $1;
+    rm -f ~/bin/$1;
+    chmod 755 $1;
+    ln $1 ~/bin
+}
+comment () 
+{ 
+    echo $* 1>&2
+}
+qia () 
+{ 
+    [[ $PWD == $HOME/$1 ]] && return;
+    rm -f $(needir $HOME/$1)/$2;
+    chmod -w $2;
+    ln $2 ~/$1
+}
+qib () 
+{ 
+    qia bin $1;
+    chmod +x $1
+}
+qil () 
+{ 
+    qia lib/$2 $1
+}
+qim () 
+{ 
+    qia man/man${2:-1} $1
+}
+needir () 
+{ 
+    [[ -d $1 ]] || mkdir -p $1;
+    echo $1
+}
+qi_init () 
+{ 
+    function qi_mk () 
+    { 
+        eval "qi${1} () { qia $2 \$1; }"
+    };
+    qi_mk i include;
+    qi_mk e etc;
+    qi_mk t tmp;
+    qi_mk d doc;
+    comment qiX where X one of b,i,t,m,e,l,d file;
+    comment to see a function, declare -f qiX
+    unset qi_mk
+
+}
+qi_init

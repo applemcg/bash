@@ -1,7 +1,3 @@
-Mkdir () 
-{ 
-    doit mkdir -p $*
-}
 cleanlib () 
 { 
     source fixlib;
@@ -67,7 +63,7 @@ gzfiles ()
 { 
     file ${*:-*.gz} | grep 'gzip compressed' | sed 's/:.*//'
 }
-iso_y-m-d () 
+iso_ymd () 
 { 
     date +%F
 }
@@ -171,27 +167,22 @@ programlib_doc ()
 { 
     cat  <<'EOF'
 
-    
-Mkdir	-- superseeded by mkdir -p
-append	-- stdin to a file
-basename	-- file portion of the argument, see dirname
-bitbucket	-- should be IGNORE
+cleanlib	-- to fixlib, uses canonlib
 collect_eval	-- USES cgrepf, belongs whf cgrepf
 defExe	-- ~ a b; echos "a", if found,  else "b"
-dirname	-- the directory portion of the argument, default "."
 dodate	-- ~ {x} :  date +%x
-error	-- comment, then exit
 f2	-- ~ function {some}lib 
-f2_usage
+ff	-- shorthand  fbdy functions ...
 field	-- the Nth blank-separated field
 fmdos	-- converts CR-LF files to NL
+fname	-- echos function name
 fnames	-- wrap on libfunc, 
-foreach	-- ~ cmd ...   execuctes  "cmd" on each arg
-foreachi	-- ~ cmd One arg ... executes "cmd One" on each arg
-foreachij	-- ~ cmd a b ..i... executes "cmd a b i" on each i
+fofg	-- Files OF Grep -- at the end of a pipe
+fun_finder	-- greps to find function name in saved 
 getawk	-- who's your "awk"
-indir	-- ~ DIR cmd ...  executes "cmd ..." in DIR
-iso_y-m-d	-- : yyyy-mm-dd
+gzfiles	-- inspects args, default to ..gz for gzip compressed
+iso_ymd	-- : yyyy-mm-dd
+latestFileIn	-- to gitlib, latest file in a treee
 lc	-- Lower Case, see tolower, toupper, uc
 libfunc	-- obsolescent on behalf of functions
 libfunctions	--  obsolescent on behalf of functions
@@ -202,28 +193,21 @@ mac2unix	-- like fmdos
 nava	-- NAme VAlue 
 newest	-- ~ FileA fileb ...  TRUE, when filea is the newest
 nonUnderscore	-- lines w/o an Underscore
-not	-- ~ cmd ... inverts logical sense of the cmd ...
 obsolescent	-- place holder for ~ 
-onlydirs	-- the directories in $*
-onlyfiles	-- the files
-pipe	-- ~ a b c ...;  b c ... > a
+obstolib	-- obsolescent creator
 popla	-- POPuLAtion of a numeric First Field
 printfirst	-- prints first occurrence of line of text
+program_init	-- former programlib_init
 programlib_ck	-- how to rebuild this list
 programlib_doc	-- this list
-programlib_init	-- source ...
-quiet	-- executes command, disposing stderr. "quiet ignore ... "
+qpfs	-- picks tokens from a function
 repeated	-- ~ [n 2] => n..21
 run_test	-- wraps "doit"
 script_path	-- where is the source of this executable
 self_ref	-- CONSTRUCTOR: namea nameb ...  "namea" lists namea ... z
 setenv	-- ~ NAME Value,   just like the csh built-in
-shift2	-- ~ a b c d e ... returns "c d e ..."
-shifted	-- ~ a b c d e ... returns "b c d e ..."
-stdout	-- ~ arg cmd args ...  "cmd args ... > arg"
 subtract	-- set subtraction 2nd list from first with comm -23
 system	-- uname -s
-testarg	-- CONSTRUCTOR: ~ name [a-z]; creates "name", function uses test arg
 today	-- YYMMDD
 tolower	-- obsolescent in behalf of lc
 toupper	-- obsolescent in behalf of uc, UC
@@ -318,7 +302,7 @@ program_init ()
     . smartflib;
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0429 200708;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0717 162912;
     obsolescent file_test testarg;
     obsolescent fileTest testarg;
     obsolescent piped pipe;
@@ -334,10 +318,8 @@ fofg ()
 { 
     sed 's/:.*//' $* /dev/null | sort -u
 }
-qi () 
+obstolib () 
 { 
-    rm -f ~/bin/$1;
-    chmod 755 $1;
-    ln $1 ~/bin
+    eval "$2 () { comment OBSOLESCENT $2 in behalf of ${1}_${2}; ${1}_${2} \$@; }"
 }
 program_init

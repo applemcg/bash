@@ -2,7 +2,7 @@ bkup_appinit ()
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 113358;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0707 153358;
     shell_testarg isdirectory d;
     shell_testarg exists e;
     bkup_help
@@ -31,7 +31,7 @@ bkup ()
     function backup () 
     { 
         shell_indir $(dirof $1) recursebkup false .bak $(shell_basename $1)
-    }
+    };
     function sameas () 
     { 
         cmp $*
@@ -48,16 +48,16 @@ bkup ()
     };
     function epoch () 
     { 
-        comment TRACE epoch file: $1;
+        comment TRACE epoch FILE $1;
         [[ -f $1 ]] && perl -e "\$m=(stat(\"$1\"))[9]; print \$m"
     };
     function sameTime () 
     { 
         function sameTime_usage () 
         { 
-            comment USAGE sameTime file: $1 toTouch: $2: $3
+            comment USAGE sameTime: file $1 toTouch $2 $3
         };
-        comment TRACE sameTime file: $1 toTouch: $2;
+        comment TRACE sameTime file $1 toTouch $2;
         [[ $# -lt 2 ]] && { 
             sameTime_usage .. .. "args < 2, =$#";
             return
@@ -130,7 +130,7 @@ bkfiles ()
 }
 bkup_init () 
 { 
-    . shellib 2> /dev/null;
+    . shelllib 2> /dev/null;
     comment TRACE bkub_init;
     . smartflib 2> /dev/null;
     bkup_appinit
@@ -167,15 +167,4 @@ bkup_timestamp ()
 { 
     grep 'comment bkup:' ${*:-*lib} /dev/null | sed 's/:.*bin//; s/;//' | awk '{ print $2, $3, $1 }'
 }
-exists () 
-{ 
-    [[ -e $1 ]]
-}
-isdirectory () 
-{ 
-    [[ -d $1 ]]
-}
-existingfile () 
-{ 
-    [[ -f $1 ]]
-}
+bkup_init

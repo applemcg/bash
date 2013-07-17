@@ -1,120 +1,28 @@
-stdout () 
-{ 
-    comment OBSOLESCENT stdout USING shell_stdout;
-    shell_stdout $*
-}
-pipe () 
-{ 
-    comment OBSOLESCENT pipe USING shell_pipe;
-    shell_pipe $*
-}
-foreach () 
-{ 
-    comment OBSOLESCENT foreach USING shell_foreach;
-    shell_foreach $*
-}
-shifted () 
-{ 
-    comment OBSOLESCENT shifted USING shell_shifted;
-    shell_shifted $*
-}
-error () 
-{ 
-    comment OBSOLESCENT error USING shell_error;
-    shell_error $*
-}
-foreachi () 
-{ 
-    comment OBSOLESCENT foreachi USING shell_foreachi;
-    shell_foreachi $*
-}
-shift2 () 
-{ 
-    comment OBSOLESCENT shift2 USING shell_shift2;
-    shell_shift2 $*
-}
-not () 
-{ 
-    comment OBSOLESCENT not USING shell_not;
-    shell_not $*
-}
-dirname () 
-{ 
-    comment OBSOLESCENT dirname USING shell_dirname;
-    shell_dirname $*
-}
-basename () 
-{ 
-    comment OBSOLESCENT basename USING shell_basename;
-    shell_basename $*
-}
-indir () 
-{ 
-    comment OBSOLESCENT indir USING shell_indir;
-    shell_indir $*
-}
-testarg () 
-{ 
-    comment OBSOLESCENT testarg USING shell_testarg;
-    shell_testarg $*
-}
-bitbucket () 
-{ 
-    comment OBSOLESCENT bitbucket USING shell_bitbucket;
-    shell_bitbucket $*
-}
-onlyfiles () 
-{ 
-    comment OBSOLESCENT onlyfiles USING shell_onlyfiles;
-    shell_onlyfiles $*
-}
-onlydirs () 
-{ 
-    comment OBSOLESCENT onlydirs USING shell_onlydirs;
-    shell_onlydirs $*
-}
-append () 
-{ 
-    comment OBSOLESCENT append USING shell_append;
-    shell_append $*
-}
-foreachij () 
-{ 
-    comment OBSOLESCENT foreachij USING shell_foreachij;
-    shell_foreachij $*
-}
-quiet () 
-{ 
-    comment OBSOLESCENT quiet USING shell_quiet;
-    shell_quiet $*
-}
-cfe () 
-{ 
-    comment OBSOLESCENT cfe USING shell_cfe;
-    shell_cfe $*
-}
-missing () 
-{ 
-    comment OBSOLESCENT missing USING shell_missing;
-    shell_missing $*
-}
-out2err () 
-{ 
-    comment OBSOLESCENT out2err USING shell_out2err;
-    shell_out2err $*
-}
 shell_init () 
 { 
+    source programlib
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 100807;
-    shell_testarg empty z;
-    shell_testarg executable x;
-    shell_testarg existingdir d;
-    shell_testarg exists e;
-    shell_testarg existingfile f;
-    shell_testarg nonempty s;
-    shell_testarg writeable w
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0707 154058;
+    shell_forpairs  shell_argtest	\
+			z empty	\
+			x executable	\
+			d existingdir	\
+			e exists	\
+			f existingfile	\
+			s nonempty	\
+			w writeable
+
+    shell_foreachi obstolib shell stdout pipe foreach shifted error foreachi shift2 not dirname basename indir testarg bitbucket onlyfiles onlydirs append foreachij cfe missing out2err
+}
+shell_forpairs () {
+    local cmd=$1;
+    shift;
+    while [ -n "$2" ]; 
+    do
+        $cmd $1 $2
+	shift 2
+    done
 }
 shell_append () 
 { 
@@ -132,7 +40,7 @@ shell_cfe ()
 { 
     eval "xx() { $1; }";
     shift;
-    foreach xx $*
+    foreach xx "$@"
 }
 shell_dirname () 
 { 
@@ -184,19 +92,6 @@ shell_indir ()
     $@;
     ignore popd
 }
-shell_init () 
-{ 
-    comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 100807;
-    testarg empty z;
-    testarg executable x;
-    testarg existingdir d;
-    testarg exists e;
-    testarg existingfile f;
-    testarg nonempty s;
-    testarg writeable w
-}
 shell_missing () 
 { 
     [[ -f $1 ]] || echo $1
@@ -231,17 +126,14 @@ shell_out2err ()
 }
 shell_pipe () 
 { 
-    eval $(shifted $@) | $1
-}
-shell_quiet () 
-{ 
-    $@ 2> /dev/null
+    comment TRACE shell_pipe $# $*;
+    doit $(shell_shifted $@) | $1
 }
 shell_shift2 () 
 { 
     shift;
     shift;
-    echo $*
+    echo "$@"
 }
 shell_shifted () 
 { 
@@ -250,9 +142,33 @@ shell_shifted ()
 }
 shell_stdout () 
 { 
-    $(shifted $@) > $1
+    comment TRACE shell_stdout $# $*;
+    doit $(shell_shifted $@) > $1
 }
 shell_testarg () 
 { 
     eval "$1() { [[ -$2 \$1 ]]; }"
 }
+shell_argtest () 
+{
+    shell_testarg $2 $1
+}
+shell_test () 
+{ 
+    comment TRACE shell_... $# $*;
+    function pipe_test () 
+    { 
+        while read name; do
+            declare -f $name;
+        done
+    };
+    mkdir /tmp/shell;
+    pushd /tmp/shell;
+    rm -f *;
+    shell_stdout stdout cat ~/bin/shelllib;
+    shell_quiet comment a quiet comment > quiet;
+    shell_pipe pipe_test functions ~/bin/shelllib > piped;
+    comment NOT Yet: shell_stdout shell_pipe pipe_test functions ~/bin/shelllib;
+    popd
+}
+shell_init

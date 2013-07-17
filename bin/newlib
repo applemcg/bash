@@ -26,9 +26,8 @@ backless ()
 }
 cfe () 
 { 
-    eval "xx() { $1; }";
-    shift;
-    foreach xx $*
+    comment OBSOLESCENT cfe USING shell_cfe;
+    shell_cfe $*
 }
 clearRedundantFunction () 
 { 
@@ -95,7 +94,7 @@ latestver ()
 }
 letters () 
 { 
-    echo a b c d e f g h i j k l m n o p q r s t u v w x y z
+    echo {a..z}
 }
 log2csv () 
 { 
@@ -113,7 +112,8 @@ lx_init ()
 }
 missing () 
 { 
-    [[ -f $1 ]] || echo $1
+    comment OBSOLESCENT missing USING shell_missing;
+    shell_missing $*
 }
 mtime () 
 { 
@@ -153,18 +153,6 @@ https://ukwdc-fs2/user/com.fidessa.ustraining.html#ClientCygwin_paper
 EOF
 
 }
-newlib_init () 
-{ 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0429 200958;
-    source programlib;
-    lx_init;
-    mkuBin;
-    obsolescent toss_fnames tossFnames;
-    obsolescent mfx mvx;
-    obsolescent does doit;
-    obsolescent tags echo;
-    reRoot HOME
-}
 newlib_loaded () 
 { 
     return
@@ -179,10 +167,8 @@ noted ()
 }
 onlydirs () 
 { 
-    for arg in ${*:-*};
-    do
-        [[ -d $arg ]] && echo $arg;
-    done
+    comment OBSOLESCENT onlydirs USING shell_onlydirs;
+    shell_onlydirs $*
 }
 popl () 
 { 
@@ -249,7 +235,8 @@ alias_email ()
 }
 append () 
 { 
-    tee -a $1
+    comment OBSOLESCENT append USING shell_append;
+    shell_append $*
 }
 tgrep () 
 { 
@@ -350,10 +337,6 @@ recent ()
 { 
     find . -type f -mtime -${1:-1} | sed 's/\.//' | grep -v '\/\.' | sed 's/\///'
 }
-savef () 
-{ 
-    fbdy $* | T append
-}
 sourceTcl () 
 { 
     [[ x$1 = "x*lib.tcl" ]] && return;
@@ -446,7 +429,7 @@ fng2 ()
 }
 fofg () 
 { 
-    sed 's/:.*//' $* | sort -u
+    sed 's/:.*//' $* /dev/null | sort -u
 }
 fwith () 
 { 
@@ -498,7 +481,8 @@ nonf ()
 }
 out2err () 
 { 
-    "$@" 1>&2
+    comment OBSOLESCENT out2err USING shell_out2err;
+    shell_out2err $*
 }
 re_root () 
 { 
@@ -750,7 +734,7 @@ with_suf ()
 }
 sfg () 
 { 
-    set | functions | grep -i $*
+    set | cfuncts | grep -i $*
 }
 pitb () 
 { 
@@ -783,17 +767,9 @@ agh ()
 { 
     foreach gh $* | sort -u
 }
-existingfile () 
-{ 
-    [[ -f $1 ]]
-}
 flines () 
 { 
     echo $1 $(fbdy $1 | wc -l )
-}
-fsfg () 
-{ 
-    fbdy $(sfg $*)
 }
 hlines () 
 { 
@@ -807,19 +783,9 @@ inclall ()
 { 
     grep '<!-- include' *txt | sed 's/:.*include / /; s/ *--.*//; s/^/..\/txt\//' | grep -vE '\.(end|toc)$' | awk '{ incl[$1] = incl[$1] " " $2; print incl[$1], $0 }'
 }
-pdl () 
-{ 
-    peekd;
-    ls -t | grep -v '[~#]$' | sed 10q
-}
-topsuf () 
-{ 
-    ls *.* | grep -v '[~#]$' | sed 's/.*\.//' | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2}'
-}
-new_init
 new_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0429 200958;
+    comment bkup: appleton.home./users/applemcg/bin 2013_0707 152629;
     source programlib;
     lx_init;
     mkuBin;
@@ -828,4 +794,90 @@ new_init ()
     obsolescent does doit;
     obsolescent tags echo;
     reRoot HOME
+}
+gh () 
+{ 
+    GH -i $*
+}
+caps () 
+{ 
+    echo {A..Z}
+}
+digits () 
+{ 
+    echo {0..9}
+}
+tildies () 
+{ 
+    ls *~ | sed 's/.$//'
+}
+fbdy () 
+{ 
+    declare -f ${*:-fbdy}
+}
+prln () 
+{ 
+    : ${PRLN:=72};
+    pr -l $PRLN -n $* > ../print${PRLN}.txt
+}
+qfe () 
+{ 
+    fbdy $* > .y;
+    vi .y;
+    . ./.y;
+    fbdy $(cfuncts .y)
+}
+datefmt () 
+{ 
+    for l in {a..z} {A..Z};
+    do
+        date "+$l: %$l";
+    done
+}
+llrn () 
+{ 
+    datelog $* | shell_append ~/lib/lessonsLearned.txt
+}
+texReserved () 
+{ 
+    echo '# $ % ^ & { } ~ \'
+}
+datelog () 
+{ 
+    date "+%F %a $*"
+}
+lastftok () 
+{ 
+    set -- $(fbdy $1);
+    eval echo \$$(expr $# - 1)
+}
+fxbdy () 
+{ 
+    fbdy $1 || comment $1
+}
+duplicated () 
+{ 
+    cat ${*:--} | field 1 | sort | uniq -c | awk '$1 > 1 { print $2 }'
+}
+fromfend () 
+{ 
+    nth=${2:-1};
+    set -- $(fbdy $1);
+    eval echo \$$(expr $# - $nth)
+}
+latestFn () 
+{ 
+    grep -l ${1:-latestFn} $(T shell_dirname)/.20* | tail -1
+}
+GH () 
+{ 
+    history | grep $*
+}
+y () 
+{ 
+    . ./.${1:-y}
+}
+varem () 
+{ 
+    awk '{ printf "\A%03d=\"%s\"\n", NR, $1 }' $*
 }

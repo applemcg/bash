@@ -1,7 +1,7 @@
 group_appinit () 
 { 
     comment "Copyright (C) 2013, JYATL, Just Yet Another Test Lab";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0415 122108;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0704 054818;
     group_doc 1>&2;
     fbdy group_appinit 1>&2
 }
@@ -12,6 +12,7 @@ group_init ()
 }
 group_name () 
 { 
+    comment TRACE group_name $# group function $*
     set -- ${1:-empty} ${2:-EMPTY};
     ignore fbdy $2 || { 
         comment $2 is NOT a function;
@@ -23,7 +24,7 @@ group_collect ()
 { 
     set -- ${1%lib};
     set -- ${1}lib $(shell_basename $1);
-    comment TRACE group_collect LIBRARY $1 BASENAME $2;
+    comment TRACE group_collect $# LIBRARY BASENAME $1 $2;
     [[ -f ${1} ]] || { 
         comment ${1} is NOT a lib;
         return
@@ -50,6 +51,7 @@ EOF
 }
 group_takes () 
 { 
+    comment TRACE group_takes $# library function $*
     eval "$2 () { comment OBSOLESCENT $2 USING ${1}_$2; ${1}_$2 \$*; }"
 }
 group_regroup () 
@@ -69,6 +71,7 @@ group_regroup ()
         return
     };
     set -- ${1%lib};
+    comment TRACE group_regroup $# library $*
     [[ -f ${1}lib ]] || { 
         errmsg ${1}lib is NOT a file;
         return
@@ -77,6 +80,7 @@ group_regroup ()
 }
 group_obslog () 
 { 
+    comment TRACE group_obslog $# $*
     ( eval $* ) 2>> ~/lib/obsolescent.log;
     set -- $(today) ~/lib/obsolescent.log;
     grep $* /dev/null > /dev/null || echo $1 >> $2

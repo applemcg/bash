@@ -15,3 +15,13 @@ pdl ()
     peekd;
     ls -t | grep -v '[~#]$' | sed 10q
 }
+cmd_init () 
+{ 
+    source programlib 2> /dev/null;
+    comment ff, fsfg topsuf pdl
+}
+hotlib () 
+{ 
+    gh 'lib$' | field 'NF' | sort | uniq -c | sort -n
+}
+cmd_init
