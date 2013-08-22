@@ -1,0 +1,337 @@
+addlist () 
+{ 
+    eval $1=\"\$$1 $2\";
+    export $1
+}
+cpfmto () 
+{ 
+    doit rm -f $2;
+    doit cp $1 $2;
+    doit chmod ${3:--w} $2
+}
+domode () 
+{ 
+    doit chmod ${2:-\-w} $1
+}
+exists () 
+{ 
+    [[ -e $1 ]]
+}
+defun () 
+{ 
+    eval "$1() { $2; }"
+}
+foreach1 () 
+{ 
+    _f=_local$RANDOM;
+    defun $_f "$1";
+    shift;
+    for i in "$@";
+    do
+        $_f $i;
+    done;
+    unset $_f
+}
+primarysource () 
+{ 
+    defun $1 "addlist _${2}files \"\$1\""
+}
+textfile () 
+{ 
+    [[ $# -eq 2 ]] && addlist _textfiles "$(echo $@)" || comment ERROR: textfile src dest
+}
+deploytextfiles () 
+{ 
+    set -- $@;
+    while [[ -n "$2" ]]; do
+        cpfmto $1 $2 0444;
+        shift 2;
+    done
+}
+bitmeld () 
+{ 
+    function dmd () 
+    { 
+        [ -d $1 ] || doit mkdir -p $1
+    };
+    for i in bin include tmp man etc lib doc;
+    do
+        dmd ${1:-$HOME}/$i;
+    done;
+    doit smartf_is BITMELD ${1:-$HOME}
+}
+mkhelp () 
+{ 
+    comment 'mk [ all | exec | bin | text | man | etc | lib | doc | help ]'
+}
+mk_all () 
+{ 
+    foreach mk_each $*
+}
+mkit () 
+{ 
+    [[ -n $(eval echo "\$_${1}files") ]] && doit mk${1}
+}
+mkall () 
+{ 
+    foreach mkit "exec bin text man etc lib doc"
+}
+mkexec () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/bin 0555" $_execfiles
+}
+mkbin () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/bin" $_binfiles
+}
+mketc () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/etc" $_etcfiles
+}
+mklib () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/lib" $_libfiles
+}
+mkdoc () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/doc" $_docfiles
+}
+mkman () 
+{ 
+    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/man/man1" $_manfiles
+}
+mktext () 
+{ 
+    deploytextfiles $_textfiles
+}
+mk_ln () 
+{ 
+    set -- $(shell_basename $1) ${2:-$(shell_dirname $1)};
+    comment TRACE mk_ln FILE $1 DIR $2;
+    exists $2/$1 || doit ln $1 $2
+}
+mk_qst () 
+{ 
+    comment TRACE mk_qst $# "$@";
+    o="$1";
+    shift;
+    c="$1";
+    shift;
+    newest "$o" "$@"
+}
+mk_one () 
+{ 
+    comment TRACE mk_one $# OUTPUT "$1", COMMAND "$2", args "$3", ...;
+    mk_qst "$@" || { 
+        [[ -f "$1" ]] && chmod +w "$1";
+        shell_stdout "$@";
+        chmod -w "$1"
+    }
+}
+mk_frm () 
+{ 
+    comment TRACE mk_frm $# OUTPUT "$1", COMMAND "$2", args "$3", ...;
+    mk_qst "$@" || { 
+        shift;
+        doit "$@"
+    };
+    quietly comment 'o=$1; shift; c=$1; shift; newest $o $@ || doit $c $*;'
+}
+mk_each () 
+{ 
+    case $1 in 
+        each | all)
+
+        ;;
+        *)
+            f=mk_${1};
+            isfunction $f && $f
+        ;;
+    esac
+}
+mk_me () 
+{ 
+    comment TRACE mk_me $# CMD "$1" COLLECT "$@";
+    cmd=$1;
+    shift;
+    MK_COLLECT="$MK_COLLECT $*";
+    newest $* || { 
+        bkup $*;
+        doit $cmd $(shifted $*) > $1 2> ${2%.*}.err
+    }
+}
+newest () 
+{ 
+    target="$1";
+    shift;
+    comment TRACE newest $# TARGET "$target" DEPENDENT "$@";
+    [[ -f "$target" ]] || { 
+        comment NEWEST with NO $target;
+        return 1
+    };
+    while [[ -n "$1" ]]; do
+        [[ "$target" -ot "$1" ]] && { 
+            comment NEWEST with $1 NEWER than $target;
+            return 1
+        };
+        shift;
+    done;
+    comment NEWEST with $target as NEWEST argument;
+    return 0
+}
+qi () 
+{ 
+    comment OBSOLESCENT use qib $1;
+    rm -f ~/bin/$1;
+    chmod 755 $1;
+    ln $1 ~/bin
+}
+comment () 
+{ 
+    echo $* 1>&2
+}
+qi_lncp () 
+{ 
+    comment TRACE qi_lncp $# FILE $1 DIR $2;
+    eval $(same_dev $1 $2 && echo ln || echo cp) $1 $2
+}
+qia () 
+{ 
+    set -- $(qi_root)/$1 $2;
+    [[ $PWD == $1 ]] && return;
+    rm -f $(needir $1)/$2;
+    chmod -w $2;
+    qi_lncp $2 $1
+}
+qib () 
+{ 
+    qia bin $1;
+    chmod +x $1
+}
+qil () 
+{ 
+    qia lib/$2 $1
+}
+qim () 
+{ 
+    qia man/man${2:-1} $1
+}
+qi_root () 
+{ 
+    [[ $# -ge 1 ]] && { 
+        setenv QI_ROOT "$1"
+    };
+    echo ${QI_ROOT:-$HOME}
+}
+needir () 
+{ 
+    [[ -d $1 ]] || mkdir -p $1;
+    echo $1
+}
+mmk_init () 
+{ 
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0816 095010;
+    function qi_mk () 
+    { 
+        eval "qi${1} () { qia $2 \$1; }"
+    };
+    qi_mk i include;
+    qi_mk e etc;
+    qi_mk t tmp;
+    qi_mk d doc;
+    comment qiX where X one of b,i,t,m,e,l,d file;
+    comment to see a function, declare -f qiX;
+    comment also mmk_qrf for a Quick Reference;
+    unset qi_mk
+}
+mmk_qrf () 
+{ 
+    cat  <<EOF
+addlist	-- ~ list member: adds member to list
+bitmeld	-- creates smart BITMELD directory at first argument, defaulting to HOME
+comment	-- args: puts args on standard error
+cpfmto	-- destrucively copies 1st to 2nd, mode of 3rd, default "-w"
+defun	-- ~ function body
+deploytextfiles	-- copies files to text destinations, with mode 444
+domode	-- ~ file [mode [-w]]
+exists	-- ~ file  RETURNS true for existing file argument
+foreach1	-- "commands: ..." arg ... EXECUTES quoted commands on each arg
+mk_all	-- shorthadn for "foreach mk_each $*"
+mk_each	-- ~ fun, executes  "mk_fun" 
+mk_frm	-- ~ TARGET Cmd Depends: like mk_one. TARGET implicitly created
+mk_ln	-- ~ file [dir [basename file]]: links local file to nonexistent dir/file
+mk_me	-- ~ cmd target depends ... redundant to mk_one?  test...
+mk_one	-- TARGET Cmd Depends ...: runs Cmd on Depends Stdout TARGET
+mk_qst	-- return truth of newest TARGET Cmd Depends
+mkall	-- historical, prefer equivalent QIx
+mkbin	--  historical, prefer qib
+mkdoc	--  historical, prefer qid
+mketc	--  historical, prefer qie
+mkexec	--  copies executable files to BITMELD/bin at mode 555
+mkhelp	-- help message
+mkit	-- engine for mkall
+mklib	--  historical, prefer qil
+mkman	--  historical, prefer qim
+mktext	-- deployes textfiles
+needir	-- creates missing directory, returns Name
+newest	-- heart of MK algo,   thx to Dan Franklin, BBN, 1984
+primarysource	-- ~ file list: adds file to list for mkall
+qi	-- obsolescent QIB
+mmk_init	-- Master Make INITialzation, from qilib, mfg QI [edit]
+qia	-- Quick Install Any. tool for QIx using  links
+qib	-- QI Bin
+qil	-- QI Lib
+qim	-- QI Man
+textfile	-- ~ file dir: adds file, dir destination to textfiles list
+EOF
+
+}
+shell_basename () 
+{ 
+    echo "${1##*/}"
+}
+shell_dirname () 
+{ 
+    case $1 in 
+        */*)
+            echo ${1%/*}
+        ;;
+        *)
+            echo .
+        ;;
+    esac
+}
+shell_stdout () 
+{ 
+    comment TRACE shell_stdout $# "$@";
+    o="$1";
+    shift;
+    "$@" > "$o"
+}
+smartf_is () 
+{ 
+    [[ $# -gt 1 ]] && { 
+        eval _smartf_is_$1="$2"
+    };
+    eval echo \$_smartf_is_$1
+}
+same_dev () 
+{ 
+    eval $(stat -s $1);
+    one=$st_dev;
+    eval $(stat -s $2);
+    two=$st_dev;
+    [[ $one -eq $two ]]
+}
+qi_bone () 
+{ 
+    qi_root $1;
+    foreach qib *lib
+}
+qi_ball () 
+{ 
+    qi_bone /Volumes/MIT_130716/;
+    qi_bone ~/Dropbox/;
+    qi_bone $HOME
+}
+mmk_init

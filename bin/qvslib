@@ -1,87 +1,173 @@
-qvslib_init () 
-{ 
-    source blib;
-    source smartflib;
+
+qvs_init () 
+{
+    source smartfli;
+    source bkuplib;
+    source mmklib;  comment for qi_lncp
+    source cmdlib; 
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 191907;
 }
 qvs_help () 
 { 
-    comment qvs_doc, qvs_note, qvs_help, qvs, qvs_page
+    functions $(which qvslib)
 }
-set_verbase () 
+qvs_setbase () 
 { 
-    comment PWD $PWD;
+    remark TRACE $# qvs_setbase $* PWD $PWD;
     path=${PATH//:/ };
     for p in $(echo ${path//\/bin/}) $SYSTEM_DEPENDENT_USER_HOME;
     do
         comment p $p;
         case ${PWD} in 
             $p/*)
-                is VER_BASE $p;
-                get_verbase;
+                smartf_is VER_BASE $p;
+                qvs_getbase;
                 return
             ;;
         esac;
     done
 }
-get_verbase () 
+qvs_getbase () 
 { 
-    comment "VER_BASE=$VER_BASE, PWD=${PWD}, RWD=$(ver_rwd)"
+    remark "VER_BASE=$VER_BASE, PWD=${PWD}, RWD=$(qvs_rwd)"
 }
-verbase () 
+qvs_verbase () 
 { 
+    remark TRACE $# qvs_verbase $* PWD $PWD;
     case ${PWD} in 
         $VER_BASE/*)
             case $VER_BASE in 
                 "")
-                    set_verbase
+                    qvs_setbase
                 ;;
                 *)
-                    get_verbase
+                    qvs_getbase
                 ;;
             esac
         ;;
         *)
-            set_verbase
+            qvs_setbase
         ;;
     esac
 }
-cleanlist () 
-{ 
-    ( grep '^\.' $VERFILES;
-    ls ) | sort | comm -3 - $VERFILES
-}
-verhome () 
+qvs_home () 
 { 
     echo ${VER_HOME:-$HOME}
 }
-qvsfrom () 
+qvs_from () 
 { 
-    is VER_BASE ${1:-$HOME};
-    is VER_HOME ${1:-$VER_BASE};
-    comment verhome, verbase
+    smartf_is VER_BASE ${1:-$HOME};
+    smartf_is VER_HOME ${1:-$VER_BASE};
+    comment qvs_home, verbase
 }
-qvsto () 
+qvs_to () 
 { 
-    is VER_HOME ${1:-$HOME};
-    comment verhome
+    smartf_is VER_HOME ${1:-$HOME};
+    comment qvs_home
 }
-ver_rwd () 
+qvs_rwd () 
 { 
+    remark TRACE $# qvs_rwd $* PWD $PWD VER_BASE $VER_BASE
     echo ${PWD#${VER_BASE:-$HOME}}
 }
-verlocn () 
-{ 
-    echo ${VER_HOME:-$HOME}/$(ver_rwd)/.ver
+qvs_locn () 
+{     
+    remark TRACE $# qvs_locn $* VER_HOME $VER_HOME
+    echo ${VER_HOME:-$HOME}
 }
 _mkVername () 
 { 
-    [[ -d $(verlocn)/$1 ]] && { 
-        echo Version $1 Exists;
+    remark TRACE $# _mkVername $* PWD $PWD
+    [[ -d $(qvs_locn)/$1 ]] && { 
+        echo Ver
         exit 3
     };
     echo $1
 }
 qvs () 
+{ 
+    qvs_qcmd="qvs_$1";
+    declare -f $qvs_qcmd > /dev/null || { 
+        qvs_qrf 1>&2;
+        return
+    };
+    shift;
+    $qvs_qcmd "$@"
+}
+qvs_list () 
+{ 
+    remark TRACE $# qvs_list $* PWD $PWD
+    shell_indir .bak shell_onlyfiles
+}
+qvs_second () 
+{ 
+    date '+%Y_%m%d_%H%M%S'
+}
+thisSecond () 
+{ 
+    date '+%Y%m%d%H%M%S'
+}
+_doqvs () 
+{ 
+    bkup $*;
+    for f in "$@";
+    do
+        [[ -f .bak/$f ]] && echo .bak/$f;
+    done
+}
+qver () 
+{ 
+    set -- ${1:-last};
+    case $1 in 
+        last)
+            ls -t $(qvs_locn) | sed 1q
+        ;;        names)
+            ls -t $(qvs_locn) | grep -v '^2[0-9][0-9]*$'
+        ;;        named)
+            qver names | sed 1q
+        ;;
+        *)
+            comment "qver [last|names|named -> last]"
+        ;;
+    esac
+}
+qvs_directory () 
+{ 
+    echo $(qvs_locn)/$(${1:-lastVer})
+}
+qvs_man () 
+{ 
+    open ~/man/man1/qvslib.html
+}
+qvs_clog () 
+{ 
+    cat  <<EOF
+
+2012_0211, Sat, Feb 11   changed default qvs_locn to YYYY_MMDD_HHMMSS format, adding _s
+2013_0820, Tue, Aug 20	 adopting LIB_cmmd co
+
+EOF
+
+}
+qws_latestdir () 
+{ 
+    function qvs_onedir  () 
+    { 
+        echo $1/$(ls -t $1 | sed 1q)
+    }
+    shell_foreach qvs_onedir $(find $* -type d -name .ver)
+}
+qvs_need () 
+{ 
+    remark TRACE $# qvs_need $* PWD $PWD
+    set -- $(ls -t .ver);
+    find . -newer .ver/$1 -type f
+}
+qvs_changes () 
+{ 
+    find .ver -type f | xargs ls -i | sort -n | awk '{ if( printed[$1]++) next} ; { print $2}'
+}
+qvs_do () 
 { 
     function lnS () 
     { 
@@ -126,110 +212,17 @@ qvs ()
             [[ -f $f ]] && echo $f;
         done
     };
-    _doqvs_at $(verlocn)/$(_mkVername $1 $(verSecond))
+    _doqvs_at $(qvs_locn)/$(qvs_rwd)/.ver/$(qvs_second)
+}
+
+qvs_init
+
+qvs_qrf () 
+{ 
+    functions $(which qvslib)
 }
 bflist () 
 { 
-    indir .bak onlyfiles
+    comment OBSOLESCENT bflist in behalf of qvs_list;
+    qvs_list $@
 }
-verfiles () 
-{ 
-    echo ${VERFILES:-.files}
-}
-verSecond () 
-{ 
-    date '+%Y_%m%d_%H%M%S'
-}
-thisSecond () 
-{ 
-    date '+%Y%m%d%H%M%S'
-}
-_doqvs () 
-{ 
-    bkup $*;
-    for f in "$@";
-    do
-        [[ -f .bak/$f ]] && echo .bak/$f;
-    done
-}
-qver ()
-{
-   set -- ${1:-last}
-   case $1 in 
-    (last)      ls -t $(verlocn) | sed 1q;;
-    (names)     ls -t $(verlocn) | grep -v '^2[0-9][0-9]*$';;
-    (named)     qver names | sed 1q;;
-    (*)         comment "qver [last|names|named -> last]";;
-   esac
-}
-verDirectory () 
-{ 
-    echo $(verlocn)/$(${1:-lastVer})
-}
-rollupV () 
-{ 
-    vname=$1;
-    shift;
-    odir=Version/$vname;
-    mkdir -p $odir;
-    find ${*:-.} -type f | grep $vname | sed "s/.ver.$vname\///" | cpio -pdluvm $odir
-}
-qvs_man () 
-{ 
-    open ~/man/man1/qvslib.html
-}
-newVprog () 
-{ 
-    bkup $(< .files);
-    foreach clearBak $(vpreplist);
-    bakVer
-}
-clearBak () 
-{ 
-    indir .bak bkup $f;
-    rm -f $f
-}
-vpreplist () 
-{ 
-    indir .bak ls | comm -23 - .bak/.files
-}
-bakVer () 
-{ 
-    mkdir -p $1;
-    cat .files | cpio -pduvm $1
-}
-qvslib_clog () 
-{ 
-    cat  <<EOF
-
-2012_0211, Sat, Feb 11   changed default verlocn to YYYY_MMDD_HHMMSS format, adding _s
-
-EOF
-
-}
-latestDir () 
-{ 
-    echo $1/$(ls -t $1 | sed 1q)
-}
-latestVer () 
-{ 
-    foreach latestDir $(find $* -type d -name .ver)
-}
-needver () 
-{ 
-    set -- $(ls -t .ver);
-    find . -newer .ver/$1 -type f
-}
-deepbak () 
-{ 
-    find $(find .bak -type d | sed ${1:-6}q | tail -1) -type f
-}
-changes () 
-{ 
-    find .ver -type f | xargs ls -i | sort -n | awk '{ if( printed[$1]++) next} ; { print $2}'
-}
-byversion () 
-{ 
-    changes | sort | sed 's/.ver.//; s/\/.*//'
-}
-qvslib_init

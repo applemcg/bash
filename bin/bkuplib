@@ -2,7 +2,7 @@ bkup_appinit ()
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0707 153358;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0819 093412;
     shell_testarg isdirectory d;
     shell_testarg exists e;
     bkup_help
@@ -121,7 +121,7 @@ bkup ()
     { 
         doit cp -f $*
     };
-    shell_foreach backup $*
+    shell_foreach backup ${*:-$(bflist)}
 }
 bkfiles () 
 { 
@@ -168,3 +168,7 @@ bkup_timestamp ()
     grep 'comment bkup:' ${*:-*lib} /dev/null | sed 's/:.*bin//; s/;//' | awk '{ print $2, $3, $1 }'
 }
 bkup_init
+bkup_deep () 
+{ 
+    find .bak | awk -F/ '{ print NF }' | sort | uniq -c
+}

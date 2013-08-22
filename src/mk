@@ -1,4 +1,10 @@
 source ~/.profile
 source profilemk
+source mmklib
+
+mk_dropbin () { mk_one ~/Dropbox/bin/$1 cat $1; }
+
+indir ../bin foreach mk_dropbin *lib
+chmod +x ~/Dropbox/bin/*lib
 
 runit $*

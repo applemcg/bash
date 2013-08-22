@@ -15,15 +15,7 @@ savef ()
 }
 smartf_doc () 
 { 
-    ( cat  <<EOF
-is -- ~ a b, such that "is a" returns b
-smartf -- ~ NAME file, s.t. NAME returns "file, and
-       -- NAME command, operates "command" on file.
-savef -- ~ fa fb fc ..., saves functions in T
-refreshT -- saves copies of new functions in T
-~_init -- creates smartfs   ETCLIB and T in ETCLIB
-EOF
- ) | sed 's/^/    /; s/ --/	--/'
+    smartf_qrf
 }
 smartf_init () 
 { 
@@ -32,7 +24,7 @@ smartf_init ()
         comment NO today function;
         return
     };
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0622 132215;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0719 163647;
     smartf ETCLIB $HOME/etc/lib;
     smartf T $(ETCLIB)/.$(today);
     smartf smartflib $HOME/bin/smartflib;
@@ -61,5 +53,17 @@ smartf_savef ()
 smartf () 
 { 
     eval " $1 () { \${*:-echo} $2; }"
+}
+smartf_qrf () 
+{ 
+    cat  <<EOF
+is -- ~ a b, such that "is a" returns b
+smartf -- ~ NAME file, s.t. NAME returns "file, and
+       -- NAME command, operates "command" on file.
+savef -- ~ fa fb fc ..., saves functions in T
+refreshT -- saves copies of new functions in T
+~_init -- creates smartfs   ETCLIB and T in ETCLIB
+EOF
+
 }
 smartf_init

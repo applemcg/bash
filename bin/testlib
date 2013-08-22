@@ -1,5 +1,6 @@
 ftrim () 
 { 
+    fsf () { functions $* | sort; }
     function error () 
     { 
         echo $* 1>&2;
@@ -15,16 +16,16 @@ ftrim ()
             error No Function library $1
         };
         source $1;
-        functions $1 | tee .$1.ord | sort > .$1.a2z
+        fsf $1 
     };
     function tolib () 
     { 
-        fbdy $(< .$1.ord);
+        fbdy $(functions $1);
         echo ${1}_init
     };
     function fromlib () 
     { 
-        fbdy $(fgrep -v -f .$1.not .$1.ord | tee .$1.lst);
+        fbdy $(fgrep -v -f .$1.not <(functions $1) | tee .$1.lst);
         echo ${1}_init
     };
     function mvreport () 
@@ -33,7 +34,7 @@ ftrim ()
         diff $2 .$2.new 1>&2;
         comment ...;
         comment $1 is giving up:;
-        diff .$1.ord .$1.lst 1>&2;
+        diff <(functions $1) .$1.lst 1>&2;
         comment;
         comment "orignal function count:";
         wc -l .*.ord | grep -v total 1>&2;
@@ -44,7 +45,7 @@ ftrim ()
     function bothlib ()
     {
         tolib $2 > .$2.new;
-	comm -12 .$1.a2z .$2.a2z > .$1.not;
+	comm -12 <(fsf $1) <(fsf $2) > .$1.not;
         fromlib $1 > .$1.new;
         mvreport $1 $2
 	echo bkup $1 $2;

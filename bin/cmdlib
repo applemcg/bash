@@ -4,7 +4,7 @@ ff ()
 }
 fsfg () 
 { 
-    fbdy $(sfg $*)
+    doit fbdy $(sfg $*)
 }
 topsuf () 
 { 
@@ -17,6 +17,7 @@ pdl ()
 }
 cmd_init () 
 { 
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0819 092742;
     source programlib 2> /dev/null;
     comment ff, fsfg topsuf pdl
 }
@@ -24,4 +25,26 @@ hotlib ()
 { 
     gh 'lib$' | field 'NF' | sort | uniq -c | sort -n
 }
+ffun () 
+{ 
+    fbdy $* > .y;
+    vi .y;
+    . .y;
+    fbdy $(functions .y)
+}
 cmd_init
+jsdirs () 
+{ 
+    find . -name '*js' | sed 's/\/[^\/]*$//' | sort -u
+}
+remark () 
+{ 
+    comment TRACE remark $# FIRST "$1" ALL "$@";
+    echo "$1" | grep % > /dev/null && { 
+        fmt="$1\n";
+        shift;
+        printf "$fmt" "$@" 1>&2
+    } || { 
+        echo "$@" 1>&2
+    }
+}

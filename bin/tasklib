@@ -1,19 +1,11 @@
-comment ()
-{
-	echo "$@" 1>&2
-}
 tasks () 
 { 
-    namevalue toolbase
-    toolbase  $HOME
-
-    comment tasks $*
-
+    smartf     toolbase  $HOME
+    comment    TRACE tasks $*
     function name () 
     { 
         echo "$PWD/$1"
     };
-    
     function report () 
     { 
         echo $1:; shift;
@@ -31,7 +23,7 @@ tasks ()
     }
     function finished ()
     {
-	echo "$PWD/completed.txt"
+	    echo "$PWD/completed.txt"
     };
     function somecomplete () 
     { 
@@ -42,7 +34,7 @@ tasks ()
     { 
         report "current tasks" tasks;
         report "last 12 completed" somecomplete 12;
-        report functions functions $(installed)/bin/tasklib;
+        report functions task_qrf
         report HINT echo tasks, tasks help, tasks name, tasks finished
     };
     installed $(toolbase)
@@ -53,9 +45,13 @@ tasks ()
     eval $cmmd $f $*
     ignore popd
 }
-tpush () 
+task_qrf ()
+{
+    functions $(installed)/bin/tasklib;
+}
+task_push () 
 { 
-    comment tpush $*
+    comment TRACE $# task_push $*
     function prepend () 
     { 
       comment prepend $*
@@ -66,15 +62,16 @@ tpush ()
     };
     tasks prepend $*
 }
-tpeek () 
+task_peek () 
 { 
+    comment TRACE $# task_peek $*
     function seefirst () 
     { 
         sed 1q $1
     };
     tasks seefirst
 }
-ttop ()
+task_top ()
 {
 	function toTop ()
 	{
@@ -95,7 +92,7 @@ ttop ()
 
 	tasks toTop ${1:-1}
 }
-tqueue () 
+task_queue () 
 { 
     function append () 
     { 
@@ -106,15 +103,15 @@ tqueue ()
     };
     tasks append $*
 }
-tcomplete () 
+task_complete () 
 { 
     function tdated () 
     { 
         shift; dated  $* >> completed.txt
     };
-    tasks tdated  $(tpop)
+    tasks tdated  $(task_pop)
 }
-tpop () 
+task_pop () 
 { 
     function lopTop () 
     { 
@@ -125,11 +122,31 @@ tpop ()
     };
     tasks lopTop
 }
-tasklib_init ()
+task_init ()
 {
-     source programlib 2>/dev/null
+     . programlib 2>/dev/null
      source smartflib 2>/dev/null
+     isfunction comment || {
+          function comment ()
+         {
+             echo "$@" 1>&2
+         }
+     }
      tasks help
 }
 
- tasklib_init
+task_init
+dated () 
+{ 
+    date "+%F %T %a%t-- $*"
+}
+task () 
+{ 
+    task_qcmd="task_$1";
+    declare -f $task_qcmd > /dev/null || { 
+        task_qrf 1>&2;
+        return
+    };
+    shift;
+    $task_qcmd "$@"
+}

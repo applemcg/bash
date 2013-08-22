@@ -1,36 +1,35 @@
 shell_init () 
 { 
-    source programlib
+    source programlib;
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0707 154058;
-    shell_forpairs  shell_argtest	\
-			z empty	\
-			x executable	\
-			d existingdir	\
-			e exists	\
-			f existingfile	\
-			s nonempty	\
-			w writeable
-
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0819 114157;
+    shell_forpairs shell_argtest z empty x executable d existingdir e exists f existingfile s nonempty w writeable;
     shell_foreachi obstolib shell stdout pipe foreach shifted error foreachi shift2 not dirname basename indir testarg bitbucket onlyfiles onlydirs append foreachij cfe missing out2err
 }
-shell_forpairs () {
+shell_forpairs () 
+{ 
     local cmd=$1;
     shift;
-    while [ -n "$2" ]; 
-    do
-        $cmd $1 $2
-	shift 2
+    while [ -n "$2" ]; do
+        $cmd $1 $2;
+        shift 2;
     done
 }
 shell_append () 
 { 
+    [[ -w $1 ]] || { 
+        chmod +w $1;
+        comment WARNING making $1 Writeable for shell_append;
+        tee -a $1;
+        chmod -w $1;
+        return
+    };
     tee -a $1
 }
 shell_basename () 
 { 
-    echo ${1##*/}
+    echo "${1##*/}"
 }
 shell_bitbucket () 
 { 
@@ -142,15 +141,17 @@ shell_shifted ()
 }
 shell_stdout () 
 { 
-    comment TRACE shell_stdout $# $*;
-    doit $(shell_shifted $@) > $1
+    comment TRACE shell_stdout $# "$@";
+    o="$1";
+    shift;
+    "$@" > "$o"
 }
 shell_testarg () 
 { 
     eval "$1() { [[ -$2 \$1 ]]; }"
 }
 shell_argtest () 
-{
+{ 
     shell_testarg $2 $1
 }
 shell_test () 
@@ -170,5 +171,19 @@ shell_test ()
     shell_pipe pipe_test functions ~/bin/shelllib > piped;
     comment NOT Yet: shell_stdout shell_pipe pipe_test functions ~/bin/shelllib;
     popd
+}
+shell () 
+{ 
+    shell_qcmd="shell_$1";
+    declare -f $shell_qcmd > /dev/null || { 
+        shell_qrf 1>&2;
+        return
+    };
+    shift;
+    $shell_qcmd "$@"
+}
+shell_qrf () 
+{ 
+    functions $(which shelllib)
 }
 shell_init

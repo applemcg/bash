@@ -1,0 +1,92 @@
+hfun () 
+{ 
+    hfun_qcmd="hfun_$1";
+    declare -f $hfun_qcmd > /dev/null || { 
+        hfun_qrf 1>&2;
+        return
+    };
+    shift;
+    $hfun_qcmd "$@"
+}
+hfun_body () 
+{ 
+    hfun_newbody | functions
+}
+hfun_doc () 
+{ 
+    cat  <<EOF
+
+ hfun  looks at function history:  gh \(\), extracting
+the recently created functions, since not every function
+listed in the history may currently be enabled,  hfun lists,
+with a "comm" command, the 3-column output of function
+body names, functions in the history, and the intersection.
+e.g.   hfun -13    lists the functions in history whose
+bodies aren't in the environment.  if there are any, search
+the history for the command which created the function and
+re-execute it.
+EOF
+
+}
+hfun_list () 
+{ 
+    gh '()' | nhn | field 1 | printfirst
+}
+hfun_newbody () 
+{ 
+    fbdy $(hfun_list | sort)
+}
+hfun_init () 
+{ 
+    source programlib;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 190435;
+}
+nhn () 
+{ 
+    sed 's/^ *[0-9]* *//' $*
+}
+hfun_check () 
+{ 
+    comm -3 <(hfun_gone $*) <($*)
+}
+hfun_dups () 
+{ 
+    grep $1 .dup_functions | field 1
+}
+hfun_gone () 
+{ 
+    comm -3 <(functions $2|sort) <(functions $2|fgrep -vf <($1 $2)| sort)
+}
+hfun_do () 
+{ 
+    comment USAGE hfun_do \[-nn\] as in comm;
+    hfun_body | sort | comm $* - <( hfun_list | sort)
+}
+hfun_qrf () 
+{ 
+    functions $(which hfunlib)
+}
+hfun_save () 
+{ 
+    remark TRACE $# hfun_save FUNCTION $1 arg $2;
+    function whlib () 
+    { 
+        remark TRACE $# hfun_save.whlib FUNCTION $1 arg $2;
+        set -- $1 ${1%_*}lib $2;
+        [[ -f $3 ]] && { 
+            echo $3;
+            return
+        };
+        [[ -f $2 ]] && { 
+            echo $2;
+            return
+        };
+        echo newlib
+    };
+    ignore declare -f $1 && { 
+        set -- $1 $(whlib $1 $2);
+        remark TRACE $# hfun_save.whlib FUNCTION $1 LIB $2;
+        smartf_savef $1 | shell_append ~/git/bash-functions/bin/$2
+    }
+}
+hfun_init

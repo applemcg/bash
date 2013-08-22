@@ -4,6 +4,7 @@ git_appinit ()
 }
 git_init () 
 { 
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0718 115133;
     source programlib 2> /dev/null;
     git_appinit
 }

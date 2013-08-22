@@ -1,7 +1,7 @@
 group_appinit () 
 { 
     comment "Copyright (C) 2013, JYATL, Just Yet Another Test Lab";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0704 054818;
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 190435;
     group_doc 1>&2;
     fbdy group_appinit 1>&2
 }
@@ -12,7 +12,7 @@ group_init ()
 }
 group_name () 
 { 
-    comment TRACE group_name $# group function $*
+    comment TRACE group_name $# group function $*;
     set -- ${1:-empty} ${2:-EMPTY};
     ignore fbdy $2 || { 
         comment $2 is NOT a function;
@@ -39,19 +39,13 @@ group_doc ()
 
 group library    -- functions to collect functions in groups
 -------------
-group_appinit -- when you initialize the appliction
-group_init    -- the only permissible default behavior when sourceing
-group_collect -- ~ group      collects groups functions, tacks on init
-group_regroup -- ~ group      takes all the ungrouped in the group library.
-group_name    -- ~ group function     turns function into  group_function
-group_takes   -- ~ group function     redefines function as using group_function
-
 EOF
 
+    group_qrf
 }
 group_takes () 
 { 
-    comment TRACE group_takes $# library function $*
+    comment TRACE group_takes $# library function $*;
     eval "$2 () { comment OBSOLESCENT $2 USING ${1}_$2; ${1}_$2 \$*; }"
 }
 group_regroup () 
@@ -71,7 +65,7 @@ group_regroup ()
         return
     };
     set -- ${1%lib};
-    comment TRACE group_regroup $# library $*
+    comment TRACE group_regroup $# library $*;
     [[ -f ${1}lib ]] || { 
         errmsg ${1}lib is NOT a file;
         return
@@ -80,9 +74,55 @@ group_regroup ()
 }
 group_obslog () 
 { 
-    comment TRACE group_obslog $# $*
+    comment TRACE group_obslog $# $*;
     ( eval $* ) 2>> ~/lib/obsolescent.log;
     set -- $(today) ~/lib/obsolescent.log;
     grep $* /dev/null > /dev/null || echo $1 >> $2
 }
+group_qrf () 
+{ 
+    cat  <<EOF
+group_appinit -- when you initialize the appliction
+group_c2libs  -- "comms" libs 1 and 2 function lists
+group_init    -- the only permissible default behavior when sourceing
+group_collect -- ~ group      collects groups functions, tacks on init
+group_regroup -- ~ group      takes all the ungrouped in the group library.
+group_name    -- ~ group function     turns function into  group_function
+group_qrf     -- ~       this function list
+group_takes   -- ~ group function     redefines function as using group_function
+
+EOF
+
+}
+group () 
+{ 
+    group_qcmd="group_$1";
+    declare -f $group_qcmd > /dev/null || { 
+        group_qrf 1>&2;
+        return
+    };
+    shift;
+    $group_qcmd "$@"
+}
+group_c2libs () 
+{ 
+    comm $3 <(functions $1 | sort) <(functions $2|sort)
+}
 group_init
+dup_functions () 
+{ 
+    gengroup > .sh;
+    . .sh | awk '$1 ~ /===/ { a=$2; b=$3; next; }; { print $1, a, b }'
+}
+gengroup () 
+{ 
+    echo *lib | awk '
+      {
+         for (i=1; i<NF; i++) {
+            for (j=i+1; j<=NF; j++) {
+               print  "echo === ", $i, $j
+               printf "group c2libs %s %s -12\n", $i, $j
+           };
+        };
+    }'
+}

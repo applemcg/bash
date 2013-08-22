@@ -16,27 +16,32 @@ swapd ()
     eval pushd "$2"
 }
 tuckd () 
-{
-        ignore pushd ${1:-.}
-        swapd 
+{ 
+    ignore pushd ${1:-.};
+    swapd
 }
 rotd () 
 { 
-    [[ $(depthd) < 3 ]] && {
+    set -- $(peekd);
+    [[ $# -lt 3 ]] && { 
         peekd;
-        comment "need > 2";
         return
     };
-    set -- $(peekd);
+    two=$1;
+    shift;
+    three=$1;
+    shift;
+    one=$1;
+    shift;
     ignore popd;
     ignore popd;
-    [[ $(depthd) < 2 ]] && ignore tuckd .
-    ignore popd;
-    ignore eval pushd "$2";
-    ignore eval pushd "$1";
-    eval pushd "$3"
+    [[ $# -gt 0 ]] && ignore popd;
+    eval ignore pushd $three;
+    eval ignore pushd $two;
+    eval ignore pushd $one;
+    cleandirlist
 }
-dirlib_init () 
+dir_init () 
 { 
     source programlib 2> /dev/null;
     source testlib 2> /dev/null;
@@ -44,8 +49,7 @@ dirlib_init ()
 }
 dirlib_list () 
 { 
-    ${1:-echo} cleandirlist depthd dirlib_doc dirlib_init dirlib_list \
-               dupd nipd nthdir peekd rotd swapd tuckd
+    ${1:-echo} cleandirlist depthd dirlib_doc dirlib_init dirlib_list dupd nipd nthdir peekd rotd swapd tuckd
 }
 dupd () 
 { 
@@ -99,9 +103,9 @@ nthdir ()
     set -- $(peekd);
     eval echo \$$n
 }
-dirlib_init
 depthd () 
 { 
     set -- $(peekd);
     echo $#
 }
+dir_init
