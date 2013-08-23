@@ -1,4 +1,3 @@
-
 ### Listlib -- lists for the shell
 
 The bash shell has arrays.  They seem like an easy way to model lists.
@@ -8,7 +7,7 @@ string in an ordinary shell variable, __export__ed to the ENVIRONMENT.
 The `list` command, with one argument displays the items in that list;
 with more arguments it appends them to the list.
 
-A set of sub-commands, all named `list`\_*sub-command*, do the
+A set of sub-commands, all named `list_`*sub-command*, do the
 sensible things.  The only difficulty you might have is how to
 remember the difference between sub-commands `delete` and `remove` The
 `list_delete name` deletes the named list and `list_remove name item
@@ -56,7 +55,7 @@ The only trick in the code is in the `list_remove` function. Since the
 items are blank-separated, when deleting an item which is either the
 first or the last, there may not be a leading or trailing blank to
 match. So compare the space-surrounded item to remove with the
-space-surrounded list of items.  The base shell has a handy means to
+space-surrounded list of items.  The bash shell has a handy means to
 trim the item.  Here's the code to remove the __rm__ string from the
 old list __ol__:
 
@@ -75,7 +74,7 @@ functon library's is a call to the local **init** function.
 
 ### References
 
-  [mkdown]: http://daringfireball.net/projects/markdown/ "Darling Fireball, John Gruber"
+  [mkdown]: http://daringfireball.net/projects/markdown/ "Daring Fireball, John Gruber"
 
 1. Here is the [library code](../bin/listlib). Save it on your PATH and 
    _source_ it, e.g. `source listlib` 
