@@ -1,7 +1,7 @@
 addlist () 
 { 
-    eval $1=\"\$$1 $2\";
-    export $1
+    comment addlist OBSOLESCENT in behalf of list_add
+    list_add $*
 }
 cpfmto () 
 { 
@@ -34,11 +34,11 @@ foreach1 ()
 }
 primarysource () 
 { 
-    defun $1 "addlist _${2}files \"\$1\""
+    defun $1 "addlist ${2} \"\$1\""
 }
 textfile () 
 { 
-    [[ $# -eq 2 ]] && addlist _textfiles "$(echo $@)" || comment ERROR: textfile src dest
+    [[ $# -eq 2 ]] && addlist text "$(echo $@)" || comment ERROR: textfile src dest
 }
 deploytextfiles () 
 { 
@@ -230,7 +230,9 @@ needir ()
 }
 mmk_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0816 095010;
+    source programlib
+    . listlib
+    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0822 162300;
     function qi_mk () 
     { 
         eval "qi${1} () { qia $2 \$1; }"
