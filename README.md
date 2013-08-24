@@ -20,7 +20,7 @@ properties:
 * supporting functions are named  {lib}_doc, {lib}_help,
     {lib}_manpp, etc.
 
-* any output from "source {lib}", invokes {lib}_init,
+* any output from "source {lib}", which invokes {lib}_init,
     must be on stderr
 
 ###	current challenges
