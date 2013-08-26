@@ -116,9 +116,13 @@ list_test ()
         $*;
         echo
     };
-    l_do list_delete foo;
-    l_do list_delete the;
-    l_do list_delete lists;
+    function list_testClean ()
+    {
+        l_do list_delete foo;
+    	l_do list_delete the;
+    	l_do list_delete lists
+    };
+    list_testClean;
     l_do list_lists;
     l_do list_add foo bar zot gum;
     l_do list_add foo one two then the last;
@@ -128,6 +132,7 @@ list_test ()
     l_do list_lists;
     l_do list_add the another list;
     l_do list_lists;
-    l_do list_remove foo the
+    l_do list_remove foo the;
+    list_testClean
 }
 list_init 1>&2
