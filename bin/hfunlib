@@ -25,6 +25,10 @@ e.g.   hfun -13    lists the functions in history whose
 bodies aren't in the environment.  if there are any, search
 the history for the command which created the function and
 re-execute it.
+
+ functions are added to collect and save new functions
+as you write them on the command line.
+
 EOF
 
 }
@@ -39,7 +43,10 @@ hfun_newbody ()
 hfun_init () 
 { 
     source programlib;
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 190435;
+    source smartflib;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0902 004208;
+    smartf hfun_home $HOME/Dropbox/git/bash-functions;
+    comment set your function library HOME with "smartf hfun_home  /full/path/to/git/lib"
 }
 nhn () 
 { 
@@ -86,7 +93,11 @@ hfun_save ()
     ignore declare -f $1 && { 
         set -- $1 $(whlib $1 $2);
         remark TRACE $# hfun_save.whlib FUNCTION $1 LIB $2;
-        smartf_savef $1 | shell_append ~/git/bash-functions/bin/$2
+        smartf_savef $1 | shell_append $(hfun_home)/bin/$2
     }
 }
-hfun_init
+hfun_cmmds () 
+{ 
+    history | nhn | field ${1:-1} | sort | uniq -c | sort -n
+}
+hfun_init 1>&2

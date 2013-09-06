@@ -19,15 +19,17 @@ smartf_doc ()
 }
 smartf_init () 
 { 
-    . shelllib;
-    isfunction today || { 
-        comment NO today function;
+    source shelllib;
+    isfunction dbox &&  { 
+        comment TRACE dbox is already defined
         return
     };
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0719 163647;
-    smartf ETCLIB $HOME/etc/lib;
-    smartf T $(ETCLIB)/.$(today);
-    smartf smartflib $HOME/bin/smartflib;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 221958;
+    smartf dbox      $HOME/Dropbox
+    smartf smartflib $(dbox)/bin/smartflib;
+    smartf ETCLIB    $(dbox)/etc/lib;
+    smartf T         $(ETCLIB)/.$(today);
+    mkdir -p         $(ETCLIB)
     smartf_doc 1>&2
 }
 smartf_is () 
@@ -52,6 +54,8 @@ smartf_savef ()
 }
 smartf () 
 { 
+    list_traceoff
+    list smartf $1
     eval " $1 () { \${*:-echo} $2; }"
 }
 smartf_qrf () 
@@ -66,4 +70,4 @@ refreshT -- saves copies of new functions in T
 EOF
 
 }
-smartf_init
+smartf_init 1>&2

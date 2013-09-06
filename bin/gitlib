@@ -4,9 +4,12 @@ git_appinit ()
 }
 git_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0718 115133;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 222215;
     source programlib 2> /dev/null;
-    git_appinit
+    source smartflib;
+    git_appinit;
+    smartf git_user applemcg;
+    comment set your GIT name with "smartf git_user NAME"
 }
 git () 
 { 
@@ -20,7 +23,7 @@ git ()
     };
     function mygithub () 
     { 
-        echo ${1}github.com:applemcg/$(shell_basename $PWD).git
+        echo ${1}github.com:$(git_user)/$(basename $PWD).git
     };
     function cgit () 
     { 
@@ -56,14 +59,14 @@ git ()
         ;;
         add)
             shift;
-	    quietly chmod 775 bin/* 
+            quietly chmod 775 bin/*;
             cgit add $(git modified) $*
         ;;
         name)
             ignore pushd .;
             while [[ $PWD != "/" ]]; do
                 [[ -d .git ]] && { 
-                    shell_basename $PWD;
+                    basename $PWD;
                     break
                 };
                 cd ..;
@@ -93,4 +96,4 @@ git ()
         ;;
     esac
 }
-git_init
+git_init 1>&2

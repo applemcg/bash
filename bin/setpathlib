@@ -66,14 +66,14 @@ require ()
     [[ "$1" == $bin/$tool ]] && return;
     setpath $bin
 }
-setpathlib_doc () 
+setpath_doc () 
 { 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0321 105555;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0902 075934;
 }
-setpathlib_init () 
+setpath_init () 
 { 
     : ${INCLUDE_PATH:=$(set_path include)};
-    comment setpathlib_doc
+    comment setpath_doc
 }
 paths () 
 { 
@@ -99,4 +99,4 @@ bitmeld ()
     pwd;
     popd > /dev/null
 }
-setpathlib_init
+setpath_init 1>&2

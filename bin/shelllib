@@ -1,11 +1,10 @@
 shell_init () 
 { 
-    source programlib;
     comment "Copyright (C) 2011-2013, JYATL -- Just YA Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0819 114157;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/dropbox/bin 2013_0904 094911;
     shell_forpairs shell_argtest z empty x executable d existingdir e exists f existingfile s nonempty w writeable;
-    shell_foreachi obstolib shell stdout pipe foreach shifted error foreachi shift2 not dirname basename indir testarg bitbucket onlyfiles onlydirs append foreachij cfe missing out2err
+    shell_foreachi obstolib shell $(shell_obs)
 }
 shell_forpairs () 
 { 
@@ -27,10 +26,6 @@ shell_append ()
     };
     tee -a $1
 }
-shell_basename () 
-{ 
-    echo "${1##*/}"
-}
 shell_bitbucket () 
 { 
     eval $@ 2> /dev/null
@@ -40,17 +35,6 @@ shell_cfe ()
     eval "xx() { $1; }";
     shift;
     foreach xx "$@"
-}
-shell_dirname () 
-{ 
-    case $1 in 
-        */*)
-            echo ${1%/*}
-        ;;
-        *)
-            echo .
-        ;;
-    esac
 }
 shell_error () 
 { 
@@ -186,4 +170,10 @@ shell_qrf ()
 { 
     functions $(which shelllib)
 }
-shell_init
+shell_init 1>&2
+shell_obs () 
+{ 
+    ignore pushd ~/Dropbox/bin;
+    comm -13 <(functions programlib cmdlib newlib|sort) <(functions shelllib | egrep -v '(shell|test|_init|_qrf)$' | sed 's/^shell_//' | sort);
+    ignore popd
+}

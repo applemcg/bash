@@ -1,7 +1,7 @@
 group_appinit () 
 { 
     comment "Copyright (C) 2013, JYATL, Just Yet Another Test Lab";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 190435;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 222215;
     group_doc 1>&2;
     fbdy group_appinit 1>&2
 }
@@ -23,7 +23,7 @@ group_name ()
 group_collect () 
 { 
     set -- ${1%lib};
-    set -- ${1}lib $(shell_basename $1);
+    set -- ${1}lib $(basename $1);
     comment TRACE group_collect $# LIBRARY BASENAME $1 $2;
     [[ -f ${1} ]] || { 
         comment ${1} is NOT a lib;
@@ -31,7 +31,7 @@ group_collect ()
     };
     . $1;
     fbdy $(functions ${1});
-    echo ${2}_init
+    echo "${2}_init 1>&2"
 }
 group_doc () 
 { 
@@ -108,7 +108,6 @@ group_c2libs ()
 { 
     comm $3 <(functions $1 | sort) <(functions $2|sort)
 }
-group_init
 dup_functions () 
 { 
     gengroup > .sh;
@@ -126,3 +125,4 @@ gengroup ()
         };
     }'
 }
+group_init 1>&2

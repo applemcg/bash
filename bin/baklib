@@ -1,0 +1,136 @@
+bak_appinit () 
+{ 
+    comment "Copyright (C) 2013, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0905 100243;
+    return
+}
+bak_init () 
+{ 
+    source bkuplib 2> /dev/null;
+    bak_appinit;
+    ignore fbdy thisbk || { 
+        comment ERROR no function thisbk;
+        return
+    };
+    bak_help 1>&2
+}
+bak_thisbk () 
+{ 
+    comment TRACE $# bak_thisbk FILE $1 BAK_FILE $2;
+    thisbk $*
+}
+bak_recur () 
+{ 
+    comment TRACE $# bak_recur NOTFirst $1 BAKTO_DIR $2 FILE $3 NEXT $4;
+    [[ -d $2 ]] || mkdir -p $2;
+    $1 || { 
+        cmp $3 $2/$3 > /dev/null 2>&1 && return
+    };
+    exists $2/$3 && shell_indir $2 bak_recur true $2/$4 $3 $4;
+    $1 && doit mv -f $3 $2;
+    $1 || bak_thisbk ./$3 $2/$3
+}
+bak_help () 
+{ 
+    echo functions:; bak_qrf;
+    echo usage: bak path/to/file ...
+}
+bak_qrf () 
+{ 
+    cat <<EOF | sed 's/^/    /'
+bak	        -- ~ file ...  # backs up the file ... arguments
+bak_appinit	-- 
+bak_init	-- 
+bak_thisbk	-- alias for 'thisbk', fiddles timestamp in comment
+bak_recur	-- recursive descent of backup tree
+bak_help	-- 
+bak_qrf     -- this note
+bak_files	-- [file], lists bak of file. no args lists all bak 
+bak_current	-- lists all backup files
+bak_version	-- creates new version of all backup files
+bak_all    	-- backs up all directories with existing backup
+bak_home	-- lists backup directories
+EOF
+} 
+bak_files () 
+{ 
+    comment TRACE $# bak_files PWD $PWD;
+    dir=$HOME/.bak/${PWD#$HOME};
+    case $# in 
+        0)
+            shell_onlyfiles $(ls $dir)
+        ;;
+        *)
+            find $dir -name "*$1"
+        ;;
+    esac
+}
+bak_current () 
+{ 
+    shell_indir ~/.bak 'find * -type f' | grep -v '\/.bak'
+}
+bak_version () 
+{ 
+    function bak_verdir () 
+    { 
+        echo $HOME/.ver/$(date '+%Y_%m%d_%H%M%S')
+    }
+    comment TRACE $# bak_version;
+    quietly bak_all;
+    set -- $(bak_verdir);
+    mkdir -p $1;
+    ignore pushd ~/.bak;
+    bak_current | cpio -pdluvm $1;
+    ignore popd
+}
+bak_all () 
+{ 
+    for dir in $(bak_home);
+    do
+        ignore pushd ~/$dir;
+        pwd;
+        bak $(bak_files);
+        ignore popd;
+    done
+}
+bak_home () 
+{ 
+    comment TRACE $# bak_home ARGS $*
+    ignore pushd $HOME/.bak;
+    find * -type d | sed 's/\/.bak.*//' | uniq;
+    ignore popd;
+}
+bak () 
+{ 
+    comment TRACE $# bak FILES $*
+    function bak_run () 
+    {
+        ignore expr $PWD : $HOME || { 
+            comment WARNING bak_run $1 NOT HOME in $PWD;
+            return
+        };
+        set -- $1 ${PWD#$HOME};
+        bak_recur false $HOME/.bak/$2 $1 .bak
+    }
+    function bak_one () 
+    {     
+        comment TRACE $# bak_one FILE $1;
+        shell_indir $(dirname $1) bak_run $(basename $1)
+    }
+    shell_foreach bak_one $*
+}
+bak_init 1>&2
+bak_files () 
+{ 
+    comment TRACE $# bak_files PWD $PWD;
+    dir=$HOME/.bak/${PWD#$HOME};
+    case $# in 
+        0)
+            find $dir -type f
+        ;;
+        *)
+            find $dir -name "*$1"
+        ;;
+    esac
+}

@@ -3,16 +3,19 @@ movie ()
     unset g;
     for f in $*;
     do
-        [[ -n $g ]] && { 
-            clear;
-            sdiff $g $f | ${MORE:-/usr/bin/more};
-            echo === $g .. $f ===;
-            echo NEXT?;
-            read a
+        [[ -n $g ]] && mv_frame $g $f
         };
         g=$f;
         echo $g $f;
     done
+}
+mv_frame ()
+{
+      clear;
+      sdiff $1 $2 | ${MORE:-/usr/bin/more};
+      echo === $1 .. $2 ===;
+      echo NEXT?;
+      read a
 }
 mkRun () 
 { 
@@ -28,11 +31,12 @@ shoot ()
     mkRun $1;
     mkShar $1
 }
-movielib_init () 
+movie_init () 
 { 
     source programlib 2> /dev/null;
+    source newlib 2>/dev/null;
     comment "movielib: Copyright (C) 2012-2013, Jyatl -- Just Yet Another Testing Lab";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0321 105554;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0905 100342;
     comment movie_frames FILE,... then "movie .movie/*"
 }
 movie_nback () 
@@ -51,4 +55,4 @@ movie_frames ()
         echo $n;
     done
 }
-movielib_init
+movie_init 1>&2

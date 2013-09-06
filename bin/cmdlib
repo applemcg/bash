@@ -17,7 +17,7 @@ pdl ()
 }
 cmd_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0819 092742;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0906 103836;
     source programlib 2> /dev/null;
     comment ff, fsfg topsuf pdl
 }
@@ -29,10 +29,9 @@ ffun ()
 { 
     fbdy $* > .y;
     vi .y;
-    . .y;
+    . ./.y;
     fbdy $(functions .y)
 }
-cmd_init
 jsdirs () 
 { 
     find . -name '*js' | sed 's/\/[^\/]*$//' | sort -u
@@ -48,3 +47,4 @@ remark ()
         echo "$@" 1>&2
     }
 }
+cmd_init 1>&2
