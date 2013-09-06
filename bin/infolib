@@ -50,7 +50,7 @@ infolib_init ()
 { 
     source newlib 2> /dev/null;
     source smartflib 2> /dev/null;
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0321 105554;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0902 004209;
     infobits_init;
     infobits_doc
 }

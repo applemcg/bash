@@ -13,4 +13,4 @@ template_init ()
     source programlib 2> /dev/null;
     template_appinit
 }
-template_init
+template_init 1>&2

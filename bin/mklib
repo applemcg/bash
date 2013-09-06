@@ -114,7 +114,7 @@ mktext ()
 }
 mklib_init () 
 { 
-    source programlib 2> /dev/null
+    source programlib 2> /dev/null;
     source smartflib 2> /dev/null
 }
-mklib_init
+mk_init 1>&2

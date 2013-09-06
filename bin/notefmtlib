@@ -25,7 +25,7 @@ $0 !~ /,$/	{ printf "%s, %s\n", topic, record $0; record = "" }
 
 '
     };
-    set -- ${*:-*note*txt}
+    set -- ${*:-*note*txt};
     canonotefmt $* | note2csv | sed 's/   */ /g; s/, */,	/g'
 }
 notefmt_help () 
@@ -48,4 +48,4 @@ notefmt_init ()
     source ~/.profile;
     notefmt_help 1>&2
 }
-notefmt_init
+notefmt_init 1>&2

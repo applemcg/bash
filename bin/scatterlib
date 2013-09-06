@@ -52,7 +52,7 @@ scatter_page ()
 scatterlib_init () 
 { 
     source programlib 2> /dev/null;
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0321 105555;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0902 004210;
     comment "Copyright (C) 2005-2013, JYATL, Just Yet Another Testing Lab";
     comment $(functions scatterlib | grep man)
 }
@@ -89,4 +89,4 @@ function favg( w, num)  {
 	}
 '
 }
-scatterlib_init
+scatter_init 1>&2
