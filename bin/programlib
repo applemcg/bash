@@ -2,41 +2,15 @@ copyrightNotice ()
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./users/applemcg/git/bash-functions/bin 2013_0821 203911;
-}
-cleanlib () 
-{ 
-    source fixlib;
-    canonlib $*
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 221958;
 }
 collect_eval () 
 { 
-    indir ~/bin cgrepf eval '*lib' | grep '1 *()' | field 1 | sort -u
-}
-defExe () 
-{ 
-    which $1 > /dev/null 2>&1 && echo $1 || echo $2
+    collect_func
 }
 dodate () 
 { 
-    echo "$1: $(date +%$1)"
-}
-f2 () 
-{ 
-    function f2_usage () 
-    { 
-        comment f2 function ...lib -- $*
-    };
-    isfunction $1 || { 
-        f2_usage no Function $1;
-        return 1
-    };
-    set -- $1 ~/git/bash-functions/bin/$2;
-    existingfile $2 || { 
-        f2_usage no File $2;
-        return 1
-    };
-    fbdy $1 | append $2
+    date "+$1: %$1"
 }
 ff () 
 { 
@@ -142,7 +116,7 @@ programlib_ck ()
 { 
     function prodoclist () 
     { 
-        programlib_doc | field 1 | sort
+        programlib_qrf | field 1 | sort
     };
     function pglibck () 
     { 
@@ -168,60 +142,7 @@ programlib_ck ()
 }
 programlib_doc () 
 { 
-    cat  <<EOF
-    
-cgrepf		-- pattern file ... finds functions with pattern in files
-cleanlib	-- to fixlib, uses canonlib
-collect_eval	-- USES cgrepf, belongs whf cgrepf
-defExe	-- ~ a b; echos "a", if found,  else "b"
-dodate	-- ~ {x} :  date +%x
-f2	-- ~ function {some}lib 
-fedit 	-- Functions EDIT; ~ funs ...
-ff	-- shorthand  fbdy functions ...
-field	-- the Nth blank-separated field
-fmdos	-- converts CR-LF files to NL
-fname	-- echos function name
-fofg	-- Files OF Grep -- at the end of a pipe
-fun_finder	-- greps to find function name in saved 
-gdoc	-- grep library documentaation; ~ lib [grep args]
-getawk	-- who's your "awk"
-ghfd	-- Grep History for Function Definitions
-grepf 	-- lists function names and grep pattern lines in functions
-gzfiles	-- inspects args, default to ..gz for gzip compressed
-iso_ymd	-- : yyyy-mm-dd
-latestFileIn	-- to gitlib, latest file in a treee
-lc	-- Lower Case, see tolower, toupper, uc
-libfunc	-- obsolescent on behalf of functions
-libfunctions	--  obsolescent on behalf of functions
-loadedlibs	-- : which libs are loaded
-lookat	-- ~ text-in-markdown OPENS .HTML
-mac2unix	-- like fmdos
-nava	-- NAme VAlue 
-newest	-- ~ FileA fileb ...  TRUE, when filea is the newest
-nonUnderscore	-- lines w/o an Underscore
-obsolescent	-- place holder for ~ 
-obstolib	-- obsolescent creator
-popla	-- POPuLAtion of a numeric First Field
-printfirst	-- prints first occurrence of line of text
-program_init	-- former programlib_init
-programlib_ck	-- how to rebuild this list
-programlib_doc	-- this list
-qpfs	-- picks tokens from a function
-repeated	-- ~ [n 2] => n..21
-run_test	-- wraps "doit"
-script_path	-- where is the source of this executable
-self_ref	-- CONSTRUCTOR: namea nameb ...  "namea" lists namea ... z
-setenv	-- ~ NAME Value,   just like the csh built-in
-subtract	-- set subtraction 2nd list from first with comm -23
-system	-- uname -s
-today	-- YYMMDD
-tolower	-- obsolescent in behalf of lc
-toupper	-- obsolescent in behalf of uc, UC
-uc	-- Upper Case
-wh	-- which
-wpl	-- output a Word Per Line
-EOF
-
+    programlib_qrf
 }
 qpfs () 
 { 
@@ -254,10 +175,6 @@ script_path ()
         popd > /dev/null
     };
     _scrpath_zero ${BASH_SOURCE[0]}
-}
-self_ref () 
-{ 
-    eval "$1 () { \${1:-echo} $*; }"
 }
 setenv () 
 { 
@@ -294,26 +211,24 @@ wh ()
 }
 wpl () 
 { 
-    cat ${*:--} | /usr/bin/tr -cs "[A-Z][a-z][0-9]_" '[\012*]'
+    cat ${*:--} | tr -cs 'A-Za-z0-9_' '\n'
 }
 fun_finder () 
 { 
-    grep $* $(T shell_dirname)/.* /dev/null
+    grep -i $* $ETCLIB/.20*
 }
 program_init () 
 { 
-    . ~/.profile;
-    . shelllib;
-    . smartflib;
+    source listlib;
+    source shelllib;
+    source smartflib;
     copyrightNotice 1>&2;
     obsolescent file_test testarg;
     obsolescent fileTest testarg;
     obsolescent piped pipe;
     obsolescent is_a_function isfunction;
     setenv AWK $(getawk);
-    self_ref programlib_eval myfunctions obsolescent testarg self_ref;
     my_list program;
-    comment self_ref my_list program_list program_init
 }
 latestFileIn () 
 { 
@@ -349,12 +264,6 @@ gdoc ()
     shift;
     $doc | grep ${*:-eval}
 }
-fedit () 
-{ 
-    fbdy $* > .y;
-    vi .y;
-    y
-}
 ghfd () 
 { 
     gh '()' | awk '$3 ~ /\(\)/ { print $2 }' | printfirst
@@ -380,13 +289,11 @@ qrf_insert ()
 programlib_qrf () 
 { 
     cat  <<EOF
-    
 cgrepf		-- pattern file ... finds functions with pattern in files
 cleanlib	-- to fixlib, uses canonlib
 collect_eval	-- USES cgrepf, belongs whf cgrepf
 defExe	-- ~ a b; echos "a", if found,  else "b"
 dodate	-- ~ {x} :  date +%x
-f2	-- ~ function {some}lib 
 fedit 	-- Functions EDIT; ~ funs ...
 ff	-- shorthand  fbdy functions ...
 field	-- the Nth blank-separated field
@@ -394,6 +301,7 @@ fmdos	-- converts CR-LF files to NL
 fname	-- echos function name
 fofg	-- Files OF Grep -- at the end of a pipe
 fun_finder	-- greps to find function name in saved 
+gdoc	-- grep library documentaation; ~ lib [grep args]
 getawk	-- who's your "awk"
 ghfd	-- Grep History for Function Definitions
 gqrf	-- grep library documentaation; ~ lib [grep args]
@@ -416,13 +324,13 @@ popla	-- POPuLAtion of a numeric First Field
 printfirst	-- prints first occurrence of line of text
 program_init	-- former programlib_init
 programlib_ck	-- how to rebuild this list
+programlib_doc	-- this list
 programlib_qrf	-- this list
 qpfs	-- picks tokens from a function
 qrf_insert	-- add function QRFs, one-liners to LIB_qrf; ~ library [file|.z]
 repeated	-- ~ [n 2] => n..21
 run_test	-- wraps "doit"
 script_path	-- where is the source of this executable
-self_ref	-- CONSTRUCTOR: namea nameb ...  "namea" lists namea ... z
 setenv	-- ~ NAME Value,   just like the csh built-in
 subtract	-- set subtraction 2nd list from first with comm -23
 system	-- uname -s
@@ -457,8 +365,8 @@ getHref ()
 localhref () 
 { 
     comment TRACE localhref $# PWD $PWD;
-    grep 'a href="' *.html | sed '
-            s/:.*href="/ /;s/".*//
+    grep -i 'a href="' *.html | sed '
+            s/:.*[Hh][Rr][Ee][Ff]="/ /;s/".*//
         ' | egrep -v '(\#|:)' | field 2 | sort -u
 }
 lnfile () 
@@ -488,18 +396,12 @@ ghlibs ()
 }
 my_list () 
 { 
+    set -- ${1%lib};
     eval "${1}_list () { \${1:-echo} \$(functions $(which ${1}lib)); }"
 }
 pro_funs () 
 { 
-    functions ~/.profile;
-    functions ~/bin/.profile
-}
-program_init
-my_list () 
-{ 
-    set -- ${1%lib};
-    eval "${1}_list () { \${1:-echo} \$(functions $(which ${1}lib)); }"
+    functions ~/.profile ~/bin/.profile
 }
 program_funs () 
 { 
@@ -507,4 +409,26 @@ program_funs ()
     shell_list;
     smartf_list;
     program_list
+}
+collect_func () 
+{ 
+    indir ~/bin cgrepf ${1:-eval} '*lib' | grep '1 *()' | field 2 | sort -u
+}
+program_init 1>&2
+setOrGet () 
+{ 
+    ENV=$(UC $1);
+    eval "$1 () { [[ \$# -ge 1 ]] && { setenv $ENV \"\$1\"; }; echo \$$ENV; }"
+}
+fofg () 
+{ 
+    sed 's/:.*//' $* | sort -u
+}
+fun_text () 
+{ 
+    shell_foreach ftxt $(sfg ${1:-_init}) | sed 's/comment .*//' | wpl
+}
+fun_xs () 
+{ 
+    comm -13 <((sfg .; ls)|sort -u) <(fun_text ${1:-_init}|sort -u)
 }

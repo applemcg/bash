@@ -1,6 +1,6 @@
 addlist () 
 { 
-    comment addlist OBSOLESCENT in behalf of list_add
+    comment addlist OBSOLESCENT in behalf of list_add;
     list_add $*
 }
 cpfmto () 
@@ -106,7 +106,7 @@ mktext ()
 }
 mk_ln () 
 { 
-    set -- $(shell_basename $1) ${2:-$(shell_dirname $1)};
+    set -- $(basename $1) ${2:-$(dirname $1)};
     comment TRACE mk_ln FILE $1 DIR $2;
     exists $2/$1 || doit ln $1 $2
 }
@@ -216,13 +216,6 @@ qim ()
 { 
     qia man/man${2:-1} $1
 }
-qi_root () 
-{ 
-    [[ $# -ge 1 ]] && { 
-        setenv QI_ROOT "$1"
-    };
-    echo ${QI_ROOT:-$HOME}
-}
 needir () 
 { 
     [[ -d $1 ]] || mkdir -p $1;
@@ -230,9 +223,9 @@ needir ()
 }
 mmk_init () 
 { 
-    source programlib
-    . listlib
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0822 162300;
+    source programlib;
+    . listlib;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 221958;
     function qi_mk () 
     { 
         eval "qi${1} () { qia $2 \$1; }"
@@ -241,6 +234,8 @@ mmk_init ()
     qi_mk e etc;
     qi_mk t tmp;
     qi_mk d doc;
+    setOrGet qi_root;
+    qi_root $HOME
     comment qiX where X one of b,i,t,m,e,l,d file;
     comment to see a function, declare -f qiX;
     comment also mmk_qrf for a Quick Reference;
@@ -288,21 +283,6 @@ textfile	-- ~ file dir: adds file, dir destination to textfiles list
 EOF
 
 }
-shell_basename () 
-{ 
-    echo "${1##*/}"
-}
-shell_dirname () 
-{ 
-    case $1 in 
-        */*)
-            echo ${1%/*}
-        ;;
-        *)
-            echo .
-        ;;
-    esac
-}
 shell_stdout () 
 { 
     comment TRACE shell_stdout $# "$@";
@@ -336,4 +316,23 @@ qi_ball ()
     qi_bone ~/Dropbox/;
     qi_bone $HOME
 }
-mmk_init
+mmk_init 1>&2
+qi_bone () 
+{ 
+    qi_root $1;
+    foreach qib *lib;
+    touch .qi_bone
+}
+mk_one () 
+{ 
+    comment TRACE mk_one $# OUTPUT "$1", COMMAND "$2", ARGS "$3", ...;
+    mk_qst "$@" && { 
+        comment MK_QST has found $1 is UP TO DATE wrt $(shifted $*);
+        return
+    };
+    comment MK_QST has found work to UPDATE $1 with;
+    [[ -f "$1" ]] && chmod +w "$1";
+    comment TRACE shell_stdout $# $@;
+    shell_stdout "$@";
+    chmod -w "$1"
+}

@@ -160,13 +160,6 @@ fcon ()
         sed "s@^@$(dirname $f)/@" $f;
     done
 }
-ffun () 
-{ 
-    fbdy $* > .y;
-    vi .y;
-    . .y;
-    fbdy $(functions .y)
-}
 files () 
 { 
     find ${*:-.} -type f
@@ -332,7 +325,7 @@ lastftok ()
 }
 latestFn () 
 { 
-    grep -l ${1:-latestFn} $(T shell_dirname)/.20* | tail -1
+    grep -l ${1:-latestFn} $ETCLIB/.20* | tail -1
 }
 latestver () 
 { 
@@ -386,9 +379,9 @@ log2csv ()
 }
 lx () 
 { 
-    eval "l${1}() { ls -$1 \$*; }"
+    eval "l${1} () { ls -$1 \$*; }"
 }
-lx_init () 
+lx_use () 
 { 
     lx a;
     lx l;
@@ -459,12 +452,10 @@ new_bkup ()
 }
 new_init () 
 { 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 190435;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0906 103611;
     source programlib;
-    lx_init;
+    lx_set;
     mkuBin;
-    obsolescent toss_fnames tossFnames;
-    obsolescent mfx mvx;
     obsolescent does doit;
     obsolescent tags echo;
     reRoot HOME
@@ -501,10 +492,6 @@ newlib_loaded ()
 nhistory () 
 { 
     history | sed 's/^ *[0-9]* *//' | grep -v history
-}
-nhn () 
-{ 
-    sed 's/^ *[0-9]* *//' $*
 }
 nonf () 
 { 
@@ -806,7 +793,7 @@ vistab ()
 }
 sp2tab () 
 { 
-    sed 's/  */	/g' $*
+    sed 's/  */	/' $*
 }
 lastone () 
 { 
@@ -824,10 +811,6 @@ rdb_q ()
 home () 
 { 
     lc $HOME
-}
-pwd () 
-{ 
-    lc $PWD
 }
 envar () 
 { 
@@ -876,48 +859,6 @@ printed ()
 { 
     awk 'printed[$0]++ < 1' $*
 }
-remark () 
-{ 
-    comment TRACE remark $# FIRST "$1" ALL "$@";
-    echo "$1" | grep % > /dev/null && { 
-        fmt="$1\n";
-        shift;
-        printf "$fmt" "$@" 1>&2
-    } || { 
-        echo "$@" 1>&2
-    }
-}
-commands () 
-{ 
-    history | nhn | field ${1:-1} | sort | uniq -c | sort -n
-}
-sfun () 
-{ 
-    ignore declare -f $1 && { 
-        smartf_savef $1 | shell_append ~/git/bash-functions/bin/${2:-newlib}
-    }
-}
-systemID () 
-{ 
-    uname -s -r -p
-}
-gengroup () 
-{ 
-    echo *lib | awk '
-      {
-         for (i=1; i<NF; i++) {
-            for (j=i+1; j<=NF; j++) {
-               print  "echo === ", $i, $j
-               printf "group c2libs %s %s -12\n", $i, $j
-           };
-        };
-    }'
-}
-dup_functions () 
-{ 
-    gengroup > .sh;
-    . .sh | awk '$1 ~ /===/ { a=$2; b=$3; next; }; { print $1, a, b }'
-}
 sfun () 
 { 
     remark TRACE $# sfun FUNCTION $1 arg $2;
@@ -941,3 +882,104 @@ sfun ()
         smartf_savef $1 | shell_append ~/git/bash-functions/bin/$2
     }
 }
+systemID () 
+{ 
+    uname -s -r -p
+}
+gengroup () 
+{ 
+    echo *lib | awk '
+      {
+         for (i=1; i<NF; i++) {
+            for (j=i+1; j<=NF; j++) {
+               print  "echo === ", $i, $j
+               printf "group c2libs %s %s -12\n", $i, $j
+           };
+        };
+    }'
+}
+dup_functions () 
+{ 
+    gengroup > .sh;
+    . .sh | awk '$1 ~ /===/ { a=$2; b=$3; next; }; { print $1, a, b }'
+}
+q_movie () 
+{ 
+    while [[ -f $2 ]]; do
+        sdiff -s $1 $2 | more;
+        shift;
+        read a;
+    done
+}
+table () 
+{ 
+    set -- table;
+    [[ -f $1 ]] || set -- $1.rdb;
+    touch $1;
+    ${EDIT:-emacs} $1;
+    rdput $1
+}
+sps2tab () 
+{ 
+    sed 's/  */	/g' $*
+}
+killServer () 
+{ 
+    set -- $(ps | grep "node $(NODE_SERVER)" 2>/dev/null | grep -v grep);
+    kill -9 $1
+}
+startServer () 
+{ 
+    set -- ${1:-index}.js;
+    [[ -f $1 ]] || { 
+        comment ERROR no server $1;
+        return 1
+    };
+    killServer;
+    smartf NODE_SERVER $1;
+    NODE_SERVER node
+}
+lx_set () 
+{ 
+    lx a;
+    lx l;
+    lx lrt
+}
+ftxt () 
+{ 
+    fbdy $1 | awk ' NR > 3 { print save }; {save = $0}'
+}
+my_list () 
+{ 
+    set -- ${1%lib};
+    eval "${1}_list () { \${1:-echo} \$(functions $(which ${1}lib)); }"
+}
+needir () 
+{ 
+    [[ -d $1 ]] || mkdir -p $1;
+    echo $1
+}
+list_add () 
+{ 
+    list $* > /dev/null
+}
+lib_src () 
+{ 
+    sfg _init | sed 's/_init/lib/'
+}
+dowhf () 
+{ 
+    echo $1 $(whf $1)
+}
+in_pairs () 
+{ 
+    cmd=$1;
+    shift;
+    unset g;
+    for f in $*;
+    do
+        [[ -n $g ]] && $cmd $f $g;
+        g=$f;
+    done
+}
+new_init 1>&2

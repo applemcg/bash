@@ -2,7 +2,7 @@ bkup_appinit ()
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0819 093412;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/dropbox/bin 2013_0904 094909;
     shell_testarg isdirectory d;
     shell_testarg exists e;
     bkup_help
@@ -10,7 +10,7 @@ bkup_appinit ()
 bkup_help () 
 { 
     comment -- bkup function list --;
-    functions ~/bin/bkuplib 1>&2;
+    functions ~/Dropbox/bin/bkuplib 1>&2;
     comment -- usage:;
     comment bkup file ...
 }
@@ -19,18 +19,11 @@ bkup ()
     comment TRACE bkup $*;
     function dirof () 
     { 
-        case $1 in 
-            */*)
-                shell_dirname $1
-            ;;
-            *)
-                shell_dirname ./$1
-            ;;
-        esac
+        dirname $1
     };
     function backup () 
     { 
-        shell_indir $(dirof $1) recursebkup false .bak $(shell_basename $1)
+        shell_indir $(dirof $1) recursebkup false .bak $(basename $1)
     };
     function sameas () 
     { 
@@ -46,6 +39,19 @@ bkup ()
         $1 && domove $3 $2;
         $1 || thisbk ./$3 $2/$3
     };
+    function domove () 
+    { 
+        comment $PWD;
+        doit mv -f $*
+    };
+    function docopy () 
+    { 
+        doit cp -f $*
+    };
+    shell_foreach backup ${*:-$(bflist)}
+}
+thisbk () 
+{ 
     function epoch () 
     { 
         comment TRACE epoch FILE $1;
@@ -55,9 +61,9 @@ bkup ()
     { 
         function sameTime_usage () 
         { 
-            comment USAGE sameTime: file $1 toTouch $2 $3
+            comment USAGE sameTime file $1 toTouch $2 "$3"
         };
-        comment TRACE sameTime file $1 toTouch $2;
+        comment TRACE i$# sameTime FILE $1 TOTOUCH $2;
         [[ $# -lt 2 ]] && { 
             sameTime_usage .. .. "args < 2, =$#";
             return
@@ -101,27 +107,15 @@ bkup ()
                 ;;
             esac
         };
-        comment TRACE mkbkup;
+        comment TRACE $# mkbkup FROM $1
         sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S;')=" $1
     };
-    function thisbk () 
-    { 
-        mkbkup $1 > $2;
-        sameTime $1 $2;
-        docopy $2 $1;
-        sameTime $2 $1;
-        chmod -w $2
-    };
-    function domove () 
-    { 
-        comment $PWD;
-        doit mv -f $*
-    };
-    function docopy () 
-    { 
-        doit cp -f $*
-    };
-    shell_foreach backup ${*:-$(bflist)}
+    comment TRACE thisbk $# FROM $1 TO $2
+    mkbkup $1 > $2;
+    sameTime $1 $2;
+    doit cp -f $2 $1;
+    sameTime $2 $1;
+    chmod -w $2
 }
 bkfiles () 
 { 
@@ -130,9 +124,8 @@ bkfiles ()
 }
 bkup_init () 
 { 
-    . shelllib 2> /dev/null;
-    comment TRACE bkub_init;
-    . smartflib 2> /dev/null;
+    source shelllib 2> /dev/null;
+    source smartflib 2> /dev/null;
     bkup_appinit
 }
 unbkfile () 
@@ -167,8 +160,8 @@ bkup_timestamp ()
 { 
     grep 'comment bkup:' ${*:-*lib} /dev/null | sed 's/:.*bin//; s/;//' | awk '{ print $2, $3, $1 }'
 }
-bkup_init
 bkup_deep () 
 { 
     find .bak | awk -F/ '{ print NF }' | sort | uniq -c
 }
+bkup_init 1>&2

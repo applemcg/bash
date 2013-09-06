@@ -1,11 +1,11 @@
-
 qvs_init () 
-{
-    source smartfli;
+{ 
+    source smartflib;
     source bkuplib;
-    source mmklib;  comment for qi_lncp
-    source cmdlib; 
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 191907;
+    source mmklib;
+    comment for qi_lncp;
+    source cmdlib;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0904 104800;
 }
 qvs_help () 
 { 
@@ -67,19 +67,19 @@ qvs_to ()
 }
 qvs_rwd () 
 { 
-    remark TRACE $# qvs_rwd $* PWD $PWD VER_BASE $VER_BASE
-    echo ${PWD#${VER_BASE:-$HOME}}
+    remark TRACE $# qvs_rwd $* PWD $PWD VER_BASE $VER_BASE;
+    echo ${PWD#$(qvs_root)}
 }
-qvs_locn () 
-{     
-    remark TRACE $# qvs_locn $* VER_HOME $VER_HOME
-    echo ${VER_HOME:-$HOME}
+qvs_root () 
+{ 
+    remark TRACE $# qvs_root $* VER_HOME $VER_HOME;
+    lc ${VER_HOME:-$HOME}
 }
 _mkVername () 
 { 
-    remark TRACE $# _mkVername $* PWD $PWD
-    [[ -d $(qvs_locn)/$1 ]] && { 
-        echo Ver
+    remark TRACE $# _mkVername $* PWD $PWD;
+    [[ -d $(qvs_root)/$1 ]] && { 
+        echo Ver;
         exit 3
     };
     echo $1
@@ -96,7 +96,7 @@ qvs ()
 }
 qvs_list () 
 { 
-    remark TRACE $# qvs_list $* PWD $PWD
+    remark TRACE $# qvs_list $* PWD $PWD;
     shell_indir .bak shell_onlyfiles
 }
 qvs_second () 
@@ -120,10 +120,12 @@ qver ()
     set -- ${1:-last};
     case $1 in 
         last)
-            ls -t $(qvs_locn) | sed 1q
-        ;;        names)
-            ls -t $(qvs_locn) | grep -v '^2[0-9][0-9]*$'
-        ;;        named)
+            ls -t $(qvs_root) | sed 1q
+        ;;
+        names)
+            ls -t $(qvs_root) | grep -v '^2[0-9][0-9]*$'
+        ;;
+        named)
             qver names | sed 1q
         ;;
         *)
@@ -133,7 +135,7 @@ qver ()
 }
 qvs_directory () 
 { 
-    echo $(qvs_locn)/$(${1:-lastVer})
+    echo $(qvs_root)/$(${1:-lastVer})
 }
 qvs_man () 
 { 
@@ -143,7 +145,7 @@ qvs_clog ()
 { 
     cat  <<EOF
 
-2012_0211, Sat, Feb 11   changed default qvs_locn to YYYY_MMDD_HHMMSS format, adding _s
+2012_0211, Sat, Feb 11   changed default qvs_root to YYYY_MMDD_HHMMSS format, adding _s
 2013_0820, Tue, Aug 20	 adopting LIB_cmmd co
 
 EOF
@@ -151,15 +153,15 @@ EOF
 }
 qws_latestdir () 
 { 
-    function qvs_onedir  () 
+    function qvs_onedir () 
     { 
         echo $1/$(ls -t $1 | sed 1q)
-    }
+    };
     shell_foreach qvs_onedir $(find $* -type d -name .ver)
 }
 qvs_need () 
 { 
-    remark TRACE $# qvs_need $* PWD $PWD
+    remark TRACE $# qvs_need $* PWD $PWD;
     set -- $(ls -t .ver);
     find . -newer .ver/$1 -type f
 }
@@ -212,11 +214,8 @@ qvs_do ()
             [[ -f $f ]] && echo $f;
         done
     };
-    _doqvs_at $(qvs_locn)/$(qvs_rwd)/.ver/$(qvs_second)
+    _doqvs_at $(qvs_root)/$(qvs_rwd)/.ver/$(qvs_second)
 }
-
-qvs_init
-
 qvs_qrf () 
 { 
     functions $(which qvslib)
@@ -225,4 +224,22 @@ bflist ()
 { 
     comment OBSOLESCENT bflist in behalf of qvs_list;
     qvs_list $@
+}
+qvs_init 1>&2
+qvs_setbase () 
+{ 
+    remark TRACE $# qvs_setbase $* PWD $PWD;
+    pwd=$(lc $PWD);
+    path=${PATH//:/ };
+    for p in $(lc ${path//\/bin/}) $SYSTEM_DEPENDENT_USER_HOME;
+    do
+        comment p $p;
+        case ${pwd} in 
+            $p/*)
+                smartf_is VER_BASE $p;
+                qvs_getbase;
+                return
+            ;;
+        esac;
+    done
 }

@@ -1,23 +1,26 @@
-/usr/bin/awk
 awklib_doc () 
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 190434;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/dropbox/bin 2013_0904 094909;
     cat  <<EOF
-whch    
 
-    whch is necessary, because of the various ways people have implemented "which"!
- some put an error message on standard out, some dont return a failure if not found.
- whch works uniformly on these known enviroments:
+whch    
+====
+
+  whch is necessary, because of the various ways people have implemented
+  "which"!  some put an error message on standard out, some dont return
+  a failure if not found.  whch works uniformly on these known
+  environments:
 
        cygwin, solaris, os_x
 
 shlibtools 
+==========
 
-     For shell libraries, shlibtools discovers the names of SOURCE files
-  printing the name of the sourcING file and the SOURCEd file
-  on the standard output.
+  For shell libraries, shlibtools discovers the names of SOURCE files
+  printing the name of the sourcING file and the SOURCEd file on the
+  standard output.
 
     \$ shlibtools \*lib
 EOF
@@ -63,7 +66,7 @@ unsourced ()
     shlibtools *lib | sed 's/;//' | grep -v '$[12]' | field 2 | sort -u > .sourced;
     ls *lib | comm -23 - .sourced
 }
-awklib_init () 
+awk_init () 
 { 
     source programlib 2> /dev/null;
     awkapp_init
@@ -77,35 +80,6 @@ awkapp_init ()
     comment and \$AWK=$AWK;
     awklib_doc 1>&2
 }
-awklib_init
-awklib_doc () 
-{ 
-    comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
-    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: appleton.home./Users/applemcg/git/bash-functions/bin 2013_0821 190434;
-    cat  <<EOF
-
-whch    
-====
-
-  whch is necessary, because of the various ways people have implemented
-  "which"!  some put an error message on standard out, some dont return
-  a failure if not found.  whch works uniformly on these known
-  environments:
-
-       cygwin, solaris, os_x
-
-shlibtools 
-==========
-
-  For shell libraries, shlibtools discovers the names of SOURCE files
-  printing the name of the sourcING file and the SOURCEd file on the
-  standard output.
-
-    \$ shlibtools \*lib
-EOF
-
-}
 same_dev () 
 { 
     eval $(stat -s $1);
@@ -114,19 +88,4 @@ same_dev ()
     two=$st_dev;
     [[ $one -eq $two ]]
 }
-same_dev () 
-{ 
-    eval $(stat -s $1);
-    one=$st_dev;
-    eval $(stat -s $2);
-    two=$st_dev;
-    [[ $one -eq $two ]]
-}
-same_dev () 
-{ 
-    eval $(stat -s $1);
-    one=$st_dev;
-    eval $(stat -s $2);
-    two=$st_dev;
-    [[ $one -eq $two ]]
-}
+awk_init 1>&2
