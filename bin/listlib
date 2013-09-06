@@ -1,6 +1,6 @@
 list_init () 
 { 
-    echo "Copyright (C) 2013, JYATL - Just Yet Another Testing Lab"
+    echo "Copyright (C) 2013, JYATL - Just Yet Another Testing Lab";
     list_traceon;
     list_help
 }
@@ -45,10 +45,10 @@ list_lists ()
 list_delete () 
 { 
     list_trace list_delete NAME $1;
-    [[ $# -gt 1 ]] && {
-        echo WARNING you may mean list_remove $*
+    [[ $# -gt 1 ]] && { 
+        echo WARNING you may mean list_remove $*;
         return 3
-    }
+    };
     l=l_$1;
     shift;
     set | grep ^$l= > /dev/null && unset $l
@@ -66,10 +66,10 @@ list_remove ()
         rm=" $2 ";
         echo ${ol/$rm/ }
     };
-    [[ $# -lt 2 ]] && {
-        echo WARNING you may mean list_delete $1
+    [[ $# -lt 2 ]] && { 
+        echo WARNING you may mean list_delete $1;
         return 2
-    }
+    };
     l=l_$1;
     shift;
     set | grep ^$l= > /dev/null || { 
@@ -93,7 +93,7 @@ list_show ()
             list_lists
         ;;
         *)
-            list $1
+            list_is $1 > /dev/null && list $1
         ;;
     esac
 }
@@ -103,8 +103,8 @@ list_qrf ()
 }
 list_help () 
 { 
-    list_qrf
-    echo "hint: list_lists, _traceon, _traceoff"
+    list_qrf;
+    echo "hint: list_lists, _traceon, _traceoff";
     echo "and Deletes the LIST, Removes the list ITEM"
 }
 list_test () 
@@ -116,11 +116,11 @@ list_test ()
         $*;
         echo
     };
-    function list_testClean ()
-    {
+    function list_testClean () 
+    { 
         l_do list_delete foo;
-    	l_do list_delete the;
-    	l_do list_delete lists
+        l_do list_delete the;
+        l_do list_delete lists
     };
     list_testClean;
     l_do list_lists;
@@ -133,6 +133,17 @@ list_test ()
     l_do list_add the another list;
     l_do list_lists;
     l_do list_remove foo the;
+    l_do list_show   foo;
+    l_do list_show   gum;
+    l_do list_lists;
     list_testClean
 }
-list_init 1>&2
+list_is () 
+{ 
+    list_trace list_is NAME $1;
+    env | list_raw $1
+}
+list_raw () 
+{ 
+    grep "^l_$1="
+}
