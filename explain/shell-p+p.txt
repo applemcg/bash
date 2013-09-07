@@ -1,0 +1,256 @@
+
+## Shell thoughts
+
+A longer title is _Shell principles and practice_. Let's see if we can
+separate the two dimensions.  I'm in  the midst of evolving a practice
+of shell functions, their fabrication and use.  I've a sense there are
+some principles behind the practice.  Now seems to be the time to sort
+these  out.   In the  practice,  I  see  the  need for  standards  and
+convetions.  They seem to arise, not by my invention, but discovery.
+
+It's this sense  which suggests there are principals  here.  So, let's
+first list the practice, or the standards driving the practice.
+
+### Shell library practice
+
+  [shprac]: https://github.com/applemcg/bash-functions  "Bash Functions"
+  [shbang]: http://en.wikipedia.org/wiki/Shebang_(Unix) "Wikipedia Sh-bang"
+  [cronjb]: http://en.wikipedia.org/wiki/Cron           "Unix Cron utility"
+
+As I currently practice the shell library, what I've been willing to
+expose is on [github] [shprac]. 
+
+The shell library practice is built to foster the notion that 
+
+> the shell script is an over-worked notion: **Functions Rule**
+
+Most shell programming  today is built on the idea  of a small script,
+usually   beginning   with   the   unnecessary   [sh-bang] [shbang] :
+`#!/usr/bin/bash` or  similar shell:  sh, ksh,  ...  Since  most shell
+_scripters_ are running  their script from a terminal  shell, there is
+little need to  re-declare the need for your favorite  shell.  The two
+places where  the sh-bang makes sense  are the [cron job] [cronjb] or
+the system program.  The system program is one widely used in business
+or administrative systmes which runs as if it were a binary, or compiled
+program. 
+
+On my Mac OS X, here's a summary count of the 388 scripts in
+`/usr/bin`:
+
+     17 #!/System ... /Python
+      7 #!/System ... /ruby
+      1 #!/bin/bash
+      7 #!/bin/ksh
+     70 #!/bin/sh
+      2 #!/usr/bin/env perl
+    202 #!/usr/bin/perl
+      2 #!/usr/bin/php
+      7 #!/usr/bin/python
+      2 #!/usr/bin/ruby
+     25 #!/usr/sbin/dtrace
+
+Only 78 are a shell of one  form or another.  **perl** is the dominant
+user  of the  sh-bang,  and that  is  as it  should  be.  The  special
+arrangement the shell makes with the operating system is "if a program
+has execute permissions, and is not a  binary, then run it as a shell,
+_unless_ you tell me otherwise".  So the P family at least: perl, php,
+and python need to announce their executable program.
+
+While I  don't have any cron  jobs running on this  machine right now,
+you  can test  if there  are any  on yours:  `crontab -l`  (that's the
+letter l).  If  you're not familiar with the crontab,  all you need to
+know in  this context  is the  entries define  jobs to  be run  on the
+clock.  Crontab  specifies when to run  a job, by day  of week, month,
+and  time of  day and  has  the entry  to  start the  job.  Since  the
+operating environment  is now controlled  by the machinery, and  not a
+user sitting at a terminal, all  aspects must be buttoned down.  Since
+the  shell  is a  conventient  means  for starting  programs,  crontab
+entries  are  often shell  scripts,  and  for security,  they  usually
+contain a sh-bang as above.  I've  worked in an environment where many
+cron jobs, as  they are often called,  were based on Tcl  and Java. We
+had a script for each of these language environments: e.g. *CronJava*
+   
+#### Shell function library
+
+A shell  library is composed of  a number of related  functions.  They
+are related as a collection of  tasks focused on a job.  The functions
+may  be used  by  a programer  at  the command  line,  in other  shell
+functions, or in actual shell scripts.   Here is the summary count of
+funcitons in my current list of libraries:
+
+       3  gitlib 
+       3  templatelib 
+       4  notefmtlib 
+       5  infolib 
+       5  scatterlib 
+       6  bldapplib 
+       6  maillib 
+       7  testlib 
+       9  cmdlib 
+       9  movielib 
+       9  setpathlib 
+      10  awklib 
+      10  smartflib 
+      11  tasklib 
+      12  baklib 
+      12  dirlib 
+      13  bkuplib 
+      13  grouplib 
+      14  hfunlib 
+      15  listlib 
+      21  makelib 
+      24  mklib 
+      25  shelllib 
+      26  qvslib 
+      43  mmklib 
+      63  programlib 
+     182  newlib 
+
+*tasklib* with 11  functions is the median. In this  list, *newlib* is
+the dumping ground  for newly created funcitons.   But, that's another
+story.
+
+Function  libraries  are  activated,  or  brougnt  into  your  current
+terminal command  environment, with the simple  shell `source` command
+somtimes abbreviated to the dot (.).  I usually bring a number in, not
+in my  user's `.profile`, but in  a file `.myrc`.  Here's  the current
+list:
+
+     source listlib 2>/dev/null
+     source shellib 2>/dev/null
+     source programlib 2>/dev/null
+     quietly source cmdlib
+     quietly source mmklib
+
+The  first  few  direct  any  error  messages  (on  *stderr*)  to  the
+bit-bucket.  The `quietly` function, defined in *programlib*, does the
+same job.  Sending the stderr to  the bit-bucket is the  first visible
+instance  of one  of  the  standards in  practice.   Let's list  those
+standards, then examine them.
+
+#### Shell library standards
+
+A shell library:
+
+* is in a __bin__ directory, e.g. __$HOME/bin__,
+
+* it's name ends with lib, e.g. _name_`lib`
+
+* must have only one execuable, initialization statement,
+  _name_`_init` invoking that function, which:
+
+    * may not produce anything on *stdout*
+    * should source its dependent libaries
+
+* is compoesed of brief functions.
+
+* has NO syntactic comments.  (More on this scandal later).
+
+* should name its member functions _name_*_thing*, where the list
+  of *thing*s already includes:
+    * init -- initialization
+    * help -- a help message, may include
+    * qrf  -- a Quick ReFerence
+    * doc  -- more descriptive documentation
+    * list -- produces a list of all funcitons, shoud agree with qrf
+    * uses -- a list of `source`d libaries
+
+
+
+To explore these practices:
+
+* choosing a `bin` directory is based historical precendent. See the
+  principles
+
+* the idea of a library name ending  in `lib` is based on the evolving
+  notion that some  libs may become `app`s, which rely  on no external
+  resources.   A process  of collecting  dependent functions  into the
+  library,  and calling  it  an `app`  recognizes  some libraries  are
+  already close to  full-featured applications, and if they  are to be
+  widely used,  are unlikly to  find much  favor with either  too many
+  built-in  dependenciesm  or  be  accompanied  by  a  wide  swath  of
+  un-needed functionality.
+
+* one executable  statement, e.g. _name_`_init` forces  you to control
+  your interfaces, up  front.  One of the principles  I've used before
+  the shell became  my major outlet was that of  minimizing the use of
+  variables and  temporary files.  I see  too much of this  in other's
+  practice and  see it as  the source of  too many troubles.   While I
+  still struggle with questions like "where is that function defined?"
+  and "who really uses the functions in this library?",  confining the
+  initialization, and dependencies to a single function focuses those
+  searches at the outset.
+
+    * producing no *stdout* doesn't say you cannot produce *stderr*. In
+      fact, I have functions to edit and assemble libraries into a 
+      *canonical* form which enforce this practice
+
+    * `source`ing the dependent libraries in the initialization offers
+      the possibility  of avoiding reloading  a library either  in the
+      history  of the  current shell  or through  un-planned recursive
+      descent.    Mandating   an   initialization  function   with   a
+      conventional  name enbables  a test  to see  if the  library has
+      already been loaded.
+
+* brief funcitons:
+
+    * make it easy to validate arguments
+    * "               contain side-effects
+    * promote relying on semantics, and
+    * hinding syntactic noise.
+
+* avoiding syntactic comments -- in the shell `# ...` -- is strongly
+  hinted at by the `declare` builtin.  Which doesn't mean you can't
+  comment your code, you just have to get creative.  The two simple
+  ways impose a burden at run-time. are to send the comment to the
+  bit-bucket.
+  
+     ` cat << EOF > /dev/null`
+
+     `  ... a block comment `
+
+     ` EOF`
+
+  or
+
+     ` echo a single line comment 1>&2`
+ 
+  is worthy of it's own function, which i call `comment`.  Used as
+  `declare -f` function,  it strips comments in the function.  Since
+  initialization happens within the _name_`_init` function, that's
+  the place to collect library-wide comments of the form above. 
+
+  The canonical way to gather one function extends to the whole library
+  if you can list the functions in the library:
+
+     `fbdy $(functions library)`
+
+  is part of my routine practice.  This necessarily omits any comments 
+  not included in a function.  So, _name_`_doc`, for example, should be
+  sufficient to quell any potential scandal from a no-comment policy.
+
+### Shell principles
+
+1. syntax is ugly
+2. semantics means something
+3. temporary files should be avoided if possible
+4. variables, with global scope, introduce side-effects, and 
+   are to be avoided 
+5.  cycles  are  reducing  run-times   to  less  than  the  efficiency
+   discussion wastes
+6. favor programming practice, in particular, close factoring
+7. clear separation of function, process vs input/output
+
+### Trade-offs
+
+Since this is an engineering practice, there must be trade-offs to 
+consider, evaluate, and come to some judement on.
+
+* use  of syntax,  how  cumbersome, flashy,  obtuse  offset by  common
+  usage, clarity
+
+* brevity of command offset by profusion of vocabulary
+
+* sub-expressions as process consumer vs re-use and needed syntax
+
+* 

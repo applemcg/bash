@@ -5,15 +5,16 @@ source-able file of bash shell functions with a few regular
 properties:
 
 * the filename ends in ...lib
+
 * no comments in the library (see "supporting functions" below)
 
 * the only executable statement in the library is
 
-      ...lib_init
+     ...lib_init
 
 * reconstruction of the library is done by:
 
-     $ ( declare -f $(functions {lib}); echo {lib}_init ) > new{lib}
+    (declare -f $(functions {lib}); echo {lib}_init) > new{lib}
 
 * the _init function does any "source"ing of other libs
 
@@ -35,3 +36,6 @@ properties:
 * what is the exposure of the embedded function outside
   it's enclosing function?
 
+### other reading
+
+ see the papers in the **explain** directory
