@@ -1,141 +1,12 @@
-addlist () 
+comment () 
 { 
-    comment addlist OBSOLESCENT in behalf of list_add;
-    list_add $*
+    echo $* 1>&2
 }
 cpfmto () 
 { 
     doit rm -f $2;
     doit cp $1 $2;
     doit chmod ${3:--w} $2
-}
-domode () 
-{ 
-    doit chmod ${2:-\-w} $1
-}
-exists () 
-{ 
-    [[ -e $1 ]]
-}
-defun () 
-{ 
-    eval "$1() { $2; }"
-}
-foreach1 () 
-{ 
-    _f=_local$RANDOM;
-    defun $_f "$1";
-    shift;
-    for i in "$@";
-    do
-        $_f $i;
-    done;
-    unset $_f
-}
-primarysource () 
-{ 
-    defun $1 "addlist ${2} \"\$1\""
-}
-textfile () 
-{ 
-    [[ $# -eq 2 ]] && addlist text "$(echo $@)" || comment ERROR: textfile src dest
-}
-deploytextfiles () 
-{ 
-    set -- $@;
-    while [[ -n "$2" ]]; do
-        cpfmto $1 $2 0444;
-        shift 2;
-    done
-}
-bitmeld () 
-{ 
-    function dmd () 
-    { 
-        [ -d $1 ] || doit mkdir -p $1
-    };
-    for i in bin include tmp man etc lib doc;
-    do
-        dmd ${1:-$HOME}/$i;
-    done;
-    doit smartf_is BITMELD ${1:-$HOME}
-}
-mkhelp () 
-{ 
-    comment 'mk [ all | exec | bin | text | man | etc | lib | doc | help ]'
-}
-mk_all () 
-{ 
-    foreach mk_each $*
-}
-mkit () 
-{ 
-    [[ -n $(eval echo "\$_${1}files") ]] && doit mk${1}
-}
-mkall () 
-{ 
-    foreach mkit "exec bin text man etc lib doc"
-}
-mkexec () 
-{ 
-    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/bin 0555" $_execfiles
-}
-mkbin () 
-{ 
-    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/bin" $_binfiles
-}
-mketc () 
-{ 
-    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/etc" $_etcfiles
-}
-mklib () 
-{ 
-    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/lib" $_libfiles
-}
-mkdoc () 
-{ 
-    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/doc" $_docfiles
-}
-mkman () 
-{ 
-    foreach1 "doit cpfmto \$1 ${BITMELD:-$HOME}/man/man1" $_manfiles
-}
-mktext () 
-{ 
-    deploytextfiles $_textfiles
-}
-mk_ln () 
-{ 
-    set -- $(basename $1) ${2:-$(dirname $1)};
-    comment TRACE mk_ln FILE $1 DIR $2;
-    exists $2/$1 || doit ln $1 $2
-}
-mk_qst () 
-{ 
-    comment TRACE mk_qst $# "$@";
-    o="$1";
-    shift;
-    c="$1";
-    shift;
-    newest "$o" "$@"
-}
-mk_one () 
-{ 
-    comment TRACE mk_one $# OUTPUT "$1", COMMAND "$2", args "$3", ...;
-    mk_qst "$@" || { 
-        [[ -f "$1" ]] && chmod +w "$1";
-        shell_stdout "$@";
-        chmod -w "$1"
-    }
-}
-mk_frm () 
-{ 
-    comment TRACE mk_frm $# OUTPUT "$1", COMMAND "$2", args "$3", ...;
-    mk_qst "$@" || { 
-        shift;
-        doit "$@"
-    };
-    quietly comment 'o=$1; shift; c=$1; shift; newest $o $@ || doit $c $*;'
 }
 mk_each () 
 { 
@@ -149,6 +20,21 @@ mk_each ()
         ;;
     esac
 }
+mk_frm () 
+{ 
+    comment TRACE mk_frm $# OUTPUT "$1", COMMAND "$2", args "$3", ...;
+    mk_qst "$@" || { 
+        shift;
+        doit "$@"
+    };
+    quietly comment 'o=$1; shift; c=$1; shift; newest $o $@ || doit $c $*;'
+}
+mk_ln () 
+{ 
+    set -- $(basename $1) ${2:-$(dirname $1)};
+    comment TRACE mk_ln FILE $1 DIR $2;
+    exists $2/$1 || doit ln $1 $2
+}
 mk_me () 
 { 
     comment TRACE mk_me $# CMD "$1" COLLECT "$@";
@@ -160,66 +46,27 @@ mk_me ()
         doit $cmd $(shifted $*) > $1 2> ${2%.*}.err
     }
 }
-newest () 
+mk_one () 
 { 
-    target="$1";
-    shift;
-    comment TRACE newest $# TARGET "$target" DEPENDENT "$@";
-    [[ -f "$target" ]] || { 
-        comment NEWEST with NO $target;
-        return 1
+    comment TRACE mk_one $# OUTPUT "$1", COMMAND "$2", ARGS "$3", ...;
+    mk_qst "$@" && { 
+        comment MK_QST has found $1 is UP TO DATE wrt $(shifted $*);
+        return
     };
-    while [[ -n "$1" ]]; do
-        [[ "$target" -ot "$1" ]] && { 
-            comment NEWEST with $1 NEWER than $target;
-            return 1
-        };
-        shift;
-    done;
-    comment NEWEST with $target as NEWEST argument;
-    return 0
+    comment MK_QST has found work to UPDATE $1 with;
+    [[ -f "$1" ]] && chmod +w "$1";
+    comment TRACE shell_stdout $# $@;
+    shell_stdout "$@";
+    chmod -w "$1"
 }
-qi () 
+mk_qst () 
 { 
-    comment OBSOLESCENT use qib $1;
-    rm -f ~/bin/$1;
-    chmod 755 $1;
-    ln $1 ~/bin
-}
-comment () 
-{ 
-    echo $* 1>&2
-}
-qi_lncp () 
-{ 
-    comment TRACE qi_lncp $# FILE $1 DIR $2;
-    eval $(same_dev $1 $2 && echo ln || echo cp) $1 $2
-}
-qia () 
-{ 
-    set -- $(qi_root)/$1 $2;
-    [[ $PWD == $1 ]] && return;
-    rm -f $(needir $1)/$2;
-    chmod -w $2;
-    qi_lncp $2 $1
-}
-qib () 
-{ 
-    qia bin $1;
-    chmod +x $1
-}
-qil () 
-{ 
-    qia lib/$2 $1
-}
-qim () 
-{ 
-    qia man/man${2:-1} $1
-}
-needir () 
-{ 
-    [[ -d $1 ]] || mkdir -p $1;
-    echo $1
+    comment TRACE mk_qst $# "$@";
+    o="$1";
+    shift;
+    c="$1";
+    shift;
+    newest "$o" "$@"
 }
 mmk_init () 
 { 
@@ -235,7 +82,7 @@ mmk_init ()
     qi_mk t tmp;
     qi_mk d doc;
     setOrGet qi_root;
-    qi_root $HOME
+    qi_root $HOME;
     comment qiX where X one of b,i,t,m,e,l,d file;
     comment to see a function, declare -f qiX;
     comment also mmk_qrf for a Quick Reference;
@@ -283,6 +130,83 @@ textfile	-- ~ file dir: adds file, dir destination to textfiles list
 EOF
 
 }
+needir () 
+{ 
+    [[ -d $1 ]] || mkdir -p $1;
+    echo $1
+}
+newest () 
+{ 
+    comment TRACE newest $# TARGET "$1" DEPENDENT "$@";
+    target="$1";
+    shift;
+    [[ -f "$target" ]] || { 
+        comment NEWEST with NO $target;
+        return 1
+    };
+    while [[ -n "$1" ]]; do
+        [[ "$target" -ot "$1" ]] && { 
+            comment NEWEST with $1 NEWER than $target;
+            return 1
+        };
+        shift;
+    done;
+    comment NEWEST with $target as NEWEST argument;
+    return 0
+}
+qi () 
+{ 
+    comment OBSOLESCENT use qib $1;
+    rm -f ~/bin/$1;
+    chmod 755 $1;
+    ln $1 ~/bin
+}
+qi_ball () 
+{ 
+    qi_bone /Volumes/MIT_130716/;
+    qi_bone ~/Dropbox/;
+    qi_bone $HOME
+}
+qi_bone () 
+{ 
+    qi_root $1;
+    foreach qib *lib;
+    touch .qi_bone
+}
+qi_lncp () 
+{ 
+    comment TRACE qi_lncp $# FILE $1 DIR $2;
+    eval $(same_dev $1 $2 && echo ln || echo cp) $1 $2
+}
+qia () 
+{ 
+    set -- $(qi_root)/$1 $2;
+    [[ $PWD == $1 ]] && return;
+    rm -f $(needir $1)/$2;
+    chmod -w $2;
+    qi_lncp $2 $1
+}
+qib () 
+{ 
+    qia bin $1;
+    chmod +x $1
+}
+qil () 
+{ 
+    qia lib/$2 $1
+}
+qim () 
+{ 
+    qia man/man${2:-1} $1
+}
+same_dev () 
+{ 
+    eval $(stat -s $1);
+    one=$st_dev;
+    eval $(stat -s $2);
+    two=$st_dev;
+    [[ $one -eq $two ]]
+}
 shell_stdout () 
 { 
     comment TRACE shell_stdout $# "$@";
@@ -297,42 +221,4 @@ smartf_is ()
     };
     eval echo \$_smartf_is_$1
 }
-same_dev () 
-{ 
-    eval $(stat -s $1);
-    one=$st_dev;
-    eval $(stat -s $2);
-    two=$st_dev;
-    [[ $one -eq $two ]]
-}
-qi_bone () 
-{ 
-    qi_root $1;
-    foreach qib *lib
-}
-qi_ball () 
-{ 
-    qi_bone /Volumes/MIT_130716/;
-    qi_bone ~/Dropbox/;
-    qi_bone $HOME
-}
 mmk_init 1>&2
-qi_bone () 
-{ 
-    qi_root $1;
-    foreach qib *lib;
-    touch .qi_bone
-}
-mk_one () 
-{ 
-    comment TRACE mk_one $# OUTPUT "$1", COMMAND "$2", ARGS "$3", ...;
-    mk_qst "$@" && { 
-        comment MK_QST has found $1 is UP TO DATE wrt $(shifted $*);
-        return
-    };
-    comment MK_QST has found work to UPDATE $1 with;
-    [[ -f "$1" ]] && chmod +w "$1";
-    comment TRACE shell_stdout $# $@;
-    shell_stdout "$@";
-    chmod -w "$1"
-}
