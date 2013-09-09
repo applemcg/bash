@@ -33,6 +33,7 @@ git ()
             /to be committed/ {ready++}; 
             #            { print "debug: ", ready, $0 }
             ready && ($2 ~ /^modified:$/) { print $3 }
+            ready && ($2 ~ /^deleted:$/) { print $3 }
             ready && ($3 ~ /^file:$/)     { print $4 }
            '
         ;;
