@@ -10,7 +10,7 @@ bkup_appinit ()
 bkup_help () 
 { 
     comment -- bkup function list --;
-    functions ~/Dropbox/bin/bkuplib 1>&2;
+    functions ~/Dropbox/git/bash-functions/bin/bkuplib 1>&2;
     comment -- usage:;
     comment bkup file ...
 }

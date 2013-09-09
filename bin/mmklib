@@ -88,42 +88,28 @@ mmk_init ()
 mmk_qrf () 
 { 
     cat  <<EOF
-addlist	-- ~ list member: adds member to list
-bitmeld	-- creates smart BITMELD directory at first argument, defaulting to HOME
 comment	-- args: puts args on standard error
 cpfmto	-- destrucively copies 1st to 2nd, mode of 3rd, default "-w"
-defun	-- ~ function body
-deploytextfiles	-- copies files to text destinations, with mode 444
-domode	-- ~ file [mode [-w]]
-exists	-- ~ file  RETURNS true for existing file argument
-foreach1	-- "commands: ..." arg ... EXECUTES quoted commands on each arg
-mk_all	-- shorthadn for "foreach mk_each $*"
+mk_all	-- shorthadn for "foreach mk_each "
 mk_each	-- ~ fun, executes  "mk_fun" 
 mk_frm	-- ~ TARGET Cmd Depends: like mk_one. TARGET implicitly created
 mk_ln	-- ~ file [dir [basename file]]: links local file to nonexistent dir/file
 mk_me	-- ~ cmd target depends ... redundant to mk_one?  test...
 mk_one	-- TARGET Cmd Depends ...: runs Cmd on Depends Stdout TARGET
 mk_qst	-- return truth of newest TARGET Cmd Depends
-mkall	-- historical, prefer equivalent QIx
 mkbin	--  historical, prefer qib
 mkdoc	--  historical, prefer qid
 mketc	--  historical, prefer qie
-mkexec	--  copies executable files to BITMELD/bin at mode 555
-mkhelp	-- help message
-mkit	-- engine for mkall
 mklib	--  historical, prefer qil
 mkman	--  historical, prefer qim
-mktext	-- deployes textfiles
 needir	-- creates missing directory, returns Name
 newest	-- heart of MK algo,   thx to Dan Franklin, BBN, 1984
-primarysource	-- ~ file list: adds file to list for mkall
 qi	-- obsolescent QIB
-mmk_init	-- Master Make INITialzation, from qilib, mfg QI [edit]
+mmk_init	-- Master Make INITialzationd, mfg QI [edit]
 qia	-- Quick Install Any. tool for QIx using  links
 qib	-- QI Bin
 qil	-- QI Lib
 qim	-- QI Man
-textfile	-- ~ file dir: adds file, dir destination to textfiles list
 EOF
 
 }
@@ -158,18 +144,6 @@ qi ()
     chmod 755 $1;
     ln $1 ~/bin
 }
-qi_ball () 
-{ 
-    qi_bone /Volumes/MIT_130716/;
-    qi_bone ~/Dropbox/;
-    qi_bone $HOME
-}
-qi_bone () 
-{ 
-    qi_root $1;
-    foreach qib *lib;
-    touch .qi_bone
-}
 qi_lncp () 
 { 
     comment TRACE qi_lncp $# FILE $1 DIR $2;
@@ -197,18 +171,4 @@ same_dev ()
     eval $(stat -s $2);
     two=$st_dev;
     [[ $one -eq $two ]]
-}
-shell_stdout () 
-{ 
-    comment TRACE shell_stdout $# "$@";
-    o="$1";
-    shift;
-    "$@" > "$o"
-}
-smartf_is () 
-{ 
-    [[ $# -gt 1 ]] && { 
-        eval _smartf_is_$1="$2"
-    };
-    eval echo \$_smartf_is_$1
 }
