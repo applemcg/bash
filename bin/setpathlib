@@ -47,14 +47,8 @@ pathlib ()
         ;;
     esac
 }
-set_path () 
-{ 
-    pathlib set $1 | tr '\012' ':'
-}
-whipath () 
-{ 
-    pathlib which $*
-}
+set_path	() { pathlib set $1 | tr '\012' ':'; }
+whipath	() { pathlib which $*; }
 require () 
 { 
     tool=$1;
@@ -66,19 +60,13 @@ require ()
     [[ "$1" == $bin/$tool ]] && return;
     setpath $bin
 }
-setpath_doc () 
-{ 
-    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0902 075934;
-}
+setpath_doc	() { comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0902 075934; }
 setpath_init () 
 { 
     : ${INCLUDE_PATH:=$(set_path include)};
     comment setpath_doc
 }
-paths () 
-{ 
-    eval echo \$${1:-PATH} | sed 's/::/:.:/' | tr : '\012'
-}
+paths	() { eval echo \$${1:-PATH} | sed 's/::/:.:/' | tr : '\012'; }
 bitmeld () 
 { 
     pushd ${1:-.} > /dev/null;

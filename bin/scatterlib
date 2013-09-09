@@ -49,17 +49,14 @@ scatter_page ()
     source pmkdnlib;
     mkd_page scatter
 }
-scatterlib_init () 
+scatter_init () 
 { 
     source programlib 2> /dev/null;
     comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0902 004210;
     comment "Copyright (C) 2005-2013, JYATL, Just Yet Another Testing Lab";
     comment $(functions scatterlib | grep man)
 }
-antoken () 
-{ 
-    sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$' | tee ontoken.txt
-}
+antoken	() { sed 's/[^a-zA-Z0-9_]/ /g' | wpl | grep -v '^ *$' | tee ontoken.txt; }
 scatter () 
 { 
     cat ${*:--} | antoken | awk '

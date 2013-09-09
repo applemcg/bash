@@ -47,14 +47,8 @@ dir_init ()
     source testlib 2> /dev/null;
     comment $(dirlib_list)
 }
-dirlib_list () 
-{ 
-    ${1:-echo} cleandirlist depthd dirlib_doc dirlib_init dirlib_list dupd nipd nthdir peekd rotd swapd tuckd
-}
-dupd () 
-{ 
-    pushd .
-}
+dirlib_list	() { ${1:-echo} cleandirlist depthd dirlib_doc dirlib_init dirlib_list dupd nipd nthdir peekd rotd swapd tuckd; }
+dupd	() { pushd .; }
 dirlib_doc () 
 { 
     cat  <<EOF

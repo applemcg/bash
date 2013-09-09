@@ -104,10 +104,7 @@ group ()
     shift;
     $group_qcmd "$@"
 }
-group_c2libs () 
-{ 
-    comm $3 <(functions $1 | sort) <(functions $2|sort)
-}
+group_c2libs	() { comm $3 <(functions $1 | sort) <(functions $2|sort); }
 dup_functions () 
 { 
     gengroup > .sh;

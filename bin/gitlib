@@ -1,7 +1,4 @@
-git_appinit () 
-{ 
-    git help 1>&2
-}
+git_appinit	() { git help 1>&2; }
 git_init () 
 { 
     comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 222215;
