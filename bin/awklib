@@ -26,10 +26,7 @@ shlibtools
 EOF
 
 }
-shlibtools_doc () 
-{ 
-    awklib_doc 1>&2
-}
+shlibtools_doc	() { awklib_doc 1>&2; }
 whch () 
 { 
     set -- $(which $1 2>&1);
@@ -46,14 +43,8 @@ whch ()
         ;;
     esac
 }
-getAwk () 
-{ 
-    whch gawk || whch nawk || whch awk
-}
-shlibtools () 
-{ 
-    $AWK '$1 ~ /^source$/ { print FILENAME, $2 }' $(onlyfiles $*)
-}
+getAwk	() { whch gawk || whch nawk || whch awk; }
+shlibtools	() { $AWK '$1 ~ /^source$/ { print FILENAME, $2 }' $(onlyfiles $*); }
 onlyfiles () 
 { 
     for arg in ${*:-*};

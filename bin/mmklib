@@ -212,4 +212,3 @@ smartf_is ()
     };
     eval echo \$_smartf_is_$1
 }
-mmk_init 1>&2
