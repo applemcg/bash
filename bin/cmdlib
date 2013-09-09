@@ -1,15 +1,6 @@
-ff () 
-{ 
-    fbdy $(functions $*)
-}
-fsfg () 
-{ 
-    doit fbdy $(sfg $*)
-}
-topsuf () 
-{ 
-    ls *.* | grep -v '[~#]$' | sed 's/.*\.//' | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2}'
-}
+ff	() { fbdy $(functions $*); }
+fsfg	() { doit fbdy $(sfg $*); }
+topsuf	() { ls *.* | grep -v '[~#]$' | sed 's/.*\.//' | sort | uniq -c | sort -rn | awk 'NR == 1 { print $2}'; }
 pdl () 
 { 
     peekd;
@@ -21,10 +12,7 @@ cmd_init ()
     source programlib 2> /dev/null;
     comment ff, fsfg topsuf pdl
 }
-hotlib () 
-{ 
-    gh 'lib$' | field 'NF' | sort | uniq -c | sort -n
-}
+hotlib	() { gh 'lib$' | field 'NF' | sort | uniq -c | sort -n; }
 ffun () 
 { 
     fbdy $* > .y;
@@ -32,10 +20,7 @@ ffun ()
     . ./.y;
     fbdy $(functions .y)
 }
-jsdirs () 
-{ 
-    find . -name '*js' | sed 's/\/[^\/]*$//' | sort -u
-}
+jsdirs	() { find . -name '*js' | sed 's/\/[^\/]*$//' | sort -u; }
 remark () 
 { 
     comment TRACE remark $# FIRST "$1" ALL "$@";

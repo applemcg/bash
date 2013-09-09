@@ -2,44 +2,17 @@ copyrightNotice ()
 { 
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
-    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 221958;
+    comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 221958
 }
-collect_eval () 
-{ 
-    collect_func
-}
-dodate () 
-{ 
-    date "+$1: %$1"
-}
-ff () 
-{ 
-    fbdy $(functions $*)
-}
-field () 
-{ 
-    awk "{ print \$$1 }"
-}
-fmdos () 
-{ 
-    cat ${*:--} | tr -d '\015'
-}
-fname () 
-{ 
-    isfunction $1 && echo $1
-}
-getawk () 
-{ 
-    wh gawk || wh nawk || wh awk
-}
-gzfiles () 
-{ 
-    file ${*:-*.gz} | grep 'gzip compressed' | sed 's/:.*//'
-}
-iso_ymd () 
-{ 
-    date +%F
-}
+collect_eval	() { collect_func; }
+dodate	() { date "+$1: %$1"; }
+ff	() { fbdy $(functions $*); }
+field	() { awk "{ print \$$1 }"; }
+fmdos	() { cat ${*:--} | tr -d '\015'; }
+fname	() { isfunction $1 && echo $1; }
+getawk	() { wh gawk || wh nawk || wh awk; }
+gzfiles	() { file ${*:-*.gz} | grep 'gzip compressed' | sed 's/:.*//'; }
+iso_ymd	() { date +%F; }
 lc () 
 { 
     [ $# -gt 0 ] && { 
@@ -58,10 +31,7 @@ libfunctions ()
     functions $*;
     comment obsolescent in behalf of canonlib
 }
-loadedlibs () 
-{ 
-    sfg _init | sed 's/_init//'
-}
+loadedlibs	() { sfg _init | sed 's/_init//'; }
 lookat () 
 { 
     o=${1%txt}html;
@@ -73,10 +43,7 @@ mac2unix ()
     cat ${*:--} | tr '\r' '\n';
     echo
 }
-nava () 
-{ 
-    eval echo $1 \$$1
-}
+nava	() { eval echo $1 \$$1; }
 newest () 
 { 
     comment TRACE newest $# TARGET "$1" DEPENDENT "$@";
@@ -96,22 +63,10 @@ newest ()
     comment NEWEST with $target as NEWEST argument;
     return 0
 }
-nonUnderscore () 
-{ 
-    grep -v _ $* /dev/null
-}
-obsolescent () 
-{ 
-    eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"
-}
-popla () 
-{ 
-    sort -n | field 1 | uniq -c
-}
-printfirst () 
-{ 
-    awk 'printed [$1]++ < 1' $*
-}
+nonUnderscore	() { grep -v _ $* /dev/null; }
+obsolescent	() { eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"; }
+popla	() { sort -n | field 1 | uniq -c; }
+printfirst	() { awk 'printed [$1]++ < 1' $*; }
 programlib_ck () 
 { 
     function prodoclist () 
@@ -140,14 +95,8 @@ programlib_ck ()
     };
     functions ~/bin/programlib | sort | pglibck ${*:-2} | sort
 }
-programlib_doc () 
-{ 
-    programlib_qrf
-}
-qpfs () 
-{ 
-    fbdy $* | grep -vE '(\(\)|^[{}]) *$' | wpl | sort -u
-}
+programlib_doc	() { programlib_qrf; }
+qpfs	() { fbdy $* | grep -vE '(\(\)|^[{}]) *$' | wpl | sort -u; }
 repeated () 
 { 
     count=${2:-2};
@@ -158,10 +107,7 @@ repeated ()
     done;
     echo $result
 }
-run_test () 
-{ 
-    doit $*
-}
+run_test	() { doit $*; }
 script_path () 
 { 
     function _scrpath_zero () 
@@ -181,42 +127,15 @@ setenv ()
     eval $1=\"$2\";
     export $1
 }
-subtract () 
-{ 
-    cat ${2:--} | sort -u | comm -23 $1 -
-}
-system () 
-{ 
-    uname -s
-}
-today () 
-{ 
-    date +%Y%m%d
-}
-tolower () 
-{ 
-    tr '[A-Z]' '[a-z]'
-}
-toupper () 
-{ 
-    tr '[a-z]' '[A-Z]'
-}
-uc () 
-{ 
-    tr a-z A-Z
-}
-wh () 
-{ 
-    which $1
-}
-wpl () 
-{ 
-    cat ${*:--} | tr -cs 'A-Za-z0-9_' '\n'
-}
-fun_finder () 
-{ 
-    grep -i $* $ETCLIB/.20*
-}
+subtract	() { cat ${2:--} | sort -u | comm -23 $1 -; }
+system	() { uname -s; }
+today	() { date +%Y%m%d; }
+tolower	() { tr '[A-Z]' '[a-z]'; }
+toupper	() { tr '[a-z]' '[A-Z]'; }
+uc	() { tr a-z A-Z; }
+wh	() { which $1; }
+wpl	() { cat ${*:--} | tr -cs 'A-Za-z0-9_' '\n'; }
+fun_finder	() { grep -i $* $ETCLIB/.20*; }
 program_init () 
 { 
     source listlib;
@@ -228,46 +147,31 @@ program_init ()
     obsolescent piped pipe;
     obsolescent is_a_function isfunction;
     setenv AWK $(getawk);
-    my_list program;
+    my_list program
 }
-latestFileIn () 
-{ 
-    find ${1:-git} -mtime -1 -type f | xargs ls -t | sed 1q
-}
-fofg () 
-{ 
-    sed 's/:.*//' $* /dev/null | sort -u
-}
+latestFileIn	() { find ${1:-git} -mtime -1 -type f | xargs ls -t | sed 1q; }
+fofg	() { sed 's/:.*//' $* | sort -u; }
 obstolib () 
 { 
     comment TRACE obstolib $# LIB $1 FUNCT $2 optional $3;
     set -- $1 $2 ${3:-${1}_$2};
     eval "$2 () { comment OBSOLESCENT $2 in behalf of $3; $3 \$@; }"
 }
-cgrepf () 
-{ 
-    grepf $* | awk -v gfor=$1 '$0 ~ /\(\) *$/ { save=$1; next }; {printf "%s\t%-15s\t%s\n",  gfor, save , $0}'
-}
+cgrepf	() { grepf $* | awk -v gfor=$1 '$0 ~ /\(\) *$/ { save=$1; next }; {printf "%s\t%-15s\t%s\n",  gfor, save , $0}'; }
 grepf () 
 { 
     p="$1";
     shift;
     cat ${*:--} | egrep "(^[a-zA-Z_][a-zA-Z0-9_]* *\(\) *$|$p)"
 }
-c2b () 
-{ 
-    comm -3 <( fs ~/bin/$1) <( fs $1)
-}
+c2b	() { comm -3 <( fs ~/bin/$1) <( fs $1); }
 gdoc () 
 { 
     doc=${1%lib}lib_doc;
     shift;
     $doc | grep ${*:-eval}
 }
-ghfd () 
-{ 
-    gh '()' | awk '$3 ~ /\(\)/ { print $2 }' | printfirst
-}
+ghfd	() { gh '()' | awk '$3 ~ /\(\)/ { print $2 }' | printfirst; }
 qrf_insert () 
 { 
     set -- ${1%_qrf} ${2:-.z};
@@ -390,19 +294,13 @@ ifdiff ()
     doit mv $1 $2;
     return 0
 }
-ghlibs () 
-{ 
-    gh append | grep 'lib$' | field NF | printfirst
-}
+ghlibs	() { gh append | grep 'lib$' | field NF | printfirst; }
 my_list () 
 { 
     set -- ${1%lib};
     eval "${1}_list () { \${1:-echo} \$(functions $(which ${1}lib)); }"
 }
-pro_funs () 
-{ 
-    functions ~/.profile ~/bin/.profile
-}
+pro_funs	() { functions ~/.profile ~/bin/.profile; }
 program_funs () 
 { 
     pro_funs;
@@ -410,25 +308,13 @@ program_funs ()
     smartf_list;
     program_list
 }
-collect_func () 
-{ 
-    indir ~/bin cgrepf ${1:-eval} '*lib' | grep '1 *()' | field 2 | sort -u
-}
-program_init 1>&2
+collect_func	() { indir ~/bin cgrepf ${1:-eval} '*lib' | grep '1 *()' | field 2 | sort -u; }
 setOrGet () 
 { 
     ENV=$(UC $1);
     eval "$1 () { [[ \$# -ge 1 ]] && { setenv $ENV \"\$1\"; }; echo \$$ENV; }"
 }
-fofg () 
-{ 
-    sed 's/:.*//' $* | sort -u
-}
-fun_text () 
-{ 
-    shell_foreach ftxt $(sfg ${1:-_init}) | sed 's/comment .*//' | wpl
-}
-fun_xs () 
-{ 
-    comm -13 <((sfg .; ls)|sort -u) <(fun_text ${1:-_init}|sort -u)
-}
+fun_text	() { shell_foreach ftxt $(sfg ${1:-_init}) | sed 's/comment .*//' | wpl; }
+fun_xs	() { comm -13 <((sfg .; ls)|sort -u) <(fun_text ${1:-_init}|sort -u); }
+fnx	() { printf "%s\t() { %s; }\n" $1 "$(ftxt $1| sed 's/^ *//')"; }
+program_init 1>&2

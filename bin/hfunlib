@@ -8,10 +8,7 @@ hfun ()
     shift;
     $hfun_qcmd "$@"
 }
-hfun_body () 
-{ 
-    hfun_newbody | functions
-}
+hfun_body	() { hfun_newbody | functions; }
 hfun_doc () 
 { 
     cat  <<EOF
@@ -32,14 +29,8 @@ as you write them on the command line.
 EOF
 
 }
-hfun_list () 
-{ 
-    gh '()' | nhn | field 1 | printfirst
-}
-hfun_newbody () 
-{ 
-    fbdy $(hfun_list | sort)
-}
+hfun_list	() { gh '()' | nhn | field 1 | printfirst; }
+hfun_newbody	() { fbdy $(hfun_list | sort); }
 hfun_init () 
 { 
     source programlib;
@@ -48,31 +39,16 @@ hfun_init ()
     smartf hfun_home $HOME/Dropbox/git/bash-functions;
     comment set your function library HOME with "smartf hfun_home  /full/path/to/git/lib"
 }
-nhn () 
-{ 
-    sed 's/^ *[0-9]* *//' $*
-}
-hfun_check () 
-{ 
-    comm -3 <(hfun_gone $*) <($*)
-}
-hfun_dups () 
-{ 
-    grep $1 .dup_functions | field 1
-}
-hfun_gone () 
-{ 
-    comm -3 <(functions $2|sort) <(functions $2|fgrep -vf <($1 $2)| sort)
-}
+nhn	() { sed 's/^ *[0-9]* *//' $*; }
+hfun_check	() { comm -3 <(hfun_gone $*) <($*); }
+hfun_dups	() { grep $1 .dup_functions | field 1; }
+hfun_gone	() { comm -3 <(functions $2|sort) <(functions $2|fgrep -vf <($1 $2)| sort); }
 hfun_do () 
 { 
     comment USAGE hfun_do \[-nn\] as in comm;
     hfun_body | sort | comm $* - <( hfun_list | sort)
 }
-hfun_qrf () 
-{ 
-    functions $(which hfunlib)
-}
+hfun_qrf	() { functions $(which hfunlib); }
 hfun_save () 
 { 
     remark TRACE $# hfun_save FUNCTION $1 arg $2;
@@ -96,8 +72,5 @@ hfun_save ()
         smartf_savef $1 | shell_append $(hfun_home)/bin/$2
     }
 }
-hfun_cmmds () 
-{ 
-    history | nhn | field ${1:-1} | sort | uniq -c | sort -n
-}
+hfun_cmmds	() { history | nhn | field ${1:-1} | sort | uniq -c | sort -n; }
 hfun_init 1>&2
