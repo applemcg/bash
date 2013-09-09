@@ -155,7 +155,7 @@ shell_qrf	() { functions $(which shelllib); }
 shell_obs () 
 { 
     ignore pushd ~/Dropbox/git/bash-functions/bin;
-    comm -13 <(functions programlib cmdlib newlib|sort) <(functions shelllib | egrep -v '(shell|test|_init|_qrf)$' | sed 's/^shell_//' | sort);
+    comm -13 <(functions programlib cmdlib |sort) <(functions shelllib | egrep -v '(shell|test|_init|_qrf)$' | sed 's/^shell_//' | sort);
     ignore popd
 }
 shell_init 1>&2

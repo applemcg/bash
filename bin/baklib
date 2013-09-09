@@ -7,7 +7,7 @@ bak_appinit ()
 }
 bak_init () 
 { 
-    source bkuplib 2> /dev/null;
+    source shelllib 2> /dev/null;
     bak_appinit;
     ignore fbdy thisbk || { 
         comment ERROR no function thisbk;
@@ -133,4 +133,71 @@ bak_files ()
             find $dir -name "*$1"
         ;;
     esac
+}
+thisbk () 
+{ 
+    function epoch () 
+    { 
+        comment TRACE epoch FILE $1;
+        [[ -f $1 ]] && perl -e "\$m=(stat(\"$1\"))[9]; print \$m"
+    };
+    function sameTime () 
+    { 
+        function sameTime_usage () 
+        { 
+            comment USAGE sameTime file $1 toTouch $2 "$3"
+        };
+        comment TRACE i$# sameTime FILE $1 TOTOUCH $2;
+        [[ $# -lt 2 ]] && { 
+            sameTime_usage .. .. "args < 2, =$#";
+            return
+        };
+        existingfile $1 || { 
+            sameTime_usage $1 $2 "$1 NOT a file";
+            return
+        };
+        existingfile $2 || { 
+            sameTime_usage $1 $2 "$2 NOT a file";
+            return
+        };
+        touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
+    };
+    function mkbkup () 
+    { 
+        function commentType () 
+        { 
+            comment TRACE commentType type $1;
+            case $1 in 
+                *.c)
+                    echo "/*"
+                ;;
+                *.h)
+                    echo "/*"
+                ;;
+                *.cpp)
+                    echo "//"
+                ;;
+                *.java)
+                    echo "//"
+                ;;
+                *lib)
+                    echo " *comment"
+                ;;
+                .*prof*)
+                    echo " *comment"
+                ;;
+                *)
+                    echo " *#"
+                ;;
+            esac
+        };
+        comment TRACE $# mkbkup FROM $1;
+        sed "s=\(^$(commentType $1) bkup:\).*=\1 $(uname -n).$PWD $(date '+%Y_%m%d %H%M%S;')=" $1
+    };
+    comment TRACE thisbk $# FROM $1 TO $2;
+    mkbkup $1 > $2;
+    sameTime $1 $2;
+    doit cp -f $2 $1;
+    sameTime $2 $1;
+    chmod -w $2
 }

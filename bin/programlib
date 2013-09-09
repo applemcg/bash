@@ -29,7 +29,6 @@ libfunc ()
 libfunctions () 
 { 
     functions $*;
-    comment obsolescent in behalf of canonlib
 }
 loadedlibs	() { sfg _init | sed 's/_init//'; }
 lookat () 
@@ -194,7 +193,6 @@ programlib_qrf ()
 { 
     cat  <<EOF
 cgrepf		-- pattern file ... finds functions with pattern in files
-cleanlib	-- to fixlib, uses canonlib
 collect_eval	-- USES cgrepf, belongs whf cgrepf
 defExe	-- ~ a b; echos "a", if found,  else "b"
 dodate	-- ~ {x} :  date +%x
