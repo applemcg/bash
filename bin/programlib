@@ -4,15 +4,148 @@ copyrightNotice ()
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
     comment bkup: Patricias-MacBook-Air.local./Users/applemcg/Dropbox/bin 2013_0903 221958
 }
+c2b	() { comm -3 <( fs ~/bin/$1) <( fs $1); }
+cgrepf	() { grepf $* | awk -v gfor=$1 '$0 ~ /\(\) *$/ { save=$1; next }; {printf "%s\t%-15s\t%s\n",  gfor, save , $0}'; }
 collect_eval	() { collect_func; }
+collect_func	() { indir ~/bin cgrepf ${1:-eval} '*lib' | grep '1 *()' | field 2 | sort -u; }
 dodate	() { date "+$1: %$1"; }
+fbdy	() { foreach fnb ${*:-fbdy}; }
 ff	() { fbdy $(functions $*); }
 field	() { awk "{ print \$$1 }"; }
+flines	() { expr $(declare -f $1|wc -l) - 3; }
 fmdos	() { cat ${*:--} | tr -d '\015'; }
 fname	() { isfunction $1 && echo $1; }
+fnb	() { [[ $(declare -f $1 | wc -l) -gt 4 ]] && declare -f $1 || fnx $1; }
+fnx	() { printf "%s\t() { %s; }\n" $1 "$(ftxt $1| sed 's/^ *//')"; }
+fofg	() { sed 's/:.*//' $* | sort -u; }
+ftxt	() { declare -f $1 | awk ' NR > 3 { print save }; {save = $0}'; }
+fun_finder	() { grep -i $* $ETCLIB/.20*; }
+fun_text	() { shell_foreach ftxt $(sfg ${1:-_init}) | sed 's/comment .*//' | wpl; }
+fun_xs	() { comm -13 <((sfg .; ls)|sort -u) <(fun_text ${1:-_init}|sort -u); }
 getawk	() { wh gawk || wh nawk || wh awk; }
+ghfd	() { gh '()' | awk '$3 ~ /\(\)/ { print $2 }' | printfirst; }
+ghlibs	() { gh append | grep 'lib$' | field NF | printfirst; }
 gzfiles	() { file ${*:-*.gz} | grep 'gzip compressed' | sed 's/:.*//'; }
+iUseU	() { comm $3 <(functions $2|sort) <(wpl $1|sort -u); }
+ignore	() { $@ > /dev/null; }
 iso_ymd	() { date +%F; }
+latestFileIn	() { find ${1:-git} -mtime -1 -type f | xargs ls -t | sed 1q; }
+libfunctions	() { functions $*; }
+loadedlibs	() { sfg _init | sed 's/_init//'; }
+nava	() { eval echo $1 \$$1; }
+nonUnderscore	() { grep -v _ $* /dev/null; }
+obsolescent	() { eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"; }
+popla	() { sort -n | field 1 | uniq -c; }
+printfirst	() { awk 'printed [$1]++ < 1' $*; }
+pro_funs	() { functions ~/.profile ~/bin/.profile; }
+programlib_doc	() { programlib_qrf; }
+qpfs	() { fbdy $* | grep -vE '(\(\)|^[{}]) *$' | wpl | sort -u; }
+quietly	() { $@ 2> /dev/null; }
+run_test	() { doit $*; }
+subtract	() { cat ${2:--} | sort -u | comm -23 $1 -; }
+system	() { uname -s; }
+today	() { date +%Y%m%d; }
+tolower	() { tr '[A-Z]' '[a-z]'; }
+toupper	() { tr '[a-z]' '[A-Z]'; }
+uc	() { tr a-z A-Z; }
+wh	() { which $1; }
+wpl	() { cat ${*:--} | tr -cs 'A-Za-z0-9_' '\n'; }
+getHref () 
+{ 
+    comment TRACE getHref $# DIR $1;
+    foreachi lnfile ${1:-..} $(localhref)
+}
+libfunc () 
+{ 
+    functions $*;
+    comment obsolescent in behalf of functions
+}
+mac2unix () 
+{ 
+    cat ${*:--} | tr '\r' '\n';
+    echo
+}
+my_list () 
+{ 
+    set -- ${1%lib};
+    eval "${1}_list () { \${1:-echo} \$(functions $(which ${1}lib)); }"
+}
+setOrGet () 
+{ 
+    ENV=$(UC $1);
+    eval "$1 () { [[ \$# -ge 1 ]] && { setenv $ENV \"\$1\"; }; echo \$$ENV; }"
+}
+setenv () 
+{ 
+    eval $1=\"$2\";
+    export $1
+}
+gdoc () 
+{ 
+    doc=${1%lib}lib_doc;
+    shift;
+    $doc | grep ${*:-eval}
+}
+grepf () 
+{ 
+    p="$1";
+    shift;
+    cat ${*:--} | egrep "(^[a-zA-Z_][a-zA-Z0-9_]* *\(\) *$|$p)"
+}
+lookat () 
+{ 
+    o=${1%txt}html;
+    pmkdn $1 > $o;
+    open $o
+}
+needfun () 
+{ 
+    ignore pushd ~/bin;
+    whf $1;
+    ignore popd
+}
+obstolib () 
+{ 
+    comment TRACE obstolib $# LIB $1 FUNCT $2 optional $3;
+    set -- $1 $2 ${3:-${1}_$2};
+    eval "$2 () { comment OBSOLESCENT $2 in behalf of $3; $3 \$@; }"
+}
+ffun () 
+{ 
+    fbdy $* > .y;
+    vi .y;
+    . ./.y;
+    fbdy $(functions .y)
+}
+localhref () 
+{ 
+    comment TRACE localhref $# PWD $PWD;
+    grep -i 'a href="' *.html | sed '
+            s/:.*[Hh][Rr][Ee][Ff]="/ /;s/".*//
+        ' | egrep -v '(\#|:)' | field 2 | sort -u
+}
+obdy () 
+{ 
+    for f in "$@";
+    do
+        [[ $(declare -f $f | wc -l) -gt 4 ]] && declare -f $f || fnx $f;
+    done
+}
+program_funs () 
+{ 
+    pro_funs;
+    shell_list;
+    smartf_list;
+    program_list
+}
+UC () 
+{ 
+    [ $# -gt 0 ] && { 
+        echo $* | tr a-z A-Z
+    } || { 
+        cat - | tr a-z A-Z
+    }
+}
 lc () 
 { 
     [ $# -gt 0 ] && { 
@@ -21,25 +154,91 @@ lc ()
         cat - | tr A-Z a-z
     }
 }
-libfunc () 
+foreach () 
 { 
-    functions $*;
-    comment obsolescent in behalf of functions
+    cmd=$1;
+    shift;
+    for arg in "$@";
+    do
+        $cmd $arg;
+    done
 }
-libfunctions	() { functions $*; }
-loadedlibs	() { sfg _init | sed 's/_init//'; }
-lookat () 
+ifdiff () 
 { 
-    o=${1%txt}html;
-    pmkdn $1 > $o;
-    open $o
+    comment TRACE ifdiff SOURCE $1 DESTINATION $2;
+    exists $1 || return;
+    exists $2 || cp /dev/null $2;
+    ignore diff $1 $2 && return 1;
+    doit mv $1 $2;
+    return 0
 }
-mac2unix () 
+repeated () 
 { 
-    cat ${*:--} | tr '\r' '\n';
-    echo
+    count=${2:-2};
+    result=;
+    while [ $count -gt 0 ]; do
+        result=$result$1;
+        let count-=1;
+    done;
+    echo $result
 }
-nava	() { eval echo $1 \$$1; }
+lnfile () 
+{ 
+    comment TRACE lnfile $# DIR $1 FILE $2;
+    comment linfile needs to defend against ../names in $2;
+    [[ -f $2 ]] && return;
+    g=$1/$2;
+    [[ -f $g ]] || { 
+        comment NO file $g to link to $f;
+        return
+    };
+    doit ln $g .
+}
+program_init () 
+{ 
+    source listlib;
+    source shelllib;
+    source smartflib;
+    copyrightNotice 1>&2;
+    obsolescent file_test testarg;
+    obsolescent fileTest testarg;
+    obsolescent piped pipe;
+    obsolescent is_a_function isfunction;
+    setenv AWK $(getawk);
+    my_list program
+}
+script_path () 
+{ 
+    function _scrpath_zero () 
+    { 
+        while ( [ -h "$1" ] ); do
+            set -- $(readlink "$1");
+        done;
+        pushd . > /dev/null;
+        cd $(dirname "$1");
+        pwd;
+        popd > /dev/null
+    };
+    _scrpath_zero ${BASH_SOURCE[0]}
+}
+qrf_insert () 
+{ 
+    set -- ${1%_qrf} ${2:-.z};
+    set -- ${1%lib}lib_qrf $2;
+    [[ -f $2 ]] || { 
+        comment NO insertion file $2;
+        return 2
+    };
+    declare -f $1 > /dev/null || { 
+        comment NO function $1;
+        return 1
+    };
+    comment TRACE qrf_insert $# LIB $1 INSERT $2;
+    echo "$1 () { cat <<EOF";
+    sort $2 <($1);
+    echo EOF;
+    echo "}"
+}
 newest () 
 { 
     comment TRACE newest $# TARGET "$1" DEPENDENT "$@";
@@ -59,10 +258,6 @@ newest ()
     comment NEWEST with $target as NEWEST argument;
     return 0
 }
-nonUnderscore	() { grep -v _ $* /dev/null; }
-obsolescent	() { eval "$1() { comment OBSOLESCENT in behalf of $2; $2 \$@; }"; }
-popla	() { sort -n | field 1 | uniq -c; }
-printfirst	() { awk 'printed [$1]++ < 1' $*; }
 programlib_ck () 
 { 
     function prodoclist () 
@@ -90,101 +285,6 @@ programlib_ck ()
         esac
     };
     functions ~/bin/programlib | sort | pglibck ${*:-2} | sort
-}
-programlib_doc	() { programlib_qrf; }
-qpfs	() { fbdy $* | grep -vE '(\(\)|^[{}]) *$' | wpl | sort -u; }
-repeated () 
-{ 
-    count=${2:-2};
-    result=;
-    while [ $count -gt 0 ]; do
-        result=$result$1;
-        let count-=1;
-    done;
-    echo $result
-}
-run_test	() { doit $*; }
-script_path () 
-{ 
-    function _scrpath_zero () 
-    { 
-        while ( [ -h "$1" ] ); do
-            set -- $(readlink "$1");
-        done;
-        pushd . > /dev/null;
-        cd $(dirname "$1");
-        pwd;
-        popd > /dev/null
-    };
-    _scrpath_zero ${BASH_SOURCE[0]}
-}
-setenv () 
-{ 
-    eval $1=\"$2\";
-    export $1
-}
-subtract	() { cat ${2:--} | sort -u | comm -23 $1 -; }
-system	() { uname -s; }
-today	() { date +%Y%m%d; }
-tolower	() { tr '[A-Z]' '[a-z]'; }
-toupper	() { tr '[a-z]' '[A-Z]'; }
-uc	() { tr a-z A-Z; }
-wh	() { which $1; }
-wpl	() { cat ${*:--} | tr -cs 'A-Za-z0-9_' '\n'; }
-fun_finder	() { grep -i $* $ETCLIB/.20*; }
-program_init () 
-{ 
-    source listlib;
-    source shelllib;
-    source smartflib;
-    copyrightNotice 1>&2;
-    obsolescent file_test testarg;
-    obsolescent fileTest testarg;
-    obsolescent piped pipe;
-    obsolescent is_a_function isfunction;
-    setenv AWK $(getawk);
-    my_list program
-}
-latestFileIn	() { find ${1:-git} -mtime -1 -type f | xargs ls -t | sed 1q; }
-fofg	() { sed 's/:.*//' $* | sort -u; }
-obstolib () 
-{ 
-    comment TRACE obstolib $# LIB $1 FUNCT $2 optional $3;
-    set -- $1 $2 ${3:-${1}_$2};
-    eval "$2 () { comment OBSOLESCENT $2 in behalf of $3; $3 \$@; }"
-}
-cgrepf	() { grepf $* | awk -v gfor=$1 '$0 ~ /\(\) *$/ { save=$1; next }; {printf "%s\t%-15s\t%s\n",  gfor, save , $0}'; }
-grepf () 
-{ 
-    p="$1";
-    shift;
-    cat ${*:--} | egrep "(^[a-zA-Z_][a-zA-Z0-9_]* *\(\) *$|$p)"
-}
-c2b	() { comm -3 <( fs ~/bin/$1) <( fs $1); }
-gdoc () 
-{ 
-    doc=${1%lib}lib_doc;
-    shift;
-    $doc | grep ${*:-eval}
-}
-ghfd	() { gh '()' | awk '$3 ~ /\(\)/ { print $2 }' | printfirst; }
-qrf_insert () 
-{ 
-    set -- ${1%_qrf} ${2:-.z};
-    set -- ${1%lib}lib_qrf $2;
-    [[ -f $2 ]] || { 
-        comment NO insertion file $2;
-        return 2
-    };
-    declare -f $1 > /dev/null || { 
-        comment NO function $1;
-        return 1
-    };
-    comment TRACE qrf_insert $# LIB $1 INSERT $2;
-    echo "$1 () { cat <<EOF";
-    sort $2 <($1);
-    echo EOF;
-    echo "}"
 }
 programlib_qrf () 
 { 
@@ -242,103 +342,3 @@ wpl	-- output a Word Per Line
 EOF
 
 }
-UC () 
-{ 
-    [ $# -gt 0 ] && { 
-        echo $* | tr a-z A-Z
-    } || { 
-        cat - | tr a-z A-Z
-    }
-}
-needfun () 
-{ 
-    ignore pushd ~/bin;
-    whf $1;
-    ignore popd
-}
-getHref () 
-{ 
-    comment TRACE getHref $# DIR $1;
-    foreachi lnfile ${1:-..} $(localhref)
-}
-localhref () 
-{ 
-    comment TRACE localhref $# PWD $PWD;
-    grep -i 'a href="' *.html | sed '
-            s/:.*[Hh][Rr][Ee][Ff]="/ /;s/".*//
-        ' | egrep -v '(\#|:)' | field 2 | sort -u
-}
-lnfile () 
-{ 
-    comment TRACE lnfile $# DIR $1 FILE $2;
-    comment linfile needs to defend against ../names in $2;
-    [[ -f $2 ]] && return;
-    g=$1/$2;
-    [[ -f $g ]] || { 
-        comment NO file $g to link to $f;
-        return
-    };
-    doit ln $g .
-}
-ifdiff () 
-{ 
-    comment TRACE ifdiff SOURCE $1 DESTINATION $2;
-    exists $1 || return;
-    exists $2 || cp /dev/null $2;
-    ignore diff $1 $2 && return 1;
-    doit mv $1 $2;
-    return 0
-}
-ghlibs	() { gh append | grep 'lib$' | field NF | printfirst; }
-my_list () 
-{ 
-    set -- ${1%lib};
-    eval "${1}_list () { \${1:-echo} \$(functions $(which ${1}lib)); }"
-}
-pro_funs	() { functions ~/.profile ~/bin/.profile; }
-program_funs () 
-{ 
-    pro_funs;
-    shell_list;
-    smartf_list;
-    program_list
-}
-collect_func	() { indir ~/bin cgrepf ${1:-eval} '*lib' | grep '1 *()' | field 2 | sort -u; }
-setOrGet () 
-{ 
-    ENV=$(UC $1);
-    eval "$1 () { [[ \$# -ge 1 ]] && { setenv $ENV \"\$1\"; }; echo \$$ENV; }"
-}
-fun_text	() { shell_foreach ftxt $(sfg ${1:-_init}) | sed 's/comment .*//' | wpl; }
-fun_xs	() { comm -13 <((sfg .; ls)|sort -u) <(fun_text ${1:-_init}|sort -u); }
-fnx	() { printf "%s\t() { %s; }\n" $1 "$(ftxt $1| sed 's/^ *//')"; }
-ffun () 
-{ 
-    fbdy $* > .y;
-    vi .y;
-    . ./.y;
-    fbdy $(functions .y)
-}
-fbdy	() { foreach fnb ${*:-fbdy}; }
-fnb	() { [[ $(declare -f $1 | wc -l) -gt 4 ]] && declare -f $1 || fnx $1; }
-iUseU	() { comm $3 <(functions $2|sort) <(wpl $1|sort -u); }
-ftxt	() { declare -f $1 | awk ' NR > 3 { print save }; {save = $0}'; }
-quietly	() { $@ 2> /dev/null; }
-ignore	() { $@ > /dev/null; }
-foreach () 
-{ 
-    cmd=$1;
-    shift;
-    for arg in "$@";
-    do
-        $cmd $arg;
-    done
-}
-obdy () 
-{ 
-    for f in "$@";
-    do
-        [[ $(declare -f $f | wc -l) -gt 4 ]] && declare -f $f || fnx $f;
-    done
-}
-program_init 1>&2
