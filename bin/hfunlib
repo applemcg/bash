@@ -73,4 +73,6 @@ hfun_save ()
     }
 }
 hfun_cmmds	() { history | nhn | field ${1:-1} | sort | uniq -c | sort -n; }
+th	() { history | tail -${1:-24}; }
+gh	() { history | grep -i $*; }
 hfun_init 1>&2

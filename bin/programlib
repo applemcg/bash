@@ -26,10 +26,7 @@ libfunc ()
     functions $*;
     comment obsolescent in behalf of functions
 }
-libfunctions () 
-{ 
-    functions $*;
-}
+libfunctions	() { functions $*; }
 loadedlibs	() { sfg _init | sed 's/_init//'; }
 lookat () 
 { 
@@ -315,4 +312,33 @@ setOrGet ()
 fun_text	() { shell_foreach ftxt $(sfg ${1:-_init}) | sed 's/comment .*//' | wpl; }
 fun_xs	() { comm -13 <((sfg .; ls)|sort -u) <(fun_text ${1:-_init}|sort -u); }
 fnx	() { printf "%s\t() { %s; }\n" $1 "$(ftxt $1| sed 's/^ *//')"; }
+ffun () 
+{ 
+    fbdy $* > .y;
+    vi .y;
+    . ./.y;
+    fbdy $(functions .y)
+}
+fbdy	() { foreach fnb ${*:-fbdy}; }
+fnb	() { [[ $(declare -f $1 | wc -l) -gt 4 ]] && declare -f $1 || fnx $1; }
+iUseU	() { comm $3 <(functions $2|sort) <(wpl $1|sort -u); }
+ftxt	() { declare -f $1 | awk ' NR > 3 { print save }; {save = $0}'; }
+quietly	() { $@ 2> /dev/null; }
+ignore	() { $@ > /dev/null; }
+foreach () 
+{ 
+    cmd=$1;
+    shift;
+    for arg in "$@";
+    do
+        $cmd $arg;
+    done
+}
+obdy () 
+{ 
+    for f in "$@";
+    do
+        [[ $(declare -f $f | wc -l) -gt 4 ]] && declare -f $f || fnx $f;
+    done
+}
 program_init 1>&2
