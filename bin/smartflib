@@ -65,3 +65,9 @@ EOF
 
 }
 smartf_init 1>&2
+smartf () 
+{ 
+    list_traceoff;
+    list smartf $1;
+    eval " $1 () { cmd=\${1:-echo}; shift; \$cmd $2 \$*; }"
+}

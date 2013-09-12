@@ -342,3 +342,4 @@ wpl	-- output a Word Per Line
 EOF
 
 }
+funclocn	() { echo $(paths|grep Dropbox|grep -v profile|sed 's/$/\/*lib/') ~/.profile ~/bin/.profile; }
