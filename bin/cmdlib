@@ -33,3 +33,12 @@ remark ()
     }
 }
 cmd_init 1>&2
+tasks () 
+{ 
+    pushd ~/Dropbox/lib/tasks;
+    $EDITOR tasks;
+    rdput tasks;
+    popd
+}
+rdb_editor	() { eval "$1 () { pushd $(needir ~/Dropbox/lib/$1); \$EDITOR $1; rdput $1; popd; }"; }
+rdb_data	() { eval zcat $(ftxt $1 | sed 's/.*pushd//; s/;//; 1q')/h.$1.Z; }

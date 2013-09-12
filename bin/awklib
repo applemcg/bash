@@ -3,10 +3,9 @@ awklib_doc ()
     comment "Copyright (C) 2005-2013, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu";
     comment bkup: Patricias-MacBook-Air.local./Users/applemcg/dropbox/bin 2013_0904 094909;
-    cat  <<EOF
+    cat  <<'EOF'
 
-whch    
-====
+### whch    
 
   whch is necessary, because of the various ways people have implemented
   "which"!  some put an error message on standard out, some dont return
@@ -15,14 +14,13 @@ whch
 
        cygwin, solaris, os_x
 
-shlibtools 
-==========
+### shlibtools 
 
   For shell libraries, shlibtools discovers the names of SOURCE files
   printing the name of the sourcING file and the SOURCEd file on the
   standard output.
 
-    \$ shlibtools \*lib
+    $ shlibtools *lib
 EOF
 
 }
@@ -67,7 +65,7 @@ awkapp_init ()
     is AWK $(getAwk);
     copyrightNotice;
     comment e.g. $ fbdy unsourced shlibtools;
-    shlibtools_doc 1>&2;
+    sh:libtools_doc 1>&2;
     comment and \$AWK=$AWK;
     awklib_doc 1>&2
 }
