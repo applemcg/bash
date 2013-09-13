@@ -4,24 +4,43 @@ list_init ()
     list_traceon;
     list_help
 }
+list_exists () 
+{
+    list_trace list_exists NAME $1
+    env | grep "^l_$1=" >/dev/null
+}
+list_add ()
+{
+    list_trace list_add NAME $1 ALL $*;
+    list_exists $1 || { list $*; return; }
+    l=l_$1; shift
+    eval $l=\"\$$l $*\"
+    eval echo \$$l
+}
 list () 
 { 
     list_trace list NAME $1 ALL $*;
-    [[ $1 == lists ]] && { 
-        list_lists;
-        return
-    };
     function list_def () 
     { 
-        list_trace list_def NAME $1;
-        export $1;
-        eval $1=
+        list_trace list_def ARGS $*
+	set -- l_$1
+        export $l
+        eval $l=
     };
     l=l_$1;
-    shift;
-    env | grep ^$l= > /dev/null || list_def $l;
-    eval ol=\$$l;
-    eval $l=\"$ol $*\";
+    list_trace list CASE $#.$1
+    case $#.$1 in
+    (0.*|1.lists)
+        list_lists; return;;
+    (1.*)
+        list_exists $1 || list_def $1; shift;;
+    (*)
+        list_def $1
+	shift
+	eval $l=\"$*\"
+    ;;
+    esac
+    list_trace list SHOWS $l
     eval echo \$$l
 }
 list_trace	() { eval echo TRACE $# $* $TRACE_OUT; }
@@ -43,9 +62,7 @@ list_delete ()
         echo WARNING you may mean list_remove $*;
         return 3
     };
-    l=l_$1;
-    shift;
-    env | grep ^$l= > /dev/null && unset $l
+    list_exists $1 && unset l_$1
 }
 list_remove () 
 { 
@@ -64,19 +81,17 @@ list_remove ()
         echo WARNING you may mean list_delete $1;
         return 2
     };
-    l=l_$1;
-    shift;
-    env | grep ^$l= > /dev/null || { 
+    list_exists $1  || { 
         echo WARNING no LIST $1 2> /dev/null;
         return 1
     };
+    l=l_$1;    shift;
     for i in $*;
     do
         eval $l=\"$(unlist $l $i)\";
     done;
     eval echo \$$l
 }
-list_add	() { list $*; }
 list_show () 
 { 
     case ${1:-lists} in 
@@ -84,7 +99,7 @@ list_show ()
             list_lists
         ;;
         *)
-            list_is $1 && list $1
+            list_exists $1 && list $1
         ;;
     esac
 }
@@ -112,8 +127,11 @@ list_test ()
     };
     list_testClean;
     l_do list_lists;
-    l_do list_add foo bar zot gum;
+    l_do list foo bar zot gum;
+    l_do list_show foo;
     l_do list_add foo one two then the last;
+    l_do list_show foo;
+    l_do list foo one two then the last;
     l_do list_show foo;
     l_do list_remove foo;
     l_do list_delete foo then;
@@ -125,14 +143,5 @@ list_test ()
     l_do list_show gum;
     l_do list_lists;
     list_testClean
-}
-list_is () 
-{ 
-    function list_raw () 
-    { 
-        grep "^l_$1="
-    };
-    list_trace list_is NAME $1;
-    env | list_raw $1 > /dev/null
 }
 list_init 1>&2

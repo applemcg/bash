@@ -1,0 +1,233 @@
+lock_copyright () 
+{ 
+    comment "# Copyright (C) 2013, JYATL - Just Yet Another Testing Lab";
+    comment bkup: new-host-4.home./Users/applemcg/dropbox/bin 2013_0912 195508;
+}
+lock_design () 
+{ 
+    cat  <<'EOF'
+
+## File synchronizing
+
+    A library providing synchronized file update between two
+non-networked file stores.
+
+### The problem
+
+    Since Dropbox allows  file-sharing across multiple machines, users
+may now readily update files on separate computers.  A user will still
+have a  few files which  are specific to  their account on  a machine.
+The problem arises  when you update a file on one  machine and want to
+share it  with another.   A simple example  is your  **.profile**.  It
+must exist on  your login account, which you may not  be able to store
+on Dropbox.  Or, you may not have access to a file sharing facility.
+
+    This  library syncronizes  pairs  of files  whose  updates may  be
+asynchronous: you may update a file  on one machine or another and you
+want to distribute the changes to the other, and not overwrite changes
+made on  the destination machine.  You  want the changes  to work both
+ways.   e.g.   not  all  files  on  machine A  are  newer  than  their
+equivalent on machine B, and vice versa.
+
+    If you do not have access to a network file-sharing then think of
+a portable file share, e.g. a USB device as the network medium.
+
+### The solution
+
+    Two files are synchronized in the presence of a third, or **lock**
+file.  The lock file (L) is touched, or time-stamped whenever the
+synchronizer updates either file A or file B, given the other has
+changed.
+
+    Given three files, A, B, and L, six states of modification time
+are possible.  Assuming these are sorted with the newer files first:
+
+    1. L A B 
+    2. L B A
+    3. A L B
+    4. B L A
+    5. A B L
+    6. B A L
+
+    In our problem, states 1 and 2 are identical, indicating the lock
+file is newer than either files A or B, and no action will be
+required.
+
+    States 5 and 6 are also identical, and indicate a failure or lack
+of use of the locking mechanism.  Both file A or B havae been updated
+manually, and the locking update wasn't performed in the sequence.
+These will require manual inspection and repair.
+
+   States 3 and 4 are the normal course of events. You have edited
+either file A or file B since the last locking syncronization, and the
+newer file needs to be copied to the older and the lock has to be
+touched.
+
+   Also, the lock needn't be another file, but an entry in a single
+log of locks.  It seems prudent to use the power of the file system
+and the easy access to the state of a file as the locking mechanism,
+which is the approach we'll take here.
+
+### The algorithm
+
+    A shell function:
+
+    existing Lock OR  update Lock Ancient
+
+    newest Lock fileA fileB  OR return 
+
+    newest fileA Lock AND newest fileB Lock AND {
+
+       announce MANUAL Intervention Required
+       return
+    }
+
+    newest fileA fileB AND copy fileA fileB OR
+
+                           copy fileB fileA
+    update Lock Now
+
+### Notes while developing
+
+The algorithm is "clean"; certain programming steps had to be
+taken for initialization and defensive measures, but first some
+user notes:
+
+* the user may set the lock location root.  it's announced by the
+    `LOCK_LOCN` function
+
+* since one of the two files being synchronized should be in the
+  *network* location, the lock location should NOT be rooted there.
+
+* when calling `lock_sync`, two file arguments are required. in
+  principle, order shouldn't matter, except the *relative working
+  directory* of the lock file is based on that path.  so, in any
+  environment (or separate machine) synchronizing the files, the
+  network file, or shared drive location should be the first argument
+  to `lock_sync`
+
+* initialization
+
+    * a few other libraries utilities are needed, `source` them
+    * supply the minimum documentation: copyright and help notes
+    * a default lock location is created, which the user may override
+
+* defensive measures:
+
+    * neither synchronized file may be in the lock location
+    * always check that a file or lock to be created has its
+      parent directory.
+    * for debugging and usage, there are TRACE, WARNING, and 
+      ERROR comments
+
+* development goodies:
+
+    * two general functions `kfun` and `rwd` were written to support
+     the work; both should be promoted to a general library.
+
+    * `kfun` has its roots in [Tcl] [kfun]
+
+    * `rwd` implements the *relative working directory*, which is
+      simply the path to the file with the user's home directory
+      stripped from the name.
+
+    * i've made frequent use of the `set --` idiom to keep the 
+      arguments straight; it's usefull for reconditioning them
+      as the need arises.
+
+* and remaining open challenges
+
+    * a file removed from either sync'ed location will be
+      gratuitiously updated; a protocol needs to be established to
+      avoid this
+
+### References
+
+   [kfun]:  http://wiki.tcl.tk/1923 "K combinator" 
+
+EOF
+
+}
+lock_doc	() { lock_design; }
+lock_init () 
+{ 
+    source programlib;
+    source smartflib;
+    lock_locn;
+    comment lock_doc;
+    lock_copyright;
+    comment lock_locn directory \[ $(LOCK_LOCN) \];
+    comment lock_sync fileA fileB
+}
+lock_file () 
+{ 
+    set -- $(LOCK_LOCN)/$1;
+    comment TRACE lock_file $# FILE $1;
+    ignore needir $(dirname $1);
+    echo $1
+}
+lock_locn	() { smartf LOCK_LOCN ${1:-~/lib/.lock}; }
+lock_sync () 
+{ 
+    comment TRACE lock_synch $# A $1 B $2;
+    function lock_okin () 
+    { 
+        comment TRACE lock_okin $# DIR $1;
+        pushd $(eval needir $1) > /dev/null;
+        kfun "[ $PWD != $(LOCK_LOCN) ]" popd > /dev/null
+    };
+    function lock_here () 
+    { 
+        lock_okin $1 && lock_okin $2 && return 0;
+        comment ERROR lock_sync $1 or $2 COLLIDE with Lock Location;
+        return 1
+    };
+    set -- $(basename $1) $(basename $2) $(dirname $1) $(dirname $2);
+    [[ "$1" = "$2" ]] || { 
+        comment ERROR lock_synch basenames $1, $2 not IDENTICAL;
+        return
+    };
+    lock_here "$3" "$4" || return;
+    set -- $1 "$(rwd $3/$1)/$(basename $1)" "$3" "$4";
+    set -- "$(lock_file $2)" "$3/$1" "$4/$1";
+    comment TRACE lock_sync: Lock fileA fileB : $*;
+    existingfile "$1" || doit touch -t 197001010000 "$1";
+    newest "$@" && return;
+    newest "$2" "$1" && newest "$3" "$1" && { 
+        comment WARNING lock_sync "$2" and "$3" are newer than the LOCK;
+        return
+    };
+    newest "$2" "$3" && copy_log "$2" "$3" "$1" || copy_log "$3" "$2" "$1"
+}
+lock_file_dirAB	() { lock_sync $2/$1 ~${3:+/$3}/$1; }
+lock_sample () 
+{ 
+    lock_locn;
+    lock_file_dirAB locklib ~/Dropbox/bin bin;
+    lock_file_dirAB .profile ~/Dropbox/bin bin;
+    lock_file_dirAB .profile ~/Dropbox;
+    lock_file_dirAB .myrc ~/Dropbox
+}
+kfun () 
+{ 
+    $1;
+    rtn=$?;
+    eval $2;
+    return $rtn
+}
+rwd	() { shell_indir $(dirname $1) eval echo \${PWD#$HOME/}; }
+copy_log () 
+{ 
+    comment TRACE copy_log $# FROM $1 DEST $2 LOG $3;
+    eval cp "$1" "$2";
+    sleep 1;
+    date "+%F %T %Z %a %b cp $1 $2" >> $3
+}
+lock_root () 
+{ 
+    lock_file_dirAB locklib $1/bin bin;
+    lock_file_dirAB .profile $1/bin bin;
+    lock_file_dirAB .profile $1;
+    lock_file_dirAB .myrc $1
+}
+lock_init 1>&2

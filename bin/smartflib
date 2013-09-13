@@ -49,7 +49,6 @@ smartf_savef	() { fbdy $* | T shell_append; }
 smartf () 
 { 
     list_traceoff;
-    list smartf $1;
     eval " $1 () { \${*:-echo} $2; }"
 }
 smartf_qrf () 
@@ -68,6 +67,7 @@ smartf_init 1>&2
 smartf () 
 { 
     list_traceoff;
-    list smartf $1;
+    list_add smartf $1 > /dev/null;
+    list smartf $(list_set smartf) >/dev/null
     eval " $1 () { cmd=\${1:-echo}; shift; \$cmd $2 \$*; }"
 }
