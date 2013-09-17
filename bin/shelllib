@@ -159,3 +159,27 @@ shell_obs ()
     ignore popd
 }
 shell_init 1>&2
+shell_builtin () 
+{ 
+    cat  <<EOF
+case
+do
+done
+echo
+esac
+eval
+for
+function
+gt
+if
+fi
+in
+lt
+return
+set
+shift
+unset
+while
+EOF
+
+}

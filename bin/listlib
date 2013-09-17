@@ -2,7 +2,9 @@ list_init ()
 { 
     echo "Copyright (C) 2013, JYATL - Just Yet Another Testing Lab";
     list_traceon;
+    list empty
     list_help
+
 }
 list_exists () 
 {
@@ -24,19 +26,27 @@ list ()
     { 
         list_trace list_def ARGS $*
 	set -- l_$1
-        export $l
-        eval $l=
+        export $1
+        eval $1=
     };
-    l=l_$1;
+
     list_trace list CASE $#.$1
     case $#.$1 in
-    (0.*|1.lists)
+    (0.*)
+        comment "No list specified; listing all lists";
+	list_lists; 
+	return;;
+    (1.list)
         list_lists; return;;
+    (1.empty)
+        list_exists empty || list_def empty; 
+	return;;
     (1.*)
-        list_exists $1 || list_def $1; shift;;
+        list_exists $1 || list_def $1; 
+	l=l_$1; shift;;
     (*)
-        list_def $1
-	shift
+        list_def $1;
+	l=l_$1; shift;
 	eval $l=\"$*\"
     ;;
     esac
@@ -62,6 +72,8 @@ list_delete ()
         echo WARNING you may mean list_remove $*;
         return 3
     };
+    [[ "$1" = "empty" ]] && return;
+
     list_exists $1 && unset l_$1
 }
 list_remove () 
@@ -85,6 +97,8 @@ list_remove ()
         echo WARNING no LIST $1 2> /dev/null;
         return 1
     };
+    [[ "$1" = "empty" ]] && return;
+
     l=l_$1;    shift;
     for i in $*;
     do
@@ -126,6 +140,7 @@ list_test ()
         l_do list_delete lists
     };
     list_testClean;
+    l_do list empty;
     l_do list_lists;
     l_do list foo bar zot gum;
     l_do list_show foo;

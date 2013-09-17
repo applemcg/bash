@@ -56,6 +56,20 @@ has execute permissions, and is not a  binary, then run it as a shell,
 _unless_ you tell me otherwise".  So the P family at least: perl, php,
 and python need to announce their executable program.
 
+Here are the shell functions I used to produce the report:
+
+    scripts         () { file /usr/bin/* | grep text | grep -v Mach-O | fofg; }
+    trim_bangs  	() { sed 's/! /!/; s/ -.*//; s/System.*\//System ... \//'; }
+    sh_bangs        () { foreach 'sed 1q' $(scripts) | trim_bangs; }
+    script_report	() { sh_bangs | sed 's/perl5.*/perl/' | sort | uniq -c; }
+
+    i_use           () { declare -f $1 >/dev/null || source $(which $(whf $1)); }
+    load_shbang     () {
+          i_use fofg
+          i_use foreach
+    }
+    load_shbang
+
 While I  don't have any cron  jobs running on this  machine right now,
 you  can test  if there  are any  on yours:  `crontab -l`  (that's the
 letter l).  If  you're not familiar with the crontab,  all you need to

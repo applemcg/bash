@@ -342,7 +342,14 @@ wpl	-- output a Word Per Line
 EOF
 
 }
-funclocn	() { echo $(paths|grep Dropbox|grep -v profile|sed 's/$/\/*lib/') ~/.profile ~/bin/.profile; }
+funclocn () 
+{ 
+    function profbin () 
+    { 
+        grep 'applemcg/.*bin' <(paths) | egrep -v '(profile|\.lock)'
+    };
+    echo $(profbin| sed 's/$/\/*lib/') ~/.profile ~/bin/.profile
+}
 doit () 
 { 
     comment $*;

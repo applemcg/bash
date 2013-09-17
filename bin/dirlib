@@ -102,3 +102,10 @@ depthd ()
     echo $#
 }
 dir_init 1>&2
+indir () 
+{ 
+    ignore pushd $1;
+    shift;
+    $@;
+    ignore popd
+}
