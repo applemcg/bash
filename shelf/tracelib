@@ -1,0 +1,78 @@
+trace_call () 
+{ 
+    : date: 2017-07-18;
+    trace_stderr "$@"
+}
+trace_debug () 
+{ 
+    comment $PWD $(myname 2) $*;
+    trap read debug
+}
+trace_init () 
+{ 
+    declare -f fam_iam > /dev/null || { 
+        comment $(myname) FAM_IAM is NOT a function;
+        return 1
+    };
+    fam_iam;
+    smart_def trace_public trace_{init,source};
+    smart_def trace_public trace_{call,debug,init,stderr};
+    smart_add trace_public trace_{call,missing,simple,callstack};
+    smart_function trace_locality
+}
+trace_locality () 
+{ 
+    smart_islocal || return;
+    smart_def trace_source $PWD;
+    public_libraryname shelflib;
+    smart_install trace;
+    smart_add trace_unset trace_{set,show,off,on,isOFF,isOKto};
+    smart_add trace_unset trace_{base,basic,easy,replace,fbdy};
+    smart_add trace_unset trace_{level,toggle,summary,state};
+    trace_unset unset
+}
+trace_missing () 
+{ 
+    : date: 2017-06-04;
+    : date: 2017-07-18;
+    : ~ ARG, defines function ARG to display the callstack;
+    report_notargcount 1 $# "function name to trace where called" && return 1;
+    eval "$1 () { trace_callstack \$(myname); }"
+}
+trace_callstack () 
+{ 
+    : date: 2017-06-04;
+    : date: 2017-07-18;
+    : help: shows callstack of calling function;
+    { 
+        isNotNull "$1" && isHelp "$1"
+    } && { 
+        helpShow 'callStack
+    Diagnostics regarding where the call to this function came from';
+        return
+    };
+    local T="${T}  ";
+    local STACK=;
+    i=${#FUNCNAME[@]};
+    ((--i));
+    printf "${T}Function call stack ( command.function() ) ...\n" 1>&2;
+    while (( $i >= 0 )); do
+        T="${T}  ";
+        STACK+="${T}${BASH_SOURCE[$i]}.${FUNCNAME[$i]}()\n";
+        ((--i));
+    done;
+    printf "$STACK" 1>&2
+}
+trace_simple () 
+{ 
+    : ~ arg ...;
+    : prints Calling Function and passed arguments to STDERR;
+    pa=${FUNCNAME[1]:-COMMANDLINE};
+    printf "TRACE %s\t%s\n" "$pa" "$*" 1>&2
+}
+trace_stderr () 
+{ 
+    pa=${FUNCNAME[2]:-COMMANDLINE};
+    gr=${FUNCNAME[3]:-COMMANDLINE};
+    printf "TRACE %s\t@ %s\t%d  ( %s )\n" "$gr" "$pa" $# "$*" 1>&2
+}

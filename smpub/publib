@@ -1,0 +1,299 @@
+public_init () 
+{ 
+    : date: 2018-02-08;
+    fam_iam;
+    :;
+    : hdr: -- PUBLIC -------------------------------------- PUBLIC Functions --;
+    :;
+    : smart lists, values, public functions in PUBLIC_PUBLIC;
+    :;
+    : eschew the temptation to further collapse the subfunction names;
+    :;
+    smart_def public_public public_{init,source,doc,helper};
+    smart_add public_public public_{given,local_list};
+    smart_add public_public public_{compare,inlocal,alllocal};
+    smart_add public_public public_{home,libraryname,directory};
+    :;
+    smart_add public_public needfile needir args_uniq isfunction fun_starter;
+    smart_add public_public local_{nonpublic,alllocal};
+    :;
+    : ----------------------- user may set PUBLIC_HOME, LIBRARY --;
+    :;
+    public_home $HOME/git;
+    public_libraryname publib;
+    public_helper;
+    :;
+    : smart functions;
+    :;
+    smart_function public_locality
+}
+public_libraryname () 
+{ 
+    : date: 2018-02-08;
+    :;
+    : ------------------------- public, local libraries --;
+    :;
+    public_variable LIBRARY $(needfile $PUBLIC_BIN/${1:-publiclib})
+}
+public_directory () 
+{ 
+    : use needir to guarantee directory exists;
+    : date: 2018-02-08;
+    public_variable $1 $(needir $PUBLIC_HOME/$2)
+}
+public_home () 
+{ 
+    : date: 2018-02-08;
+    public_variable HOME ${1:-$HOME};
+    :;
+    : whereever it is, it has a ...;
+    : ---------------------------------------- BITMELD! --;
+    :;
+    public_directory BIN bin;
+    public_directory INC inc;
+    public_directory TXT lib;
+    public_directory MAN man;
+    public_directory ETC etc;
+    public_directory LIB lib;
+    public_directory DOC lib/doc
+}
+public_compare () 
+{ 
+    : ~ [[comm args] library];
+    : compares funciton lists with library, defl PUBLIC, and local function;
+    : date: 2018-02-08;
+    case $# in 
+        0)
+            $(myname) -1 $PUBLIC_LIBRARY
+        ;;
+        1)
+            case $1 in 
+                -*)
+                    $(myname) $1 $PUBLIC_LIBRARY
+                ;;
+                *)
+                    $(myname) -1 $1
+                ;;
+            esac
+        ;;
+        2)
+            report_notfile $2 && return 1;
+            comm $1 <( functions $2 |sort) <( public_alllocal|sort)
+        ;;
+        *)
+            comment $(myname) [[comm flag] library];
+            return 2
+        ;;
+    esac
+}
+local_nonpublic () 
+{ 
+    : date: 2018-02-08;
+    case $# in 
+        0)
+            functions *lib | grep _init$ | sed 's/_init/_private/'
+        ;;
+        *)
+            local_helper "names _potential PRIVATE functions"
+        ;;
+    esac
+}
+local_alllocal () 
+{ 
+    : date: 2018-02-08;
+    case $# in 
+        0)
+            foreach eval $(local_nonpublic) | wpl
+        ;;
+        *)
+            local_helper "lists LOCAL functions (PRIVATE lists) not for the PUBLIC library"
+        ;;
+    esac
+}
+local_helper () 
+{ 
+    comment $1;
+    declare -f $(myname 2) 1>&2
+}
+public_alllocal () 
+{ 
+    : date: 2018-02-08;
+    case $# in 
+        0)
+            foreach smart_function $(public_inlocal) | wpl
+        ;;
+        *)
+            local_helper "lists LOCAL functions for the PUBLIC library"
+        ;;
+    esac
+}
+public_helper () 
+{ 
+    : date: 2018-02-08;
+    fuse local_helper
+}
+public_inlocal () 
+{ 
+    : date: 2018-02-08;
+    case $# in 
+        0)
+            functions *lib | grep _init$ | sed 's/_init/_public/'
+        ;;
+        *)
+            local_helper "local families potential installable function lists. see public_alllocal"
+        ;;
+    esac
+}
+public_given () 
+{ 
+    : date: 2018-02-08;
+    case $# in 
+        0)
+            functions $(which publiclib) $(which shelflib) | sort
+        ;;
+        *)
+            comment "returns base list of public, relied-upon functions"
+        ;;
+    esac
+}
+public_local_list () 
+{ 
+    : produces a list of functions to retain locally;
+    : date: 2017-06-10;
+    : date: 2017-07-15;
+    : date: 2018-02-08;
+    comm -13 <(public_given | sort) <(functions *lib | sort)
+}
+public_doc () 
+{ 
+    : date: 2018-02-08;
+    cat  <<'EOF'
+
+    run: $ source publilib
+
+    supplies SMART and PUBLIC functions in FAMilies
+
+    smart_:
+
+         list list-name value ... 
+         add  list-name names to add
+	 del  list-name names to remove
+	 trim list-name .. -- used by del
+         
+         name  thing value
+	 function cmdname args ...
+
+    where list-name, thing, and cmdname sould adopt the family prefix, e.g.
+    fun_stuff, fun_thing, fun_cmdname ...
+
+    the smart_name and smart_def return single or one or more
+    values, whereas the smart_function is a run-time feature to
+    evaulate a named function and any subsequent arguments.  This is
+    used to allow PRIVATE functions, visible only to commands in the
+    local directory.
+
+    public_:
+
+        doc -- this message
+	
+        functions -- lists the visible functions in the public_ family
+
+        given -- lists functions in the public and shelf libraries
+
+        install_function -- installs the listed functions in the publiclib
+	
+        local_list -- lists the functions particular to the local directory,
+	   i.e. excluded the public and shelf libraries
+
+        public -- the public functions in the public family
+
+        unset -- smart function lists (or unsets) obolete functions
+
+EOF
+
+}
+public_locality () 
+{ 
+    : hdr: -- PUBLIC ------------------------------------- PRIVATE Functions --;
+    :;
+    trace_call $*;
+    smart_islocal || return;
+    smart_def public_source $PWD;
+    :;
+    smart_install public;
+    :;
+    smart_def public_unset public_install;
+    smart_add public_unset public_{install_{function,textfile},functions};
+    :;
+    : -- replaced by FUN_STARTER --;
+    :;
+    smart_add public_unset initlib;
+    smart_def public_private $(public_unset) public_locality;
+    :;
+    : except PUBLIC_SOURCE is defined in a LOCAL, PRIVATE function, however;
+    : it is a PUBLIC function. see above;
+    :;
+    public_unset unset
+}
+fun_starter () 
+{ 
+    : hdr: -- PUBLIC ---------------------------------------- UTIL Functions --;
+    : from: fun_starter;
+    : date: 2018-02-08;
+    report_notfile $1 && return 1;
+    function initstmt () 
+    { 
+        printf "%s 1>&2\n" $1
+    };
+    foreach initstmt $(functions $1 | grep _init$)
+}
+isfunction () 
+{ 
+    : ~ function;
+    : returns TRUTH of argument as FUNCTION;
+    : date: 2018-02-08;
+    declare -f $1 > /dev/null
+}
+needfile () 
+{ 
+    : date: 2018-02-08;
+    report_notargcount 1 $# needed_file && return 1;
+    [[ -f $1 ]] || { 
+        mkdir -p $(dirname $1);
+        touch $1
+    };
+    echo $1
+}
+needir () 
+{ 
+    : date: 2017-05-29;
+    : date: 2017-07-18;
+    : makes non-existant directory argument and returns name;
+    : date: 2018-02-08;
+    report_notargcount 1 $# needed_directory && return 1;
+    [[ -d $1 ]] || mkdir -p $1;
+    echo $1
+}
+args_uniq () 
+{ 
+    : date: 2017-03-26;
+    : date: 2017-08-05;
+    : date: 2018-02-08;
+    trace_call $*;
+    awk '
+
+    BEGIN {
+            c = "";
+	    for (i=1; i < ARGC; i++) {
+
+                 j = ARGV[i];
+                 if (!printed[j]++) {
+
+                     # prepend space for 2nd ...
+                     printf "%s",  c j;
+                     c = " "
+		 }
+	     }
+	  }
+    ' $*
+}

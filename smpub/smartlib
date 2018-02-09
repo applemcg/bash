@@ -1,0 +1,148 @@
+smart_init () 
+{ 
+    : date: 2017-08-05;
+    : date: 2017-08-16;
+    : -- the model template is now in libmg;
+    : date: 2018-02-08;
+    :;
+    fam_iam;
+    :;
+    : hdr: -- SMART -------------------------------------- PUBLIC Functions --;
+    :;
+    smart_def smart_public smart_{init,doc,source};
+    smart_add smart_public smart_{def,add,del,trim,function,install,islocal};
+    smart_add smart_public fam_name;
+    smart_function smart_locality
+}
+smart_doc () 
+{ 
+    : date: 2018-02-08;
+    public_doc
+}
+smart_def () 
+{ 
+    : date: 2017-06-10;
+    : date: 2017-07-15;
+    : date: 2017-08-05;
+    : callStack;
+    : date: 2018-02-08;
+    trace_call $*;
+    report_notargcount 2 $# listName member ... && return 1;
+    local boiler=": mfg: $(myname 2);: date: $(date +%Y-%m-%d)";
+    eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }"
+}
+smart_add () 
+{ 
+    : date: 2017-06-10;
+    : date: 2017-07-15;
+    : date: 2017-08-05;
+    : date: 2018-02-08;
+    trace_call $*;
+    smart_def $1 $(args_uniq  $(isfunction $1  && $1) ${*:2})
+}
+smart_del () 
+{ 
+    : date: 2017-06-10;
+    : date: 2017-07-15;
+    : date: 2018-02-08;
+    report_notfunction $1 && return 1;
+    trace_call $*;
+    smart_def $1 $(smart_trim $($1) ${*:2} $($1))
+}
+smart_trim () 
+{ 
+    : see test case -- actual members are there twice,;
+    : items to remove are present one more time,;
+    : items NOT in the list are there once,;
+    : .. an attempt to remove a non-member;
+    : properties arranged by ARGS in smart_trim;
+    : date: 2017-06-13;
+    : todo: xlate to single awk script, save 4 processes.;
+    : date: 2018-02-08;
+    echo $* | wpl | sort | uniq -c | awk '$1 == 2 { printf "%s ", $2 }'
+}
+smart_function () 
+{ 
+    : date: 2017-06-14;
+    : date: 2017-08-05;
+    : executes a DEFINED function with arguments,;
+    : otherwise nothing.;
+    : date: 2018-02-08;
+    declare -f $1 > /dev/null && $@
+}
+fam_name () 
+{ 
+    : date: 2018-01-13;
+    : default use is smart_islocal, other wise, fam_name 2;
+    : returns callers family;
+    : date: 2018-02-08;
+    trace_call $* parent $(myname 2), GRANDparent $(myname 3);
+    set -- $(myname ${1:-3});
+    echo $# $* 1>&2;
+    echo ${1%%_*}
+}
+smart_islocal () 
+{ 
+    : date: 2018-02-08;
+    trace_call $*;
+    set -- $(fam_name);
+    set ${1:-EMPTY}_locality;
+    trace_call locality?: $*;
+    comment locality: $1;
+    : is the calling family defined locally.;
+    functions ?*lib | grep $1 > /dev/null;
+    set $?;
+    trace_call smart_islocal RETURN $?;
+    return $1
+}
+smart_install () 
+{ 
+    : creates {fam}_installable, concatenating PUBLIC and existing UTILS list;
+    : used: public_update PUBLIC_LIBRARY {fam}_installable;
+    : todo: deprecate, since "installable" is now simply "public";
+    : start by modifying the alllocal call.;
+    : date: 2018-02-08;
+    :;
+    set ${1}_{installable,public,utils};
+    smart_def $1 $($2) $(smart_function $3)
+}
+smart_demo () 
+{ 
+    : hdr: -- SMART ------------------------------------- PRIVATE Functions --;
+    smart_def foo foo bar zot;
+    foo;
+    smart_add foo gum duh;
+    foo;
+    set foo $(foo);
+    echo $# $*;
+    smart_add foo gum shu duh;
+    foo;
+    smart_del foo shu zot duh;
+    foo;
+    smart_add foo gum shu duh;
+    foo;
+    smart_del foo aaa duh
+}
+smart_locality () 
+{ 
+    : date: 2017-08-16;
+    trace_call $*;
+    smart_islocal || return;
+    public_library publib;
+    smart_def smart_source $PWD;
+    :;
+    : -- UNSET these functions by INIT call --;
+    :;
+    smart_def smart_unset smart_{format,pref,utils,home,unset};
+    smart_add smart_unset fun_{base,local} {home,drop}less fullpath;
+    :;
+    : -- whereas PRIVATE lists functions, some of which may be UNSET;
+    :;
+    smart_def smart_private $(smart_unset) smart_{private,demo,names};
+    :;
+    : -- builds the INSTALLABLE list from PUBIC and existing UTILS;
+    :;
+    smart_install smart;
+    :;
+    smart_unset unset
+}

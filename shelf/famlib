@@ -1,0 +1,135 @@
+fam_copyright () 
+{ 
+    comment "Copyright (C) 2014-2018, JYATL - Just Yet Another Testing Lab";
+    comment "mailto:mcgowan@alum.mit.edu"
+}
+fam_help () 
+{ 
+    echo to see FAM functions, fam_list
+}
+fam_list () 
+{ 
+    : first underscore delimits family,;
+    : subfunction may have _s in the name;
+    : anticipates /rdb;
+    sfg _ | sed 's/_/ /' | awk '
+    BEGIN { fmt = "%s\t%s\n"
+            printf fmt, "family", "subfun"
+            printf fmt, "------", "------"	    
+          }
+          { printf fmt, $1, $2 }
+    '
+}
+fam_init () 
+{ 
+    fam_iam;
+    smart_def fam_public fam_{init,source,iam,subbody,generic};
+    smart_add fam_public fam_{list,help,copyright,copybody};
+    smart_add fam_public fam_{owner,email};
+    smart_function fam_locality
+}
+fam_locality () 
+{ 
+    trace_call $*;
+    smart_islocal || return;
+    smart_def fam_source $PWD;
+    public_libraryname shelflib;
+    smart_install fam
+}
+fam_iam () 
+{ 
+    function fam_sub () 
+    { 
+        local f=${1}_$2;
+        ignore isfunction $f || { 
+            shift 2;
+            eval "$f () { $@ ; }"
+        };
+        declare -f $f
+    };
+    : user identifies themself as a FAMily;
+    : set ${1:-$(myname 2)};
+    : TESTING only;
+    set $(myname 2);
+    set ${1%_init};
+    report_notcalledby ${1}_init && return 1;
+    : create the FAM function;
+    isfunction $1 || { 
+        eval "$1 () { fam_generic $1 \$*; }"
+    };
+    : ------------------------------ supply a missing copyright --;
+    fam_sub $1 copyright "$(fam_copybody)";
+    : ----------------------- show Copyright when first sourced --;
+    fam_sub $1 firsttime "${1}_copyright; unset ${1}_firsttime";
+    : ------------------------- list of members or subfunctions --;
+    fam_sub $1 list "sfg ^${1}_ 2>/dev/null";
+    : -------------------------------- may have shell variables --;
+    local UC=$(UC $1);
+    fam_sub $1 variable "eval ${UC}_\$1=\$2";
+    fam_sub $1 vars "set | grep ^${UC}_ 2>/dev/null";
+    : ----------------------------- and a default help function --;
+    fam_sub $1 help "fam_subbody $1";
+    : ---------------------------------------- display the help --;
+    ${1}_help;
+    : ----------------------------- forget your local functions --;
+    unset fam_sub
+}
+fam_subbody () 
+{ 
+    echo $1 functions,variables:;
+    { 
+        ${1}_vars;
+        ${1}_list
+    } | sed 's/^/  /'
+}
+fam_owner () 
+{ 
+    echo JYATL - Just Yet Another Testing Lab
+}
+fam_email () 
+{ 
+    echo mcgowan@alum.mit.edu
+}
+fam_copybody () 
+{ 
+    local fmt="    %s \"%s\"\n";
+    printf "$fmt" comment "Copyright (C) $(date +%Y), $(fam_owner);";
+    printf "$fmt" comment "mailto:$(fam_email);";
+    printf "$fmt" ":" "mfgd:$(uname -n)/${PWD} $(ymd_hms)"
+}
+fam_newcopyright () 
+{ 
+    report_notargcount 1 $# libraryname && return 1;
+    set ${1%lib};
+    printf "$1_copyright ()\n{\n";
+    fam_copybody;
+    printf "}\n"
+}
+fam_generic () 
+{ 
+    : ~ fun { sub arg ... };
+    : prefereably executes FUN_SUB arg ...;
+    : or FUN_HELP;
+    : ====================================;
+    local fun=$1;
+    shift;
+    : only when a function is first use thru the model;
+    declare -f ${fun}_firsttime > /dev/null && ${fun}_firsttime;
+    [[ $# -lt 1 ]] && { 
+        ${fun}_help 2> /dev/null;
+        return
+    };
+    case $1 in 
+        -*)
+            command $fun "$@";
+            return
+        ;;
+    esac;
+    local f=${fun}_$1;
+    shift;
+    declare -f $f > /dev/null 2>&1 || { 
+        ${fun}_help 2> /dev/null;
+        return
+    };
+    $f $*
+}

@@ -1,0 +1,403 @@
+rdl_init () 
+{ 
+    : date: 2018-01-15;
+    fam_iam;
+    :;
+    : hdr: -- RD ------------------------------------- PUBLIC Functions --;
+    :;
+    smart_def rdl_public rdl_{init,help,{addf,syncf}{,_doc}};
+    smart_add rdl_public rdl_{init{copy,f},schema,cat,files};
+    smart_add rdl_public rdl_{compress,current,packed};
+    smart_add rdl_public rdl_{before,since,data,sortuniq};
+    smart_add rdl_public rdl_{nospace,popular,reorder,rowsof};
+    smart_add rdl_public rdput;
+    smart_add rdl_public for_{missing,remaining_args};
+    : -------------------------------------- repair RDB History --;
+    smart_add rdl_public rdl_{fixhistory,historyfunctions};
+    smart_def rdl_historyfunctions rdl_{nontoday,flipmmddyy};
+    smart_add rdl_public $(rdl_historyfunctions);
+    :;
+    smart_function rdl_locality
+}
+rdl_addf () 
+{ 
+    report_notfile ${1:-NoSuchFile} && { 
+        comment rdl_initf $1;
+        return 1
+    };
+    report_notargcount 2 $# && return 2;
+    report_notfile $RDL_PACKED && return 3;
+    :;
+    : do not do an RDPUT here. this allows the current table;
+    : to re-order the fields in the history as well.;
+    :;
+    backup $RDL_TABLE;
+    local fields=$(args_uniq $RDL_CFIELDS ${*:2});
+    :;
+    : ------------- establish the field order in both history and table --;
+    : ---------------------------------------- and remove blank records --;
+    :;
+    zcat $RDL_PACKED | tee $RDL_TEMP | column {insert,delete}_time $fields > $RDL_HISTORY;
+    :;
+    rdl_compress;
+    :;
+    column $fields < $RDL_TABLE | awk NF > $RDL_TEMP;
+    mv $RDL_TEMP $RDL_TABLE;
+    :;
+    rdput $RDL_TABLE;
+    backup $RDL_TABLE $RDL_PACKED
+}
+rdl_addf_doc () 
+{ 
+    cat  <<EOF
+
+    name: rdl_addf
+    args: table field(s) ...
+    test: rdl_addf_test
+    
+    insert an extra field in an RDB table, it's history, and current file.
+    the problem arises in that the history mechanism relies on a consistent set of fields
+    idea: this version appends the field(s) as the last columns in the table.
+EOF
+
+}
+rdl_addf_test () 
+{ 
+    rm -f *foo*;
+    cp ~/Dropbox/todo.rdb foo.rdb;
+    cp ~/Dropbox/.bak/h.todo.rdb.Z h.foo.rdb.Z;
+    rdl_addf foo.rdb newfoo oldbar
+}
+rdl_awk_builtin () 
+{ 
+    trace_call $*;
+    : todo: move out to rdbcmdlib;
+    curl http://www.math.utah.edu/docs/info/gawk_13.html 2> /dev/null | grep -i '<DT><CODE>.*(<VAR>' | sed 's/.*<CODE>//; s/(.*//'
+}
+rdl_before () 
+{ 
+    trace_call $*;
+    row "date < $(rdl_date $1)"
+}
+rdl_canon () 
+{ 
+    : date 2017-03-26;
+    : date 2017-12-18;
+    : from: rdb_canon;
+    trace_call $*;
+    case $1 in 
+        h.*.rdb.Z)
+            set ${1#h.};
+            set h.$1 ${1%.Z};
+            zcat $1 | rdb_current | rdb_write $2
+        ;;
+        h.*.rdb)
+            : backs up, removes compressed history;
+            : compresses an existing history;
+            : recursively deals with compressed history;
+            backup $1.Z;
+            rm -f $1.Z;
+            doit compress $1;
+            rdl_canon $1.Z
+        ;;
+        *.rdb)
+            rdl_syncf $* || return 1;
+            newest $RDL_PACKED $RDL_TABLE || rdput $RDL_TABLE
+        ;;
+        *)
+            [[ -f $1.rdb ]] && { 
+                $(myname) $1.rdb;
+                return
+            };
+            comment rm -f $1
+        ;;
+    esac
+}
+rdl_cat () 
+{ 
+    : date: 2017-05-12;
+    cat $1;
+    shift;
+    for f in $*;
+    do
+        tail +3 $f;
+    done
+}
+rdl_data () 
+{ 
+    trace_call $*;
+    cat ${1:--} | column_data ${*:2}
+}
+rdl_demoinit () 
+{ 
+    : command line helper;
+    set foo.rdb;
+    rm -f *$1*;
+    rdl_syncf;
+    rdl_syncf $1;
+    rdl_syncf $1 this that other;
+    rdput $1;
+    zcat h.$1.Z;
+    ls -lrt *$1*;
+    rm -f *$1*;
+    declare -f rdl_demoinit
+}
+rdl_files () 
+{ 
+    eval echo $(for f in RDl_{TABLE,ERRF,TEMP,HISTORY,PACKED}; do printf "\$$f "; done)
+}
+rdl_flipmmddyy () 
+{ 
+    : date: 2017-12-17;
+    sed 's/\([0-9][0-9][0-9][0-9]\)\.\([0-9][0-9]\)/\2\1/'
+}
+rdl_fixhistory () 
+{ 
+    : date: 2017-12-17;
+    report_notcommand ${1:-NeedCommandArgument} && { 
+        rdl_fixhistoryfunctions;
+        return 1
+    };
+    report_notfile $RDL_PACKED && return 2;
+    zcat $RDL_PACKED | $1 | tee $RDL_HISTORY;
+    comment OK?, then compress $RDL_HISTORY
+}
+rdl_syncf_doc () 
+{ 
+    cat  <<EOF
+
+    name: rdl_syncf
+    args: table field(s) ...
+    test: rdl_syncf
+    
+    establishes a class of
+    + file names ...: RDl_ TABLE, TEMP, ERRF, HISTORY, and PACKED
+    + argument names: RDl_ NAME, CFIELDS: suffix-less table name, Current field names
+    
+    + and a user function rdl_datarow, which returns only rows with no empty fields
+        since an idiom "awk NF" returns the nonempty rows.
+
+    for an existing file argument, it is assigned the TABLE name,
+      and either the PACKED or HISTORY file is also created.
+
+EOF
+
+}
+rdl_packed () 
+{ 
+    : Relational Data -- update packed history;
+    : from: rdput;
+    : date: 2107-12-24;
+    : date: 2018-01-15;
+    :;
+    report_notfile $RDL_TABLE && return 1;
+    trace_call $*;
+    awk NF $RDL_TABLE > $RDL_TEMP;
+    mv $RDL_TEMP $RDL_TABLE;
+    :;
+    for_existing $RDL_PACKED uncompress;
+    :;
+    : -------------------------------------------------- no PACKED file --;
+    :;
+    backup $RDL_HISTORY $RDL_TABLE;
+    :;
+    : awk program, rdupdate.awk depends on knowing;
+    : history, and before data file;
+    :;
+    local now=$(date '+%y%m%d%H%M%S');
+    local awk=$(awk_file rdupdate);
+    trace_call NOW: $now, AWK: $awk;
+    :;
+    awk -F'\t' -v now=$now -f $awk $RDL_HISTORY $RDL_TABLE > $RDL_TEMP;
+    :;
+    cat $RDL_TEMP > $RDL_HISTORY;
+    : --------------------------------------------- restore PACKED file --;
+    rdl_compress
+}
+rdput () 
+{ 
+    : Relational Data PUT in history;
+    : date 2016-12-09;
+    : date 2016-12-16;
+    : date 2016-12-19;
+    :;
+    trace_call $*;
+    rdl_syncf $*
+}
+rdl_compress () 
+{ 
+    trace_call $*;
+    [[ -f $RDL_PACKED ]] && backup $RDL_PACKED;
+    rm -f $RDL_PACKED;
+    compress $RDL_HISTORY
+}
+rdl_current () 
+{ 
+    ${*:-echo} $RDL_TABLE
+}
+for_missing () 
+{ 
+    trace_call $*;
+    [[ -f $1 ]] || ${*:2} $1
+}
+rdl_initcopy () 
+{ 
+    trace_call $*;
+    report_isfile $RDL_HISTORY || { 
+        :;
+        : prepend history fields;
+        rdb_hdr {insert,delete}_time $RDL_CFIELDS > $RDL_HISTORY
+    }
+}
+rdl_initf () 
+{ 
+    case $1 in 
+        h.*)
+            report_isfile $1 as it is a History File. && return 2
+        ;;
+        *)
+            report_notfile ${1:-"No File"} && { 
+                comment rdl_schema table field ...;
+                return 1
+            }
+        ;;
+    esac;
+    setenv RDL_NAME ${1%.*};
+    setenv RDL_TABLE $1;
+    setenv RDL_HISTORY h.$RDL_TABLE;
+    setenv RDL_PACKED $RDL_HISTORY.Z;
+    setenv RDL_TEMP $RDL_NAME.tmp;
+    setenv RDL_ERRF $RDL_NAME.err;
+    setenv RDL_CFIELDS $(sed 1q $RDL_TABLE);
+    :;
+    eval "rdl_datarow () { report_notpipe && return 1; $(rdl_rowsof $RDL_CFIELDS); }";
+    return 0
+}
+rdl_schema () 
+{ 
+    : defines the table schema;
+    : writes and compresses history;
+    : --------------------------------------- does NOT use inif --;
+    :;
+    report_isfile $1 && return 1;
+    :;
+    report_notargcount 2 $# file field ... && return 2;
+    :;
+    local table=$1;
+    shift;
+    local history=h.$table;
+    local packed=$history.Z;
+    :;
+    rdb_hdr $* > $table;
+    rdb_hdr insert_time delete_time $* > $history;
+    :;
+    compress $history;
+    backup $table $packed
+}
+rdl_syncf () 
+{ 
+    trace_call $*;
+    rdl_initf $1 || return 1;
+    :;
+    : --------------------------- save first version of the day --;
+    :;
+    [[ -d .ver/$(ver_date) ]] || backup_version;
+    :;
+    :;
+    : -------------------------------------- rest state: TABLE and PACKED exist --;
+    :;
+    for_existing $RDL_HISTORY rdl_compress;
+    : --------------------------------------- may be first time --;
+    for_missing $RDL_PACKED rdl_initcopy;
+    for_existing $RDL_HISTORY rdl_compress;
+    report_notfile $RDL_PACKED && return 3;
+    : ------------------------------------------- update PACKED --;
+    :;
+    rdl_packed;
+    backup $RDL_PACKED $RDL_TABLE;
+    for_remaining_args $*;
+    return 0
+}
+rdl_nontoday () 
+{ 
+    : date: 2017-12-17;
+    report_notpipe && return 1;
+    local sod=$(yymmdd)000000;
+    row "insert_time < $sod && delete_time < $sod"
+}
+rdl_nospace () 
+{ 
+    trace_call $*;
+    pick $(rdl_data $* | sed 's/ /_/g')
+}
+rdl_popular () 
+{ 
+    trace_call $*;
+    rd sort | rduniq | rd sort -rn | rd sed ${1:-12}q | ncolumn Count
+}
+rdl_reorder () 
+{ 
+    : edit, re-order the fields in an rdb table;
+    : usage cat table | column $(rdl_reorder table);
+    :;
+    report_notfile $1 && return 1;
+    sed 1q $1 | tr '\t' '\n' > .x;
+    pr -tn .x 1>&2;
+    ed .x;
+    set $(< .x);
+    echo $*
+}
+rdl_rowsof () 
+{ 
+    printf " row %s " $1;
+    shift;
+    for field in $*;
+    do
+        printf "| row %s " $field;
+    done
+}
+rdl_since () 
+{ 
+    trace_call $*;
+    row "date >= $(rdl_date $1)"
+}
+rdl_sortuniq () 
+{ 
+    rd sort | uniq -c | awk '
+
+       BEGIN   { OFS = "\t" }
+       NR == 1 { $1 = "count" }
+       NR == 2 { $1 = "-----" }
+               { print }
+
+    ' | sed '
+
+         s/\(^ *[0123456789][0123456789]*\)  */\1	/
+
+    '
+}
+rdl_help () 
+{ 
+    rdl_addf_doc;
+    rdl_syncf_doc
+}
+rdl_locality () 
+{ 
+    trace_call $*;
+    smart_islocal || return;
+    public_libraryname rdlib;
+    smart_install rd;
+    smart_def rdl_source $PWD;
+    smart_def rdl_private rdl_{locality,private};
+    smart_add rdl_private rdl_canon;
+    echo public_hint ff, public_vars
+}
+for_remaining_args () 
+{ 
+    : hdr: -- RDL ------------------------------------- PRIVATE Functions --;
+    : date: 2018-01-15;
+    shift;
+    [[ $# -gt 0 ]] || return;
+    trace_call $*;
+    $(myname 2) $*
+}

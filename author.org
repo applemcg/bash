@@ -1,0 +1,7 @@
+#+AUTHOR: Marty McGowan
+#+EMAIL:  mcgowan@alum.mit.edu
+
+Email:   {{{email}}}
+
+Twitter: *@applemcg*
+

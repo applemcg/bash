@@ -1,0 +1,425 @@
+libmg_init () 
+{ 
+    : date: 2018-01-06;
+    : date: 2018-02-08;
+    :;
+    : hdr: --------------------------------------------------- PUBLIC Functions --;
+    :;
+    : Functions requiring PUBLIC installation;
+    : e.g. libmg, belong in the _public list. Publicly installable;
+    : utility functions, and not family members, are also in the public list;
+    : and may be discovered by comparing the family list to the public listn;
+    :;
+    : Manufactured functions -- those written by the smart_ family should;
+    : not be in the _public list. Presumably the generating;
+    : smart_ call is in an installed function. An exception is the;
+    : {fam}_source function, whose purpose is to identify the working;
+    : directory for the function library. Therefore, the manufacturing;
+    : function should NOT be on the _public list. A good place is the _locality;
+    : function;
+    :;
+    : For the purpose of installing in the public library, call the;
+    : smart_install function with the family name. This is best handled;
+    : in the _locality function.;
+    :;
+    fam_iam;
+    smart_def libmg_public libmg_{init,source,doc,copy,crunch,gather,nxlib};
+    smart_add libmg_public libmg_{f3file,f4file};
+    smart_add libmg_public libmg_{updating,nodatetags,seeupdate};
+    smart_add libmg_public libmg_{nextlib,reclaim};
+    :;
+    : --------------------------------------- Utility Functions --;
+    : any functions deserving public exposure which;
+    :;
+    smart_add libmg_public libsave public_update wpl update_names;
+    :;
+    : the _locality function should, of course, NOT be a public function, nor;
+    : _ need exist, hence the routine use of the smart_function call.;
+    :;
+    smart_function libmg_locality
+}
+wpl () 
+{ 
+    : date: 2017-05-12;
+    : date: 2018-01-06;
+    : non-file arguments are echod, files are concatenated;
+    : this is a bold exmperiment. this is starting out as a utility,;
+    : . not a local function. e.g. it gets installed in the public library;
+    : . a shining example of a PUBLIC_utility;
+    trace_call $*;
+    case $# in 
+        0)
+            report_notpipe && return 1;
+            tr -cs 'A-Za-z0-9_' '\n'
+        ;;
+        *)
+            [[ -f $1 ]] && { 
+                cat $* | $(myname);
+                return
+            };
+            echo $* | $(myname)
+        ;;
+    esac
+}
+libsave () 
+{ 
+    : this simple library update is for functions which do not have;
+    : _ a library home. It may be used for exising functions which;
+    : _ dont involve the public, smart, or libmgmt families.;
+    : _ the libmg_crunch at the end removes redundant, old functions.;
+    : date: 2016-09-30;
+    : args: library function ...;
+    : date: 2018-01-08;
+    report_notargcount 2 $# library function ... && return 1;
+    report_notfile $1 && return 1;
+    trace_call $*;
+    shd_setdate ${*:2} | tee .$(myname).err >> $1;
+    command source $1;
+    libmg_crunch $1
+}
+libmg_copy () 
+{ 
+    : date: 2018-01-06;
+    report_notargcount 1 $# ~ name && return 1;
+    trace_call $*;
+    set $1 ${1}lib $HOME/Dropbox/lib/genericlib;
+    sed "s/libmg_/${1}_/g" $3 | tee -a $2
+}
+libmg_doc () 
+{ 
+    : date: 2018-01-06;
+    cat  <<'EOF'
+
+    run: $ libmg_copy somename
+
+    which replaces generic with somename in all instances
+    
+    then edit your copy of these functions:
+        you should edit out the libmg_copy function,
+        edit this genric_doc function to your needs, and if it still exists,
+        remove the public_install_function from the resulting file
+
+    you will want to customise libmg_init to your needs
+    you can add to the libmg_pubic list with this:
+
+       smart_add libmg_public libmg_{this,that,other,...}
+
+    where libmg_this, libmg_that, libmg_other ... are functions
+    which need public exposure.  Also, note, you will want to
+    remove the ",copy" from the libmg_public list arguments.
+
+    An important concept in this practice, the PRIVATE functions
+    which are kept local by the libmg_locality function.
+
+    1. libmg_source is a PUBLIC function, but it's local execution
+       prior to installation creates a smart_value which remembers the SOURCE
+       or origin of these functions.
+
+    2. then libmg_private is a smart list, AND a member of the private list,
+       in the default list, only the locality, private, and install functions
+       are not installed.
+
+    The list of PUBLIC FUNCTIONS relied on in this small library fragment,
+    by families:
+
+        fam_iam
+
+        public_install_function
+
+        report_notargcount
+
+        smart_{function,def}
+
+    And "echo" is the only direct built-in or command used in the
+    remaining functions.  The idiom "${*:-echo}" is the basis for
+    the smart_def and smart_value functions.
+
+    Note the use of "smart_function" in the libmg_functions.  In the
+    local directory, where libmg_private is defined, the list includes
+    both public and private functions.  When generic functions is installed
+    and used elsewhere, only the public list is returned.
+
+ ~ Marty McGowan 2017-12-30 
+
+EOF
+
+}
+public_update () 
+{ 
+    : date: 2018-01-11;
+    : ~[ optional library [ list of functions ] ];
+    : date: 2018-02-08;
+    trace_call A $*;
+    function remove_init () 
+    { 
+        grep -v '_init 1>&2$' $*
+    };
+    function no_datetags () 
+    { 
+        grep -v ': date' ${*:--}
+    };
+    function log_update () 
+    { 
+        report_notargcount 3 $#;
+        pptlog TO: $1, functions ${*:2} >> ~/lib/update.log
+    };
+    case $# in 
+        0)
+            $(myname) $PUBLIC_LIBRARY $(public_alllocal)
+        ;;
+        1)
+            $(myname) $1 $(public_alllocal)
+        ;;
+        *)
+            report_notargcount 2 $# TOlib function ... && return 3;
+            report_notfile $1 && return 1;
+            report_notfunction ${2:-noSuchFunction} && return 2;
+            : echo libmg_updating $*;
+            : remove_init, now obsolescent, since public libraries;
+            : .. have initialization functions, but DO NOT invoke them.;
+            remove_init $1 $(needir .tmp)/nxlib;
+            : --------------------------------------------------------;
+            set $1 $(libmg_updating $*);
+            trace_call UPDATING $*;
+            read a < /dev/tty;
+            case $# in 
+                1)
+                    return
+                ;;
+                *)
+                    libmg_gather ${*:2} >> .tmp/nxlib
+                ;;
+            esac;
+            libmg_nextlib $1 .tmp/nxlib;
+            libmg_reclaim $1 ?*lib
+        ;;
+    esac
+}
+libmg_reclaim () 
+{ 
+    : date: 2018-02-08;
+    report_notfile ${2:-"Missing Local Library"} && return 1;
+    local publib=$1;
+    shift;
+    for loclib in $*;
+    do
+        trace_call RECLAIM $loclib;
+        read a < /dev/tty;
+        backup $loclib;
+        cat $loclib $publib > .tmp/nxlib;
+        . .tmp/nxlib;
+        declare -f $(functions $loclib) > .tmp/nxlib;
+        mv .tmp/nxlib $loclib;
+        backup $loclib;
+    done
+}
+libmg_nextlib () 
+{ 
+    : date: 2018-02-08;
+    trace_call BACKING $*;
+    read a < /dev/tty;
+    backup $1;
+    libmg_crunch $2;
+    cp $2 $1;
+    backup_lib $1
+}
+libmg_gather () 
+{ 
+    : date: 2018-02-08;
+    report_notargcount 1 $# NO Functions to Update && return 1;
+    trace_call NEW, UPDATE functions $*;
+    shd_setdate $*;
+    return 0
+}
+libmg_f4file () 
+{ 
+    report_notfile $1 && return 1;
+    libmg_nodatetags $1 | libmg_f3file ${2:-$1};
+    trace_call $*;
+    read a < /dev/tty
+}
+libmg_nodatetags () 
+{ 
+    grep -v ': date' ${*:--}
+}
+libmg_f3file () 
+{ 
+    : date: 2017-07-10;
+    : from: f2file;
+    : date: 2018-01-03;
+    report_notpipe && return 1;
+    local d=.$(basename $1);
+    trace_call $# $*, d: $d;
+    : gawk and awk differ in CLOSE built-in;
+    : gawk uses FCLOSE, awk CLOSE ?!;
+    rm -fr $d;
+    mkdir $d;
+    awk -v dir=$d/ -f $(awk_file f2file) 2> f3file.err
+}
+libmg_updating () 
+{ 
+    : returns names of changed functions in local libs;
+    : by creating .subdirectories of local libs files;
+    : and .thePublicOne has the current public copy;
+    : date: 2018-02-08;
+    trace_call C tolib: $1, args: ${*:2};
+    rm -fr .*lib .thePublicOne;
+    :;
+    : ------------------------------------------ The LOCAL Libs --;
+    foreach libmg_f4file ?*lib 2> /dev/null;
+    :;
+    trace_call D dirs: $(echo .*lib);
+    : put the public functions in a special place;
+    : ------------------------------------------ The PUBLIC Lib --;
+    remove_init $1 | libmg_f4file $1 thePublicOne 2> /dev/null;
+    trace_call E;
+    read a < /dev/tty;
+    : be careful of STDOUT from here;
+    : key to selecting just those function who have changed;
+    trace_call f $*;
+    read a < /dev/tty;
+    args_uniq $(update_names .thePublicOne ${*:2});
+    echo
+}
+libmg_seeupdate () 
+{ 
+    : post-mortem inspection of public_install, libmg_updating;
+    :;
+    args_uniq $(update_names .thePublicOne $(public_alllocal))
+}
+update_names () 
+{ 
+    report_notdirectory $1 && return 1;
+    report_notfunction $2 && return 2;
+    trace_call $*;
+    for fun in ${*:2};
+    do
+        trace_call fun $fun;
+        : function is not in tolib, it is NEW;
+        [[ -f $1/$fun ]] || { 
+            echo $fun;
+            continue
+        };
+        : now find it any other .*lib;
+        set $1 .*lib/$fun $1;
+        set $1 $(dirname $2);
+        [[ -f $2/$fun ]] || { 
+            continue
+        };
+        : if different, its CHANGED;
+        diff $2/$fun $1 > /dev/null || echo $fun;
+    done
+}
+libmg_nxlib () 
+{ 
+    trace_call $*;
+    report_notfile $1 && return 1
+}
+libmg_canon () 
+{ 
+    : ~ functionlibrary;
+    : does: formats all functions in canonical format.;
+    : and removes _all_ _init calls as in;
+    : see: fun_starter;
+    : date: 2018-01-29;
+    report_notfile $1 && return 1;
+    report_notlib $1 && return 2;
+    . $1;
+    declare -f $(functions $1) > .newlib;
+    backup_lib $1;
+    mv .newlib $1
+}
+libmg_crunch () 
+{ 
+    : date: 2017-01-23;
+    : prefer a local file;
+    : date: 2018-01-06;
+    report_notfile ${1:-MissingArgument} && return 1;
+    : what is this test defending against that could not;
+    : .. be a bit smarter;
+    case $1 in 
+        ./*)
+
+        ;;
+        *)
+            [[ -f ./$1 ]] && set ./$1
+        ;;
+    esac;
+    set $1 .l;
+    backup_lib $1;
+    init=$(basename $1);
+    init=${init%lib}_init;
+    trace_call INIT $init SOURCE $1;
+    isfunction $init || { 
+        source $1
+    };
+    declare -f $(functions $1) > $2;
+    mv $2 $1;
+    backup_lib $1
+}
+libmg_local_test () 
+{ 
+    trace_call $*;
+    smart_islocal || return;
+    trace_call SUCCESS
+}
+libmg_locality () 
+{ 
+    : hdr: -------------------------------------------------- PRIVATE Functions --;
+    trace_call $*;
+    smart_islocal || return;
+    public_libraryname publib;
+    smart_def libmg_source $PWD;
+    :;
+    : ----------------------------------- Installable Functions --;
+    : concatentates the _{public,utils} list, used by public_update;
+    : as ~ PUBLIC_LIB locallib {libhandle}_install;
+    :;
+    smart_install libmg;
+    : --------------------------------------- Private Functions --;
+    : for completeness sake, of no particular utility, other;
+    : . than to identify where functions may be found in source;
+    : . $ {family}_source lists the home directory, therefore;
+    : . $ smart_function {family}_private;
+    : . lists the purely private functions;
+    :;
+    smart_def libmg_private libmg_{private,locality,install};
+    smart_add libmg_private sim_{prepped,update} test_update;
+    :;
+    : -------------------------------------- Obsolete Functions --;
+    :;
+    smart_def libmg_unset libmg_functions;
+    smart_add libmg_unset f3file gathernxlib;
+    libmg_unset unset
+}
+sim_prepped () 
+{ 
+    trace_call $*;
+    pushd .locallib/;
+    cleandirlist;
+    for f in *;
+    do
+        g=../.publiclib/$f;
+        [[ -f $g ]] || { 
+            echo $f;
+            continue
+        };
+        diff $f $g > /dev/null || echo $f;
+    done;
+    pushd
+}
+sim_update () 
+{ 
+    trace_call $*;
+    set $(which publiclib) locallib;
+    f2file $1;
+    f2file $2;
+    sim_prepped
+}
+test_update () 
+{ 
+    : only common changes, sim_update returns all changes,;
+    : - public_allocall returns functions to be shared publicly;
+    trace_call $*;
+    comm ${1:--12} <(sim_update | sort) <(public_alllocal |sort)
+}

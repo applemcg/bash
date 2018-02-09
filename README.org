@@ -1,0 +1,101 @@
+
+**   bash
+
+Directories here each have a ~mklib~, a library of local bash shell
+functions.  The product of each *mk* is a public library of one or
+more function families.
+
+These libraries implement the [[https://github.com/applemcg/shelf/blob/master/shelf.org][SHELF DRAFT]] Standard, and tools
+supporting shell functions and library development.
+
+Not required in the SHELF Draft, these libraries add PUBLIC and
+PRIVATE status to local functions.   The PUBLIC functions are
+collected in their respective public libraries.  The SHELF Draft
+recognizes a library may contain more than one family.
+
+** Constructing a library
+
+
+
++ The library is reconstructed by this command where ~functions~
+  returns the function names defined in the library.
+
+: declare -f $(functions shelflib) > newshelflib
+
++ Since the ~declare -f~ bash built-in formats the functions, then
+  sharp-comments are stripped. Two ways to work around the apparent
+  liability are offered.
+
++ A library may have one or more functions named {something} _init.
+  For example, the ~shelflib~ may have a function named ~shelf_init~
+
++ since the SHELF standard describes a /family/ feature, a family of
+  functions in shelflib may have supporting functions are named
+  ~shelf_doc~, ~shelf_help~, ~shelf_manpp~, etc.
+
++ there is a function to define a family. it supplies default
+  definitions for some supporting functions
+
+** Current Status
+
+This REPO also supplies features for library management.  A source 
+library identifies functions as PUBLIC, UTILITY, or PRIVATE. 
+
+To facilitate testing, code best lives in a source (e.g. "src") tree,
+separate from the run-time.  User commands update changed public and
+utility functions in the ~public~ library which is on the user's
+~PATH~ variable.
+
+Functions are updated in FAMILY groups, and stamped with the date of
+update, a comment in the body.
+
+A function exposes the location of the PRIVATE directory, where the
+family is maintained.
+
+: {family}_source # e.g. public_source
+
+Functions destined for a PUBLIC library may come from different
+sources.
+
+A most recent (1/17/18) development: in a source (non-runtime) tree,
+a library should not call its _init function.   Why?  In order to 
+distinguish development from run-time behavior, at run-time the 
+library needs self-initialization, in development it doesn't.  In 
+development, the functions may be loaded into memory, and jointly
+tested without one library exposing it's dependencies on another 
+before testing. 
+
+This point is key to this mode of development.  With the goal 
+of minimizing co-dependent families, A has dependencies on B, and 
+B on A, if either library is self-initialized, they may require
+the other's initialization before theirs may complete.
+
+In these instances, a *mklib* recognizes this requirement, offering
+concurrent loading separate from initialization.
+
+** Anticipated Feature
+
+Since the online world is not navigated by the shell alone, the other
+features in a [[https://sourceforge.net/projects/mknew/files/mknew/release-1-2/][runtime environment]] are planned for inclusion.  Since
+these objects are usually complete files, they may be readily included
+later.
+
+Support for a negotiation feature, "which public library does this
+family belong to", for example:
+
++ every shell user in organization wants these function families
++ everyone in this department gets a particular family: development,
+  operations, support, production
++ allow  re-arranging the family-library assignment with little effort.
+
+** Rationale
+
+A private library may contain multiple FAMILIES, collected to permit
+concurrent unit testing.  The privilege should not be abused, by
+collecting too many families in a single private library
+
+For example, there may be co-dependencies which offer difficult
+chicken-or-egg situations. The SHELF recognized this possibility,
+but left no direction on why or why not families share a library
+at the source level.
+

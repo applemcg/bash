@@ -1,0 +1,123 @@
+util_init () 
+{ 
+    smart_def util_public util_init;
+    smart_add util_public UC comment funct_list ignore quietly;
+    smart_add util_public notfunction myname;
+    smart_add util_public setenv spaceit printfirst sfg ymd_hms;
+    smart_function util_locality
+}
+util_locality () 
+{ 
+    smart_islocal || return;
+    smart_def util_source $PWD;
+    public_libraryname shelflib;
+    smart_install util
+}
+UC () 
+{ 
+    : file STDIN;
+    : arguments minimum 0;
+    : returns list in UPPER CASE;
+    : optional command arguments are folded otherwise stdin;
+    [ $# -gt 0 ] && { 
+        echo $* | tr a-z A-Z
+    } || { 
+        cat - | tr a-z A-Z
+    }
+}
+assert_construction () 
+{ 
+    : mfg: assert_init;
+    : date: 2018-01-18;
+    ${@:-echo} assert_make assert_generate assert_functions assert_template
+}
+comment () 
+{ 
+    echo $* 1>&2
+}
+funct_list () 
+{ 
+    : date 2016-11-13;
+    spaceit $* | awk '$2 ~ /^\(\)$/ {print $1}'
+}
+ignore () 
+{ 
+    : ~ cmmd args ...;
+    : returns STATUS, but not STDOUT;
+    $@ > /dev/null
+}
+myname () 
+{ 
+    : ~ [n];
+    : returns name of caller OR callers caller ...;
+    echo ${FUNCNAME[${1:-1}]}
+}
+notfunction () 
+{ 
+    : date 2016-12-03;
+    isfunction $1 || echo $1
+}
+printfirst () 
+{ 
+    : ~ STDIN or file ...;
+    : lists line with first INSTANCE of first FIELD;
+    trace_call $*;
+    awk '!printed [$1]++' $*
+}
+quietly () 
+{ 
+    : ~ cmmd args ...;
+    : returns STATUS, but not STDERR;
+    $@ 2> /dev/null
+}
+setenv () 
+{ 
+    : ~ NAME value ...;
+    : exports NAME to the environment,;
+    : set to value ...;
+    : date: 2017-08-23;
+    [[ $# -lt 1 ]] && return;
+    local na=$1;
+    shift;
+    eval $na=\"$*\";
+    export $na
+}
+sfg () 
+{ 
+    : ~ [pattern];
+    : Set Functions Grep pattern;
+    : returns FUNCTIONS in current ENVIRONMENT with pattern;
+    : e.g. sfg PIPE wc counts number of functions;
+    trace_call $*;
+    set | functions | grep -i ${*:-.}
+}
+spaceit () 
+{ 
+    : anagram of letters in set, pipe, cat;
+    : date 2016-10-27;
+    : date 2016-11-03;
+    : date 2016-11-12;
+    function ispipe () 
+    { 
+        [[ -p /dev/stdin ]]
+    };
+    case $# in 
+        0)
+            ispipe && cat || set
+        ;;
+        *)
+            cat $*
+        ;;
+    esac
+}
+trace_old () 
+{ 
+    : date: 2017-08-19;
+    ${@:-echo} trace_{set,show,off,on,isOFF,isOKto,base,basic,easy,replace,fbdy,level,toggle,summary,state}
+}
+ymd_hms () 
+{ 
+    : date: 2017-05-29;
+    trace_call $*;
+    date "+%Y_%m%d_%H%M%S${1:+ $*}"
+}

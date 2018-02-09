@@ -1,0 +1,250 @@
+report_copyright () 
+{ 
+    comment "Copyright (C) 2015-2018, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
+}
+report_init () 
+{ 
+    fam_iam;
+    smart_def report_public report_{init,copyright,source};
+    smart_add report_public report_nofilefrom;
+    smart_add report_public report_not{argcount,base,blockspecial};
+    smart_add report_public report_not{calledby,characterspecial,command};
+    smart_add report_public report_not{directory,exactcount,executable,existing};
+    smart_add report_public report_not{file,file_gt_zero,filegreaterthanzero,function};
+    smart_add report_public report_not{group,groupiseuid,largeenough,lib};
+    smart_add report_public report_not{modifiedsinceread,nonzerostring};
+    smart_add report_public report_not{owner,owneriseuid,pipe,readable};
+    smart_add report_public report_not{setgroupid,setuserid,socket,stickybitset,symboliclink};
+    smart_add report_public report_not{terminal,true,writable,zerolengthstring};
+    smart_add report_public report_{isfile,emptyfile,usage};
+    smart_function report_locality
+}
+report_locality () 
+{ 
+    smart_islocal || return;
+    smart_def report_source $PWD;
+    public_libraryname shelflib;
+    smart_install report;
+    : superceded by _notargcount;
+    unset public_needcount
+}
+report_nofilefrom () 
+{ 
+    set $(eval $*) /dev/null $*;
+    [[ -f $1 ]] && return 1;
+    shift;
+    report_usage \'$*\' did not return a file name.
+}
+report_notbase () 
+{ 
+    : date: 2017-05-12;
+    [[ $(basename $PWD) == "$1" ]] && return 1;
+    comment change to "$1" directory
+}
+report_notfilegreaterthanzero () 
+{ 
+    [[ -s $1 ]] && return 1;
+    report_usage $1 is NOT a filegreaterthanzero
+}
+report_notgroupiseuid () 
+{ 
+    [[ -G $1 ]] && return 1;
+    report_usage $1 is NOT a file with groupiseuid
+}
+report_notlargeenough () 
+{ 
+    [[ $2 -ge $1 ]] && return 1;
+    report_usage $1 $(echo 1: $1, 2: $2 3...: ${*:3})
+}
+report_notowneriseuid () 
+{ 
+    [[ -O $1 ]] && return 1;
+    report_usage $1 is NOT a file with owneriseuid
+}
+report_nottrue () 
+{ 
+    : date: 2017-07-18;
+    eval "$@" && return 1;
+    report_usage $@ FAILED
+}
+report_emptyfile () 
+{ 
+    [[ -s $1 ]] && return 1;
+    report_usage File: is empty
+}
+report_isfile () 
+{ 
+    [[ -f $1 ]] || return 1;
+    report_usage $1 IS a file and should not be ${*:2}
+}
+report_notblockspecial () 
+{ 
+    [[ -b $1 ]] && return 1;
+    report_usage $1 is NOT a blockspecial file
+}
+report_notcalledby () 
+{ 
+    set ${1:-/dev/null} $(myname 3) non-Existant-function;
+    [[ $2 == $1 ]] && return 1;
+    report_usage was NOT called by $1.
+}
+report_notcharacterspecial () 
+{ 
+    [[ -c $1 ]] && return 1;
+    report_usage $1 is NOT a characterspecial file
+}
+report_notdirectory () 
+{ 
+    [[ -d $1 ]] && return 1;
+    report_usage $1 is NOT a Directory
+}
+report_notexecutable () 
+{ 
+    [[ -x $1 ]] && return 1;
+    report_usage $1 is NOT an executable file
+}
+report_notexisting () 
+{ 
+    [[ -e $1 ]] && return 1;
+    report_usage $1 is NOT an existing file
+}
+report_notfunction () 
+{ 
+    declare -f $1 > /dev/null && return 1;
+    report_usage $1 is NOT a function
+}
+report_notgroup () 
+{ 
+    [[ -G $1 ]] && return 1;
+    report_usage $1 is NOT a file with group or egid
+}
+report_notnonzerostring () 
+{ 
+    [[ -n $1 ]] && return 1;
+    report_usage $1 is NOT a nonzerolengthstring
+}
+report_notowner () 
+{ 
+    [[ -O $1 ]] && return 1;
+    report_usage $1 is NOT a file with owner or euid
+}
+report_notpipe () 
+{ 
+    [[ -p /dev/stdin ]] && return 1;
+    report_usage is NOT reading a pipe
+}
+report_notreadable () 
+{ 
+    [[ -r $1 ]] && return 1;
+    report_usage $1 is NOT a readable file
+}
+report_notsetgroupid () 
+{ 
+    [[ -g $1 ]] && return 1;
+    report_usage $1 is NOT a file with setgroupid
+}
+report_notsetuserid () 
+{ 
+    [[ -u $1 ]] && return 1;
+    report_usage $1 is NOT a file with setuserid
+}
+report_notsocket () 
+{ 
+    [[ -S $1 ]] && return 1;
+    report_usage $1 is NOT a socket
+}
+report_notstickybitset () 
+{ 
+    [[ -k $1 ]] && return 1;
+    report_usage $1 is NOT a file with its stickybitset
+}
+report_notsymboliclink () 
+{ 
+    [[ -L $1 ]] && return 1;
+    report_usage $1 is NOT a symboliclink
+}
+report_notwritable () 
+{ 
+    [[ -w $1 ]] && return 1;
+    report_usage $1 is NOT a writable file
+}
+report_notzerolengthstring () 
+{ 
+    [[ -z "$1" ]] && return 1;
+    report_usage $1 is NOT a zerolengthstring
+}
+report_usage () 
+{ 
+    comment USAGE $(myname 3): $*
+}
+report_notargcount () 
+{ 
+    [[ $2 -ge $1 ]] && return 1;
+    report_usage need at least $1 arg/s: $(shift 2; echo $*)
+}
+report_notcommand () 
+{ 
+    quietly ignore type -a $1 && return 1;
+    report_usage $1 is NOT a command
+}
+report_notlib () 
+{ 
+    : todo: does this belong in libmg?;
+    : date: 2018-01-29;
+    [[ $(functions ${1:-MissingFirstArgument} | grep _init$ | wc -l) -gt 0 ]] && return 1;
+    report_usage $1 is NOT a shell function library
+}
+report_notmodifiedsinceread () 
+{ 
+    [[ -N $1 ]] && return 1;
+    report_usage $1 is NOT modified since last READ
+}
+report_notterminal () 
+{ 
+    case $1 in 
+        [0-9])
+            [[ -t $1 ]] && return 1;
+            report_usage $1 is NOT a TERMINAL
+        ;;
+        *)
+            report_usage $1 is not in range 0 - 9
+        ;;
+    esac
+}
+report_notfile () 
+{ 
+    [[ -f $1 ]] && return 1;
+    report_usage $1 is NOT a file
+}
+report_notfile_gt_zero () 
+{ 
+    [[ -s $1 ]] && return 1;
+    report_usage $1 is NOT a filegreaterthanzero
+}
+report_notexactcount () 
+{ 
+    [[ $2 -eq $1 ]] && return 1;
+    report_usage need exactly $1 arg/s: ${*:3}
+}
+assert_help () 
+{ 
+    comment source ${BASH_SOURCE[$*]}
+}
+assert_init () 
+{ 
+    : assert_make;
+    smart_def assert_public assert_{init,help};
+    smart_def assert_construction assert_{make,generate,functions,template};
+    functions ${BASH_SOURCE[$*]};
+    assert_help;
+    fam_iam;
+    smart_function assert_locality
+}
+assert_locality () 
+{ 
+    smart_islocal || return;
+    smart_def assert_source $PWD;
+    public_libraryname shelflib;
+    smart_install assert
+}

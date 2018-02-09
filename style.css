@@ -1,0 +1,50 @@
+# style.css
+
+# header style
+h1 {
+   font-size: 2.0em;
+   margin-top: 1.9em;
+   margin-bottom: 0.3em;
+}
+h2 {
+   font-size: 1.5em;
+   margin-top: 2.4em;
+   margin-bottom: 0.3em;
+}
+h3 {
+   font-size: 1.25em;
+   margin-top: 1.25em;
+   margin-bottom: 0.3em;
+}
+
+ul {
+   margin: 0;
+}
+body {
+   font-family: Arial, Helvetica, sans-serif;    
+   # letter-spacing: 0.075em;
+   # line-height: 1.4;
+   margin: 0em auto;
+   padding: 2em;
+   width: 45em;
+   max-width: 768px;
+}
+p, dd, blockquote { 
+ 	text-align: justify;
+}
+a {
+ 	text-decoration: none;
+}
+a:link {
+ 	color: blue
+}
+a:visited {
+ 	color: brown
+}
+a:hover {
+ 	text-decoration: underline; 
+} 
+table, th, td {
+    center;
+    border: 1px solid black;
+}

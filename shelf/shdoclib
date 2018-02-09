@@ -1,0 +1,321 @@
+shd_copyright () 
+{ 
+    comment "Copyright (C) 2016-2018, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu"
+}
+shd_init () 
+{ 
+    : -- SHD ------------------------------------------- PUBLIC --;
+    fam_iam;
+    smart_def shd_top shdoc shd_{oc,each,with,test};
+    smart_def shd_public shd_{init,copyright,source};
+    smart_add shd_public shd_{each,getdate,latest};
+    smart_add shd_public shd_{oc,one,rdbtags,setdate};
+    smart_add shd_public shd_{taglist,tagnames,tags,trim};
+    smart_add shd_public shd_{update,with};
+    smart_add shd_public shd_{mfgd,unmfgd};
+    smart_add shd_public complement;
+    :;
+    : the _public _private should necessarily;
+    : span the list of all local functions;
+    :;
+    smart_function shd_locality
+}
+shd_latest () 
+{ 
+    : date: 2016-10-16;
+    : uses: shd_getdate awk;
+    : date: 2018-01-17;
+    shd_getdate $* | awk '
+
+        { sub(/;/,"", $4); date[$1] = $4 };
+    END { for (d in date) print date[d], d; }
+
+    '
+}
+shd_rdbtags () 
+{ 
+    : args: function ...;
+    : stdout: RDB table of shd_tags;
+    : uses: rdb_hdr shd_tags;
+    : date: 2017-07-10;
+    : date: 2018-01-17;
+    rdb_hdr name tag value;
+    shd_tags $*
+}
+shd_setdate () 
+{ 
+    : appends date tag to function, avoiding redundancy;
+    : as last line among leading shdoc comments;
+    : -----;
+    : this uses the local function trick. trailing UNSET;
+    : date: 2016-09-30;
+    : update: change date from comment to shd_ tag;
+    : uses: awk declare foreach fun_allnames uniq;
+    : args: .. function .. library ..;
+    : stdout: function_body ...;
+    : date: 2018-01-17;
+    trace_call $*;
+    function _dffx () 
+    { 
+        declare -f $1 | awk -v date=$(date +%F) '
+
+        BEGIN       { code = 0 }
+
+        NR < 3 || ( \
+        NR > 2 && !code && $1 ~ /^:$/ \
+	          ) {
+	              print; next
+		    }
+        !code       {
+	              printf "    : date: %s;\n", date
+		      code = 1
+		    }
+		    { print }
+
+     ' | uniq | tee .$(myname).out
+    };
+    foreach _dffx $(fun_allnames ${*:-shd_setdate});
+    unset _dffx
+}
+shd_taglist () 
+{ 
+    : uses: row column rd sort;
+    : stdout: column of unique tags;
+    : date: 2017-03-30;
+    : date: 2018-01-17;
+    report_notpipe && return 1;
+    row 'tag !~ /date'/ 2> row.err | column tag | rd sort -u
+}
+shd_update () 
+{ 
+    : date: 2017-03-30;
+    : date: 2018-01-17;
+    shd_getdate $* | awk '$3 !~ /date:/ { print $1 }' | uniq
+}
+shd_locality () 
+{ 
+    : -- SHD ------------------------------------------ PRIVATE --;
+    smart_islocal || return;
+    smart_def shd_source $PWD;
+    smart_def shd_private shd_{assert,clean,demo};
+    smart_add shd_private shd_{justcolon,locality,test};
+    public_libraryname shelflib;
+    smart_install shd;
+    declare -f {test_,shd_{un,}}mfgd;
+    echo test_mfgd
+}
+shdoc () 
+{ 
+    : this is a shell doclib "shdoc" comment;
+    : an shdoc comment is the first ":"-origin lines;
+    : in the shell function, the rest being the executable.;
+    for f in ${*:-$(myname)};
+    do
+        shd_each $f;
+    done
+}
+shd_with () 
+{ 
+    : removes shd_less functions from shdoc results;
+    : creating function {name}_doc for function "name";
+    shdoc $* | awk '
+    #                 { print "DEBUG: ", fcount, last > "/dev/stderr"; }
+    $1 ~ /function/   { fcount++; last = $0; next;  }
+    $1 ~ /}/ && last  { next }
+    last              { print last; last = ""; fcount = 0;  }
+    fcount == 0       { print }
+                   '
+}
+shd_each () 
+{ 
+    report_notfunction $1 && return 1;
+    report_notcalledby shdoc && return 2;
+    trace_call $*;
+    echo "function ${1}_doc {";
+    declare -f $1 | awk '
+       NR > 2 {
+                if ( $1 !~ /^:/ ) exit
+                else              print
+              }
+        ';
+    echo "}"
+}
+shd_oc () 
+{ 
+    shdoc $@
+}
+shd_trim () 
+{ 
+    : ~ function;
+    : user function to show candidate comments;
+    report_notfunction $1 && return 1;
+    trace_call $*;
+    declare -f $1 | awk ' $1 !~ /^:$/'
+}
+shd_test () 
+{ 
+    : 1. test default, NO arguments, then;
+    : 2. stub out test all functions in the library;
+    : 3. demonstrate ignore subsequent comments;
+    : 4. test shd_with;
+    : 5. test shd_each defends against non-shdoc call;
+    shdoc;
+    :;
+    set $(sfg shd_);
+    : doit shdoc $*;
+    shd_with $*;
+    shd_each $*;
+    declare -f shd_test | grep -v '^ *:' 1>&2
+}
+shd_assert () 
+{ 
+    : ~ function;
+    : returns: candidate comments;
+    : turns report_not... into colon-comment for docstring.;
+    : uses: shd_justcolon sed;
+    report_notfunction $1 && return 1;
+    trace_call $*;
+    declare -f $1 | sed 's/^\( *\)\(report_not\)/\1: \2/' | shd_justcolon
+}
+shd_clean () 
+{ 
+    : removes empty doc strings from stdin;
+    report_notpipe && return 1;
+    awk '
+        # !NF             { next }
+        #                 { printf "DEBUG: NR(%d), fc(%d): %s\n", NR, fcount, last > "/dev/stderr"; }
+        $1 ~ /function/   { fcount++; last = $0; next;  }
+        $1 ~ /}/ && last  { next }
+        last              { print last; last = ""; fcount = 0;  }
+        fcount == 0       { print }
+    '
+}
+shd_demo () 
+{ 
+    shdoc $(sfg shd_)
+}
+shd_justcolon () 
+{ 
+    report_notpipe && return 1;
+    awk '
+	   NR > 2 {
+               if ( $1 !~ /^:/ ) exit
+	       else              print
+           }
+        '
+}
+shd_one () 
+{ 
+    : date 2017-02-09;
+    : this is a shell doclib "shdoc" comment;
+    : --------------------------------------;
+    : an shdoc comment is the first ":"-origin lines;
+    : in the shell function, the rest being the executable.;
+    : writes a function {name}_doc for function "name";
+    : note: "function NAME_doc () {" is a sticky format.;
+    : uses: shd_trim;
+    report_notfunction $1 && return 1;
+    printf "function %s_doc () {\n" $1;
+    shd_trim $1;
+    echo "}"
+}
+shd_tagnames () 
+{ 
+    : date: 2017-04-19;
+    report_notfunction $1 && return 1;
+    shd_tags $* 2> /dev/null | field 2 | sort -u
+}
+shd_tags () 
+{ 
+    : args: function ...;
+    : format: function tag-line;
+    : uses: shd_oc awk;
+    shd_oc $* | awk '
+
+        $1 ~ /^function$/ { name = $2; sub(/_doc$/,"",name); }
+	$2 ~ /:$/         {
+           tag = $0
+	   sub(/: /,"",tag)
+   	   sub(/: /,"\t",tag)
+      	   sub(/;$/,"",tag)
+	   printf "%-9s\t%s\n", name, tag
+        }
+	'
+}
+shd_mfgd () 
+{ 
+    : manufactured function arguments;
+    : date: 2018-01-21;
+    trace_call $*;
+    function _is () 
+    { 
+        shdoc $1 | grep mfg: > /dev/null && echo $1
+    };
+    quietly foreach _is $*;
+    unset _is
+}
+complement () 
+{ 
+    : ~ selectionFunction function ...;
+    : returns logical complementof selection function ...;
+    report_notargcount 2 $# selection function ...;
+    comm -23 <(wpl ${*:2} | sort) <($1  ${*:2} | wpl | sort)
+}
+shd_unmfgd () 
+{ 
+    : UNmanufactured function arguments;
+    report_notargcount 1 $# function ...;
+    complement shd_mfgd $*
+}
+shd_locality () 
+{ 
+    : -- SHD ------------------------------------------ PRIVATE --;
+    smart_islocal || return;
+    smart_def shd_source $PWD;
+    smart_def shd_private shd_{assert,clean,demo};
+    smart_add shd_private shd_{justcolon,locality,test};
+    public_libraryname shelflib;
+    smart_install shd;
+    declare -f {test_,shd_{un,}}mfgd;
+    echo test_mfgd
+}
+shd_getdate () 
+{ 
+    : date: 2016-10-01;
+    : test for file arguments;
+    : collect date-stamps from functions, by args;
+    : 0 -- all functions;
+    : N -- library ... function ...;
+    : date: 2017-03-11;
+    : add RE to allow date: field;
+    : date: 2018-01-17;
+    trace_call $*;
+    { 
+        case $# in 
+            0)
+                set
+            ;;
+            *)
+                fun_allbody ${*:--}
+            ;;
+        esac
+    } | awk ' 	    
+        $2 ~ /^\(\)$/     { fun = $1 } 
+
+        $1 ~ /^:$/ && $2 ~ /^date:*$/ {
+
+                             printf "%s\t%s\n", fun, $0
+			  }
+    '
+}
+test_mfgd () 
+{ 
+    { 
+        local_source > /dev/null;
+        echo UNmanufactured =====;
+        shd_unmfgd $(public_alllocal);
+        echo MANufactured =====;
+        shd_mfgd $(public_alllocal)
+    } 2> mk.err
+}
