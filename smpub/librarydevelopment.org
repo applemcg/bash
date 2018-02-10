@@ -1,7 +1,5 @@
 #+TITLE: Function Library Development
 #+INCLUDE: orgheader.org
-* COMMENT TODO
-
 * Abstract
 
 My shell library development practice has matured to a point where

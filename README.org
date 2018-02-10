@@ -23,6 +23,10 @@ recognizes a library may contain more than one family.
 From the latest addition I learned the template for a source document:
 
 +  /{github-user-url}/{REPO}/blob/master/{subdir/filename}
+* COMMENT TODO
+** TODO bring all library, sub/library README into parallel .orgs
+** TODO then, decide where to place detailed descriptions, e.g. compare/contrast shelflib.org
+
 * Features
 
 This REPO builds PUBLIC libraries to support the SHELF, and provides
