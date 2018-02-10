@@ -13,6 +13,16 @@ PRIVATE status to local functions.   The PUBLIC functions are
 collected in their respective public libraries.  The SHELF Draft
 recognizes a library may contain more than one family.
 
+* References
+
++ the SHELF Draft Standard: [[https://github.com/applemcg/shelf/blob/master/shelf.org]]
++ the make utility: [[https://en.wikipedia.org/wiki/Make_(software)]]
++ on Smart Names:  [[https://github.com/applemcg/bash/blob/master/smpub/smartnames.org]]
++ library Development: [[https://github.com/applemcg/bash/blob/master/smpub/librarydevelopment.org]]
+
+From the latest addition I learned the template for a source document:
+
++  /{github-user-url}/{REPO}/blob/master/{subdir/filename}
 * Features
 
 This REPO builds PUBLIC libraries to support the SHELF, and provides
@@ -144,9 +154,4 @@ chicken-or-egg situations. The SHELF recognized this possibility,
 but left no direction on why or why not families share a library
 at the source level.
 
-* References
 
-+ the SHELF Draft Standard: [[https://github.com/applemcg/shelf/blob/master/shelf.org]]
-+ the make utility: [[https://en.wikipedia.org/wiki/Make_(software)]]
-+ on Smart Names: [[./smpub/smartfiles.org]]
-+ library Development: [[./smpub/librarydevelopment.org]]

@@ -1,5 +1,6 @@
 #+TITLE: Function Library Development
 #+INCLUDE: orgheader.org
+* COMMENT TODO
 
 * Abstract
 
@@ -12,9 +13,10 @@ First, a few principles:
 + some libraries are truly public, therefore
 + most libraries are local, so
 + development begins in the local libraries, after which
-+ you discover functions more general then purely local functions, 
++ you discover functions more general than purely local functions, 
 + so these get promoted to the public library, which should tell us that
-+ there is a special place to fix, upgrade, or maintain a function.
++ there is a special place to maintain, fix, test, and upgrade a
+  function without touching the current run-time version
 
 So, let's examine the life of a function, it's evolution if you will.
 But first, let's clear up what we mean by /public/, /local/, /general/, 
@@ -24,6 +26,10 @@ The discussion in [[overuse][overuse]] shows an example of history command use
 to construct command sequence to extend and narrow a query's
 focus to an objective.  The history command ~!!~ "bang-bang" repeats
 the last command.
+
+* references
++ a version of this paper appeared online at http://mcgowans.org/marty3/commonplace/software/librarydevelopment.html
++ the [[https://github.com/applemcg/bash/blob/master/README.org][BASH README]]
 
 * Building and Maintaining 
 ** Public Library
@@ -37,7 +43,7 @@ place by being sufficiently general.
 Functions are promoted to a public library from a local library.
 A local library may contain multiple families and a number of utility
 functions. A utility function is a generally useful function which
-doesn't seem to belong to a particular familiy.
+doesn't seem to belong to a particular family.
 
 A very few public libraries may be home to functions without a family.
 At least at the moment, in my very first function families, I've found
@@ -303,11 +309,11 @@ it's time to promote the fixlib functions to locallib:
 Concatenating the locallib and fixlib in that order prefers the latter definitions from
 fixlib over the same function definition in locallib when sourced.  The *lib_crunch* updates the 
 library:
-1. eleminating duplicated functions
-1. prefering tha latter definition
-1. and supplies the library initializatino call as the one allowable 
+1. eliminating duplicated functions
+1. preferring the latter definition
+1. and supplies the library initialization call as the one allowable 
 
-A  [[~/Dropbox/commonplace/software/swdiary-2017.org# ][recent developmen]
+A [[~/Dropbox/commonplace/software/swdiary-2017.org# ][recent development]]
 
 produces this list from the changes to my investment locallib:
 
@@ -417,12 +423,12 @@ group of subfuctions:
 + *copyright* -- a two- or three-line copyright statement
 
 + *firsttime* -- a function which unsets itself on first execution,
-  permintting, for example, one-time display of the copyright notice
-  when sourceing a library.
+  permitting, for example, one-time display of the copyright notice
+  when source-ing a library.
 
 + *help* -- anything the author may want to say about the family
 
-+ *init* -- may call *fam_iam* to initialze family sub-function names.
++ *init* -- may call *fam_iam* to initialize family sub-function names.
   A function library may have more than one family, each may have its
   own initialization. The library may have only one initialization
   call, the last line of source in the library, and it must re-direct
@@ -451,8 +457,8 @@ So, for example,
 *** smart, vs not smart names
 
 A smart function has a default behavior to return a name or list of names of
-functions, files, or any other conventient class of objects.  The optional
-behavior of a smart function is to execute its arugments as the command,
+functions, files, or any other convenient class of objects.  The optional
+behavior of a smart function is to execute its arguments as the command,
 rather than the *echo* which returns its names.
 
 #+BEGIN_SRC sh
@@ -476,7 +482,7 @@ $
 #+END_SRC
 
 The list of family-installed subfunctions, through *fam_iam*:
-/copyright, firsttime, help, list, varialble/, and /vars/ may be
+/copyright, firsttime, help, list, variable/, and /vars/ may be
 overridden by providing a definition prior to invoking *fam_iam*.
 
 The others in the list are typically smart names
@@ -669,13 +675,6 @@ awk_file ()
 
 * function references
 #+INCLUDE: functionrefs.org
-* references
-+ this paper appears online at http://mcgowans.org/marty3/commonplace/software/librarydevelopment.html
-+ [[../10_red/index.org][the Red Chapter]]
-+ [[https://github.com/applemcg/shelf/blob/master/shelf.org][SHELF proposal]].
-+ [[http://leanpub.com/ShellFunctions][Shell Functions]]
-+ [[./backupfunction.org][The Only Backup You'll Ever Need]].
-
 
 * history
 
@@ -683,4 +682,5 @@ awk_file ()
 |-------------------+------------------+---------|
 | opened            | <2017-04-17 Mon> |         |
 | add function refs | <2017-04-24 Tue> |         |
+| moved to github   | <2018-02-10 Sat> | at last |
 
