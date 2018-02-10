@@ -1,5 +1,5 @@
 
-**   bash
+* Bash
 
 Directories here each have a ~mklib~, a library of local bash shell
 functions.  The product of each *mk* is a public library of one or
@@ -13,8 +13,46 @@ PRIVATE status to local functions.   The PUBLIC functions are
 collected in their respective public libraries.  The SHELF Draft
 recognizes a library may contain more than one family.
 
-** Constructing a library
+* Features
 
+This REPO builds PUBLIC libraries to support the SHELF, and provides
+development tools to identify PUBLIC and PRIVATE functions.
+
+A part of the SHELF, a family named *fam* supplies functions 
+to define and use the family features.  While the SHELF doesn't
+specify a PUBLIC - PRIVATE distinction, it's family feature provides
+the means to distinguish and identify PUBLIC and PRIVATE functions.
+
+The Smart-Public facility supplies the naming conventions to collect
+the function types and install the PUBLIC functions in their public
+library.  At the moment, the libraries are function-specific, and the
+need will arise to install other run-time components: awk scripts,
+shell scripts, compiled programs and binary libraries, etc.
+
+** Smart-Public
+The Smart-Public folder /smpub/, supplies the tools to name the PUBLIC and
+PRIVATE function lists, to name the PUBLIC_LIBRARY, and the conventional
+run-time directories.
+It's libraries:
++ ~publib~ -- the *public* family, the function /public_public/ lists
+  it's PUBLIC functions
++ ~smartlib~ -- the *smart* family, has general-purpose functions
+  define, add, and delete names from a list.  An insight, the
+  ~smart_function~ allows run-time code to ignore otherwise PRIVATE
+  functions.
++ ~mgmtlib~ -- the *libmg* family, manages library construction.  It's
+  centerpiece, ~public_update~ updates a family's changed _public
+  functions in the current PUBLIC_LIBRARY
++ ~mklib~ -- composed of purely local, or PRIVATE functions supplies
+  *make* tools for the shell, without the burden of using the
+  stand-alone [[https://en.wikipedia.org/wiki/Make_(software)][make utility]].  This could become a PUBLIC library when
+  it's sufficiently general-purpose.  For the time being, each of the
+  public libraries will be built by their own mklib.
+** SHELF Library
+
+** /RDB Library
+
+* Constructing a library
 
 
 + The library is reconstructed by this command where ~functions~
@@ -36,34 +74,39 @@ recognizes a library may contain more than one family.
 + there is a function to define a family. it supplies default
   definitions for some supporting functions
 
-** Current Status
+* Current Status
 
 This REPO also supplies features for library management.  A source 
-library identifies functions as PUBLIC, UTILITY, or PRIVATE. 
+library identifies functions as PUBLIC or PRIVATE.  A UTILITY function
+is a public function, not sharing the family name.   
 
 To facilitate testing, code best lives in a source (e.g. "src") tree,
-separate from the run-time.  User commands update changed public and
-utility functions in the ~public~ library which is on the user's
-~PATH~ variable.
+separate from the run-time.  User commands update changed PUBLIC
+functions in the ~public~ library which is on the user's ~PATH~
+variable.
 
-Functions are updated in FAMILY groups, and stamped with the date of
-update, a comment in the body.
+Functions are updated in groups, and stamped with the date of update,
+a comment in the body.
 
-A function exposes the location of the PRIVATE directory, where the
-family is maintained.
+A function returns the location of the PRIVATE directory, where the
+family is maintained. Libraries in the ~_source~ directory identify
+the PUBLIC and PRIVATE functions.
 
 : {family}_source # e.g. public_source
+: $ public_source
+: /Users/applemcg/git/bash/smpub
+: $
 
 Functions destined for a PUBLIC library may come from different
 sources.
 
-A most recent (1/17/18) development: in a source (non-runtime) tree,
-a library should not call its _init function.   Why?  In order to 
-distinguish development from run-time behavior, at run-time the 
-library needs self-initialization, in development it doesn't.  In 
+A most recent (January '18) development: in a source (non-runtime)
+tree, a library should not call its _init function.  Why?  In order to
+distinguish development from run-time behavior, at run-time the
+library needs self-initialization, in development it doesn't.  In
 development, the functions may be loaded into memory, and jointly
-tested without one library exposing it's dependencies on another 
-before testing. 
+tested without one library exposing it's dependencies on another
+before testing.
 
 This point is key to this mode of development.  With the goal 
 of minimizing co-dependent families, A has dependencies on B, and 
@@ -73,7 +116,7 @@ the other's initialization before theirs may complete.
 In these instances, a *mklib* recognizes this requirement, offering
 concurrent loading separate from initialization.
 
-** Anticipated Feature
+* Anticipated Feature
 
 Since the online world is not navigated by the shell alone, the other
 features in a [[https://sourceforge.net/projects/mknew/files/mknew/release-1-2/][runtime environment]] are planned for inclusion.  Since
@@ -81,14 +124,16 @@ these objects are usually complete files, they may be readily included
 later.
 
 Support for a negotiation feature, "which public library does this
-family belong to", for example:
+family belong to". For example based on the user's job within a company:
 
 + every shell user in organization wants these function families
 + everyone in this department gets a particular family: development,
   operations, support, production
-+ allow  re-arranging the family-library assignment with little effort.
 
-** Rationale
+This should also permit re-arranging the family-library assignment with
+little effort.
+
+* Rationale
 
 A private library may contain multiple FAMILIES, collected to permit
 concurrent unit testing.  The privilege should not be abused, by
@@ -99,3 +144,9 @@ chicken-or-egg situations. The SHELF recognized this possibility,
 but left no direction on why or why not families share a library
 at the source level.
 
+* References
+
++ the SHELF Draft Standard: [[https://github.com/applemcg/shelf/blob/master/shelf.org]]
++ the make utility: [[https://en.wikipedia.org/wiki/Make_(software)]]
++ on Smart Names: [[./smpub/smartfiles.org]]
++ library Development: [[./smpub/librarydevelopment.org]]

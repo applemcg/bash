@@ -1,0 +1,249 @@
+#+TITLE: On Smart Names
+#+INCLUDE: orgheader.org
+
+* Abstract
+
+The smart name practice is shown to have originated as "smart files".
+The practice uses functions which return names of other objects: files
+and functions in the present usage.  The practice is called "smart" since
+the default behavior of a function is to return names.  Optional
+arguments to a smart function may perform other actions on the names.
+
+* Implementation
+
+The first requirement of a smart function is it's first argument must 
+also be a function or a command. It must fulfill this bit of shell syntax:
+
+: smart_fun () { ${@:-echo} namea nameb ... ; } 
+: declare -f $(smart_fun)    # shows the function bodies, or
+: smart_fun declare -f       # also works, so the default 
+: smart_fun                  # simply lists their names.
+
+** list maintenance
+
+After quite a bit of re-work, the smart, list maintenance functions
+are now regular. For example, where ~{sub}~ may be ~def, add, del~
+
+: smart_{sub} {foo_list} foo_{a,b,...}
+
+They accept the name of the smart list followed by
+the arguments, either to add or delete names from the list.  In order
+to expose the deletion mechanism, the *smart_trim* function is also
+include. Note, *smart_add* could also be used to create the initial
+list.  For safety's sake, a defensive programmer would ~unset~ the
+smart name. 
+#+BEGIN_SRC sh
+$ declare -f smart_def smart_add smart_del smart_trim 
+smart_def () 
+{ 
+    : date: 2017-06-10;
+    : date: 2017-06-14;
+    report_notargcount 2 $# listName member ... && return 1;
+    local boiler=": mfg: $(myname 2);: date: $(date +%Y-%m-%d)";
+    eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }"
+}
+smart_add () 
+{ 
+    : date: 2017-06-10;
+    : date: 2017-06-14;
+    trace_call $*;
+    smart_list $1 ${*:2} $( isfunction $1  && $1 )
+}
+smart_del () 
+{ 
+    : date: 2017-06-10;
+    : date: 2017-06-14;
+    report_notfunction $1 && return 1;
+    trace_call $*;
+    smart_list $1 $(smart_trim $($1) ${*:2} $($1))
+}
+smart_trim () 
+{ 
+    : see test case -- actual members are there twice,;
+    : items to remove are present one more time,;
+    : items NOT in the list are there once,;
+    : .. an attempt to remove a non-member;
+    : properties arranged by ARGS in smart_trim;
+    : date: 2017-06-13;
+    echo $* | wpl | sort | uniq -c | awk '$1 == 2 { printf "%s ", $2 }'
+}
+#+END_SRC
+
+The functions *smart_def, smart_add*, and *smart_del* respectively
+create the list, add list members, and trim, or delete mamebers from
+the list.  This latter function uses *smart_trim*, which uses the
+smart list (twice), and the arguments to trim.  The algorithm is:
+retain arguments appearing twice, since since an argument to trim will
+appear three times and an argument appearing once was an attempt to
+trim an item which is not in the list.
+
+** public functions
+
+An important purpose of this project is to separate the public face of
+a function family from it's local components.  The requirement arises 
+from my [./librarydevelopment.org::*Abstract][Library Development]] practice.  What's evolving is the following
+hierarchy:
+
++ publiclib -- where the public functions for all families belong
++ mklib -- where the local functions for a given family belongs
++ fixlib -- temporary. fixes to ~mklib~ or ~publiclib~ functions belong
+
+Functions in fixlib may belong to the local mklib, or the public library.
+When local tests indicate a fixlib function is ready, it may be promoted
+to the local mklib, regardless or not if it was hosted in that mklib.
+Here's a typical command:
+
+: $ . fixlib    
+: $ libsave ./mklib $(flcomm -12 ./mklib fixlib)
+: $ lib_crunch mklib
+: $ ff $(flcomm -13 ./mklib fixlib) | tee .l
+: $ backup_lib mklib fixlib
+: $ mv .l fixlib; backup_lib fixlib
+
+The first ~flcomm~ identifies the functions in common in mklib, fixlib;
+the version in the fixlib is appended to the mklib.  The ~lib_crunch~
+eliminates the older version of the duplicate functions.
+
+The second ~flcomm~ identifes the functions uniq to the fixlib; their
+function bodies are saved in a temporary file, which after backups is
+moved to remplace the existing fixlib, again backed up.
+
+The process may be repeated for ~publiclib~ and the ~mklib~
+
+** local functions
+
+It seems a necessary feature, after functions are moved to the publiclib
+is to record where they came from.   The idea is to define a function:
+~{family}_source~ which displays the source directory where the development
+has taken place.   In order to  define the function, use PWD:
+
+#+BEGIN_SRC sh
+$ fuse smart_locality
+smart_init          smart_function smart_locality;
+
+$ ff smart_function smart_locality smart_source
+smart_function () 
+{ 
+    : date: 2017-06-14;
+    isfunction $1 && $@
+}
+smart_locality () 
+{ 
+    : date: 2017-06-14;
+    smart_value smart_source $PWD
+}
+smart_source () 
+{ 
+    : mfg: smart_value;
+    : date: 2017-06-14;
+    ${@:-echo} /users/applemcg/Dropbox/commonplace/lit
+}
+$
+#+END_SRC
+
+In this example, ~fuse~ shows where the function was used. So,
+*smart_locality* is called, through *smart_function* during
+intialization.  If *smart_source* is part of *smart_public_list*, it
+is added to the public library.  By keeping *smart_locality* off the
+public list, then it is not installed, and the value of the fixed
+library is retained in the definition installed in the public library.
+
+This needs a better explanation.
+
+* History
+The smart list is a generalization of what I'd previously called a
+smart file.  A smartfile is, in effect, a smart_list with a single
+element.  It might be called a smart_value.
+
+This practice is now obsolescent.  Collecting the smartfiles in a 
+central repository was more trouble than it was worth.  These 
+paragraphs will soon become COMMENTs in this document.  
+
+** On using smartfiles
+
+If someone hasn't done this yet, I've recently invented the term
+/smartfile/.  What is a smartfile?  It's a file (or directory) which
+knows where it is.  At bottom, it's a function, whose default action
+is to **echo** the name of the related file.  It accepts alternate
+commands as arguments.  It's been a challenge to generalize, so as it
+stands, the command is limited to the first argument.  A favorite for
+directories is the **pushd** command.
+
+Since /HOME/ is a well-understood Environment variable meaning the
+user's home directory, I'm using the smartfile name /home/ to refer to
+my Dropbox.  In effect, this name this is shared "in the cloud", so my
+**home** directory is anywhere I can login to machine with
+[[http://dropbox.com][Dropbox]] access.  I'll document my **smartflib**
+elsewhere, but here's how I set this up:
+
+:   smartf   home    ~/Dropbox
+
+so, here are some usage examples:
+
+:   $ home pushd          # = pushd ~/Dropbox
+:   $ home ls             # = ls ~/Dropbox
+:   $ ls -l $(home)       # since smartfiles only take ONE argument, since
+:   $ home                # returns $HOME/Dropbox
+
+all simple to appreciate.  
+
+** The Smartfiles smartfile
+
+The most recent enhancement to this idea is the smartfile named
+**smartfiles**.  What does it look like:
+
+:   smartf  smartfiles  $(home)/etc/smartfiles
+
+and what does it do, or better yet, how is it used?
+
+:   smartfiles source
+
+which does what?  Think about it a second.  It /source/s the
+smartfiles!  What?  Yes, sources the smartfiles.  And what does that
+do?  It sets most all of the smartfiles.  So, in the /chicken-or-egg/
+world, how does that happen?  In your profile, or in the interest of
+the /keep-your-profile-clean/ principal, in a personal /rc/ file,
+which I call **.myrc**.  When I login, my profile sets a handful of
+functions, which are sufficiently inobtrusive
+
+to the general user, my first command at the terminal is most often:
+
+:   . .myrc
+
+since I'm developing a practice of sourceing different **./any/rc**
+file, where the "any" could be the basis of some work, like writing
+the /Commonplace/ book.
+
+Here is my current **smartfiles** smart file:
+
+:  _sfd () { ignore smartd $*; mkdir -p $2; }
+:  _sff () { ignore smartf $*; }
+:  
+:    _sfd home       $HOME/Dropbox
+:    _sfd labase     /usr/local/texlive/2011/texmf-dist/tex/latex/base
+:    _sfd shf        $(home)/shf
+:    _sfd db         $(home)/git/bash-functions/bin
+:    _sfd cook       $(home)/commonplace/book
+:    _sfd dots       $(home)/dot
+:    _sfd etc        $(home)/etc
+:    _sfd etclib     $(home)/etc/lib
+:    _sfd ETCLIB     $(home)/etc/lib;
+:  
+:    _sff smartfiles $(etc)/smartfiles
+:    _sff T          $(etclib)/.$(today)
+:  
+A recent enhancement, after a few years of practice is to replace the 
+too-bold /ETCLIB/ with my developing practice of lower-case named **etclib**.
+I'm leaving ETCLIB in place, taking time to make sure I've replaced all 
+its references.
+
+Note how a smartfile name is used in subsequent names -- a lot like a 
+shell variable names.   For this practice, used at start-up, it's not
+too expensive to use a function over a variable name.
+
+Also, note the two local functions, **\/sfd** and **\/sff**, for directories
+and files respectively.   The only difference at this level is to make sure 
+the directory exists. 
+
+* references
++ [[../10_red/index.org::*Abstract][The Red Chapter, Shell]]

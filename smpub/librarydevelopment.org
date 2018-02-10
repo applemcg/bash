@@ -1,0 +1,686 @@
+#+TITLE: Function Library Development
+#+INCLUDE: orgheader.org
+
+* Abstract
+
+My shell library development practice has matured to a point where
+it's easy to coach myself to a reliable model.   It's time to record 
+what I'm experiencing.  
+
+First, a few principles:
+
++ some libraries are truly public, therefore
++ most libraries are local, so
++ development begins in the local libraries, after which
++ you discover functions more general then purely local functions, 
++ so these get promoted to the public library, which should tell us that
++ there is a special place to fix, upgrade, or maintain a function.
+
+So, let's examine the life of a function, it's evolution if you will.
+But first, let's clear up what we mean by /public/, /local/, /general/, 
+and /maintain/.
+
+The discussion in [[overuse][overuse]] shows an example of history command use
+to construct command sequence to extend and narrow a query's
+focus to an objective.  The history command ~!!~ "bang-bang" repeats
+the last command.
+
+* Building and Maintaining 
+** Public Library
+
+A public library contains individual function libraries which are
+useful in at least three separate directories.  An aphorism:
+/McGowan's threshold of pain: 3/.  A library contains function
+families, according to the [[https://github.com/applemcg/shelf/blob/master/shelf.org][SHELF proposal]].  They have achieved their
+place by being sufficiently general.
+
+Functions are promoted to a public library from a local library.
+A local library may contain multiple families and a number of utility
+functions. A utility function is a generally useful function which
+doesn't seem to belong to a particular familiy.
+
+A very few public libraries may be home to functions without a family.
+At least at the moment, in my very first function families, I've found
+functions who are without family, and in a utility library.  These may
+be the young bulls who wander between herds.
+
+In your practice, these should be fewer than a fourth of your function
+portfolio.
+
+To be clear, a public library is a file found in a user's PATH variable
+in a full-path-named directory. e.g. ~/user/myself/bin~. 
+
+** A Local Library
+
+How does a local library happen?
+
+You are in a directory with a collection of files you are expected to
+maintain, analyze, archive, and report.  The directory need not be a
+leaf; i.e. there may be conventionally named directories in a
+hierarchy of dates, versions, classes of software, ...  Therefore, 
+the local directory is the highest directory, but not too high, which
+enables you to name any relevant file by a conventional name in 
+a consistent hierarchy.  
+
+A local library, then is a file found by a relative-directory-name
+in the user's PATH, e.g. ~../bin:../../bin~
+
+Here's a side discussion on what I call a [[consistent hierarchy][consistent hierarchy]].
+
+When you arrive at your work site, you are handed a list of tasks to
+perform.  You start to tinker, experiment to see what it will take to
+solve the problem.  You've typed a few commands at the command line.
+Now it's time to compose functions and save them in a library.  Maybe
+you already have a public library, and have access to some of those
+functions.  Most of the functions you are now composing are local to
+the current problem.  It's time to save them locally.  Here's a few
+functions to save functions to a local library, which I've called
+*locallib*.
+
+#+BEGIN_SRC 
+$ savemk ff savemk mk
+ff () 
+{ 
+    declare -f ${*:-ff}
+}
+savemk () 
+{ 
+    declare -f $* | tee -a ./locallib
+}
+mk () 
+{ 
+    : sources a locallib, prefers local "." to one on path;
+    : uses: which for;
+    : input: $(which locallib) default:;
+    : effect: loads functions in sourced library;
+    : date: 2017-04-01;
+    for lib in ./locallib $(which locallib);
+    do
+        [[ -f $lib ]] && { 
+            . $lib;
+            return
+        };
+    done
+}
+...
+$ cat locallib
+ff () 
+{ 
+    declare -f ${*:-ff}
+}
+savemk () 
+{ 
+    declare -f $* | tee -a ./locallib
+}
+mk () 
+{ 
+    : sources a locallib, prefers local "." to one on path;
+    : uses: which for;
+    : input: $(which locallib) default:;
+    : effect: loads functions in sourced library;
+    : date: 2017-04-01;
+    for lib in ./locallib $(which locallib);
+    do
+        [[ -f $lib ]] && { 
+            . $lib;
+            return
+        };
+    done
+}
+...
+#+END_SRC
+
+Two commands have been executed.  The first saves three functions:
+*ff, savemk*, and *mk* to the ~locallib~.  The second concatenates
+(displays) the library.  
+
+An important facet of this idea is the name choice for the
+library. Since we are about making things, and since the Unix \reg
+toolkit has had a *make* program for decades, I've come to name local
+libraries *locallib*.  Therefore the *mk* function is a terrific
+candidate for the public library, as are *savemk* and *ff*.  A word
+on the latter function.  After a few years command line and internal
+function use, note the *savemk* function.   It uses the shell builtin
+idiom ~declare -f~, rather than the function shorthand.  
+
+See this local aside on the re-use, or [[overuse][overuse]] of a function.
+
+In any case, with a *mk* function and a ~locallib~ file it's now simple
+to accumulate functions in the local library, and reload the local
+functions.
+
+To guarantee the current functions are up-to-date, just:
+
+: $ mk
+
+which ~sources~ the local library. 
+
+When the functions start to behave as you'd expect, then it's time to 
+save them.   I've used this backup function for a decade.   Here's the
+paper on [[./backupfunction.org][The Only Backup You'll Ever Need]].   Once the library is sufficiently
+mature, you will want to exercise some caution over it's further development
+and maintenance.
+
+** Maintaining the Library
+
+The shell's features offer an easy way to maintain a function library.
+You have a working *locallib*, but further testing reveals oversights,
+outright mistakes, opportunities to enhance existing features, or add
+entirely new ones.   If you're using the above backup scheme, you can 
+recover your previous backup with the expedient command:
+
+: $ cp .bak/locallib .
+
+But if you've made some changes you're sure are working, then you'd lose
+them with that command.  You could precede that by copying your existing
+locallib to a safe place, inspect and retrieve the working functions, insert them
+in the library manually, ...  It's a bother.  I'm an expert; I spent too much 
+time doing it this way.  Here's the absolute easiest way to avoid confusing
+yourself.   Use another, and smaller library, *fixlib*.  
+
+To get started, copy just the functions you want or need to repair into 
+the fixlib:
+
+: ff this_one thatOne andTheOther ... | tee -a ./fixlib
+
+Then edit *fixlib*.  Execute these commands:
+
+: $ mk             # loads locallib
+: $ source fixlib  # loads functions in fixlib
+
+Any function in *fixlib* now supersedes the copy in *locallib*.   If you need to 
+forget the fixlib versions of functions:
+
+: $ mk             # loads the saved versions of the function
+
+There is a possibility some of the fixes in *fixlib* may still bleed
+back into the *locallib* functions, particularly if you've added new
+functions in fixlib.   What you need todo is forget the functions 
+in fixlib altogether, then source the locallib.  Here's how:
+
+: $ unset $(funs fixlib)  # clears the functions from memory
+: $ mk                    # now, only saved definitions,
+
+You will need the /funs/ function:
+
+#+BEGIN_SRC sh
+funs () 
+{ 
+    awk '
+      NF == 2 &&       \
+      $2 ~ /^\(\)$/ && \
+      !p[$1]++         { 
+
+          printf "%s\t%s\n", $1, FILENAME 
+
+      }' ${*:-./*lib}
+}
+#+END_SRC
+
+Which reads as follows: 
+
++ ~${*:-./*lib}~ -- read the file arguments, defaulting to all the
+  /...lib/ files in this directory
+
++ ~NF == 2~ -- for those lines with two fields, and ~&&~
+
++ ~$2 ~ /^\(\)$/~ -- where the second field is only "()", and
+
++ ~!p[$1]++~ -- where the first occurrence of the function has NOT been
+  printed, then
+
++ ~printf "%s\t%s\n", $1, FILENAME~ -- print the function and file-name
+  it's in.
+
+This version of *funs* works on those functions whose copy is the
+result of being written by a ~declare -f ...~, or *ff*.  If manually
+editing a library, then make sure the function template looks like
+this:
+
+: functname ()
+: {
+:     ...
+: }
+
+Where the function name, in this case /functname/ is the first word on
+the defining line, the parenthesis pair is the second token on the
+line, and there are no others tokens.  i.e. the opening curly brace is
+on the following line.
+
+** updating locallib, other libraries
+
+In the course of using fixlib to update locallib functions, you will also
+encounter functions from common libraries needing inspection themselves,
+if not an update.   
+
+I'll summarize the process:
+
+: ff some_Common_functions ... | tee .x   # verify typing correct names
+: cat .x >> fixlib                        # append to fixlib
+
+Instrument the common functions to trace them.  Here's what I now use:
+
+#+BEGIN_EXAMPLE
+trace_debug () 
+{ 
+    local nf=${#FUNCNAME[@]};
+    local gr=$(myname 3);
+    local pa=$(myname 2);
+    printf "DEPTH $nf\tFrom: $gr\tNow: $pa\t#: $#\t%s : " "$*" 1>&2;
+    read x < /dev/tty
+}
+trace_call () 
+{ 
+    trace_stderr "$@"
+}
+trace_stderr () 
+{ 
+    : date: 2017-07-16;
+    pa=${FUNCNAME[2]:-COMMANDLINE};
+    gr=${FUNCNAME[3]:-COMMANDLINE};
+    printf "TRACE %s\t@ %s\t%d  ( %s )\n" "$gr" "$pa" $# "$*" 1>&2
+}
+#+END_EXAMPLE
+Where *trace_call* reverts to a trace on /stderr/.   The *trace_debug*
+function displays the name of the calling function, its caller, and any arguments
+passed to the calling function, typically called:
+
+: ... trace_debug $*     # the calling functions arguments
+
+And followed by a prompt to ENTER, or continue.
+
+When the fixlib changes apparently are working, and with a mixture of
+function in the fixlib:
+
++ functions from locallib,
++ new functions supporting changes in locallib
++ functions from common libraries
+it's time to promote the fixlib functions to locallib:
+
+: $ backup locallib fixlib; cat locallib fixlib > localtmp; mv localtmp locallib
+: $ source locallib; lib_crunch locallib  
+
+Concatenating the locallib and fixlib in that order prefers the latter definitions from
+fixlib over the same function definition in locallib when sourced.  The *lib_crunch* updates the 
+library:
+1. eleminating duplicated functions
+1. prefering tha latter definition
+1. and supplies the library initializatino call as the one allowable 
+
+A  [[~/Dropbox/commonplace/software/swdiary-2017.org# ][recent developmen]
+
+produces this list from the changes to my investment locallib:
+
+#+BEGIN_EXAMPLE
+weight_onesymbol	./fixlib ./locallib
+weight_sector	./fixlib ./locallib
+filter_keeps	./fixlib ./locallib
+filter_removes	./fixlib ./locallib
+filter_history	./fixlib ./locallib
+fix_init	./fixlib /Users/applemcg/Dropbox/bin/cmdlib
+listtotable	./bin/columnlib ./fixlib /Users/applemcg/Dropbox/rdb/bin/rdblib
+sector_symbolQuote	./fixlib ./locallib
+equity_sector	./fixlib ./locallib
+ncolumn	./fixlib ./locallib /Users/applemcg/Dropbox/bin/rdbcmdlib /Users/applemcg/Dropbox/rdb/bin/rdblib
+lesscolumn	./fixlib ./locallib /Users/applemcg/Dropbox/bin/rdbcmdlib
+read_tty	./fixlib ./locallib
+master_depends	./fixlib ./locallib
+master_join	./fixlib ./locallib
+row	./fixlib /Users/applemcg/Dropbox/rdb/bin/rdblib
+master_proc	./fixlib ./locallib
+filter_fields	./fixlib ./locallib
+filter_price	./fixlib ./locallib
+filter_records	./fixlib ./locallib
+rdb_join	./fixlib ./locallib /Users/applemcg/Dropbox/rdb/bin/rdblib
+#+END_EXAMPLE
+There appear to be three types of fixes, those where the function is defined ("whf" -- where is the function defined):
+1. in both fixlib and locallib
+1. in both and other common libraries
+1. in only fixlib and other common libraries
+
+The first  case is the simplest to dispose of.  Return those functions to locallib.
+
+$ !! | awk 'NF == 3 && $3 ~ /locallib/'
+$ !! | field 1
+$ ff $(!!) | tee -a locallib
+$ lib_crunch locallib
+
+And those modified functions have been restored to the locallib.  Now to
+pick up the functions for the other libraries. Updating the common
+libraries requires some decision on which of the competing versions
+should get the fixes.
+
+Again, this command loads the list of functions to be returned to 
+their home libraries. The following commands select those not already
+destined for *locallib*
+
+: $ foreach do_whf $(functions fixlib) | nf gt 2
+
+and we observe a majority got to *rdblib*, so
+
+: $ !! | awk '(NF > 3 || $3 !~ /locallib/) && /rdblib/'
+
+note the parenthesis to collect the conditions, so now:
+
+: $ !! | field 1
+: $ ff $(!!) | tee -a $(which rdblib)
+: $ lib_crunch $(which rdblib)
+
+And all that's left is any remaining library (or libraries) again: 
+
+: $ !632       # the command history of the first foreach
+: $ !! | awk '(NF > 3 || $3 !~ /locallib/) && /rdblib/'
+
+We see that one command ~fix_init~ has a home in *cmdlib*.  On inspection
+we see that it sets up a local environment, adjusting the user's path.
+So that probably should stay local, and not even be returned to *./locallib*
+until we are ready to repeat this cycle with *locallib* itself.
+
+All that remains then is to preserve ~fix_init~
+
+: $ ff fix_init | tee .l
+: $ fun_starter fixlib | tee -a .l    # tacks on initialization: fun_init ..
+: $ set fixlib; backup $1; mv .l $1; backup $1
+
+** COMMENT print-counting 
+The print-counting feature restricts a function name to appear where it 
+first occurs in the list.   For example ~funs locallib fixlib~ doesn't list
+functions in fixlib which are already named in locallib.  And this command:
+
+: $ ff $(funs locallib fixlib) | tee nextlib
+
+produces a library to replace the current locallib.   At which point I usually
+backup all three libraries: ~backup *lib~, before replacing locallib with nextlib
+and removing fixlib: 
+
+: $ backup {mk,fix,next}lib     # locallib, fixlib, nextlib
+: $ mv {next,mk}lib             # mv nextlib locallib
+: $ rm fixlib                   # gone
+: $ backup *lib                 # locallib, no nextlib, fixlib
+
+Note the use of the bash brace expansion feature. 
+
+** Promoting a function 
+
+Save this for later.
+
+** Family Function Name Specification
+
+This list specifies the family sub-function names and their meaning.
+Since, for example *trace* looks like a family (and may in fact be
+one, here is the behavior of any subfunction.  To see a list of any
+group of subfuctions:
+
+: $ sfg _help
+
+*** the list
++ *copyright* -- a two- or three-line copyright statement
+
++ *firsttime* -- a function which unsets itself on first execution,
+  permintting, for example, one-time display of the copyright notice
+  when sourceing a library.
+
++ *help* -- anything the author may want to say about the family
+
++ *init* -- may call *fam_iam* to initialze family sub-function names.
+  A function library may have more than one family, each may have its
+  own initialization. The library may have only one initialization
+  call, the last line of source in the library, and it must re-direct
+  its /stdout/ to the /stderr/. Any _init function may be called from
+  the command line, and return output to the /stdout/.
+
++ *list* -- returns list of family function names
++ *local* -- a list of "local" functions, not intended for public use
+  outside the development node
++ *public* -- returns the list of "public" functions, those whose scope
+  is global.   A feature exists to store these functions in a public 
+  library.  Properly applied a single public library can contain 
+  all designated functions, regardless of their source. Here is
+  its explanation.
++ *source* -- returns the name of the development directory;
+  alternatives could be /home/, /birth/, /natal/, ...  Time will sort
+  this one out.
++ *variable* -- sets family variable first argument to value of second
++ *vars* -- returns NAME=value for family variables
+
+So, for example, 
+
+: $ smart_public    # returns PUBLIC functions of SMART family
+: $ smart_public declare -f   # displays their function bodies
+
+*** smart, vs not smart names
+
+A smart function has a default behavior to return a name or list of names of
+functions, files, or any other conventient class of objects.  The optional
+behavior of a smart function is to execute its arugments as the command,
+rather than the *echo* which returns its names.
+
+#+BEGIN_SRC sh
+$ declare -f smart_list smart_value
+smart_list () 
+{ 
+    : date: 2017-06-10;
+    : date: 2017-07-15;
+    report_notargcount 2 $# listName member ... && return 1;
+    local boiler=": mfg: $(myname 2);: date: $(date +%Y-%m-%d)";
+    eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }"
+}
+smart_value () 
+{ 
+    : values may have only one item in their list;
+    : date: 2017-06-14;
+    : date: 2017-07-15;
+    smart_list $1 $2
+}
+$
+#+END_SRC
+
+The list of family-installed subfunctions, through *fam_iam*:
+/copyright, firsttime, help, list, varialble/, and /vars/ may be
+overridden by providing a definition prior to invoking *fam_iam*.
+
+The others in the list are typically smart names
+
+#+BEGIN_SRC 
+$ declare -f sfg_ fmsub sfg_demo
+sfg_ () 
+{ 
+    sfg _$1
+}
+fmsub () 
+{ 
+    : mfg: public_init;
+    : date: 2017-07-15;
+    ${@:-echo} copyright firsttime help init list local public source variable vars
+}
+sfg_demo () 
+{ 
+    foreach sfg_ $(fmsub)
+}
+$
+$ sfg_demo
+assert_copyright
+backup_copyright
+cmd_copyright
+fam_copyright
+fun_copyright
+program_copyright
+report_copyright
+setpath_copyright
+shd_copyright
+shell_copyright
+trace_copyright
+assert_firsttime
+cmd_firsttime
+fam_firsttime
+fun_firsttime
+program_firsttime
+report_firsttime
+setpath_firsttime
+shd_firsttime
+#+END_SRC
+
+* Summary
+
+1. save functions in *locallib*
+1. repair or enhance functions *fixlib* 
+1. combine the fixes when satisfied
+
+* Local Aside Discussion
+
+** consistent hierarchy
+
+While naming directories, a /consistent hierarchy/ doesn't mean an
+absolute path specification. In the '80s, I was on a project, funded
+chiefly by IBM, porting AT&T flavors of Unix \reg, to an IBM [[https://en.wikipedia.org/wiki/Reduced_instruction_set_computing][RISC]]
+workstation, the RS-6000, coded-named /AIWS/.  They were were not my
+company's only customer. To support multiple clients, development
+management had figured out a neat scheme to develop along a
+multi-product (what I called) /frontier/.  Its consistent view is that
+it's apparent to a developer about to make a change, which instances
+of the product are affected.  And, importantly, if about to make a
+change which certainly is limited to a particular product family, how
+to confine the fix to that family.
+
+The details aside, our taxonomy recognized /version/, /hardware/, and 
+/project/.  I think; I'm certain it was three.  I'm certain the versions
+were two:  System III, and SystemV, the AT&T flavors of Unix operative
+at the time.  Hardware encoded the chip set, and project either the
+customer's code name or our company's internal project name.
+
+So, what has this to do with a /consistent hierarchy/?   Since a 
+canonical build, which I did every morning at 0100, from the Boston
+Technical office, took place from a fixed hierarchy, which might 
+have been (honestly, I forget)
+
+: .../project/version/hardware/.. 
+
+The company had 120 crack developers scattered at 4 sites across the
+US, each with their own expertise.  One's view of their
+responsibilities may have looked more like:
+
+: .../hardware/project/... 
+
+Since every leaf of the tree had ~common~ node, the structure
+allowed a change to the ~common~ version.   If the change a developer 
+was about to make applied to a leaf with version-specific instances, the
+developer would see, on inspecting the code they now had to account for
+that facet.
+
+The point, for our current discussion is a /consistent hierarchy/ needn't
+be an absolute hierarchy.    This is when I began to appreciate the value
+of the [[https://en.wikipedia.org/wiki/Ln_(Unix)][Unix link (ln (1)) command]].  What is the lesson here?  Two things
+
+1. If there were a file whose name was
+   ~/common/common/common/somesourcecode.c~ in the integration build,
+   where each successive "common" referred to /project/, /version/,
+   /hardware/, it was trivial to create the link to a file in that
+   part of the tree which did not have a specific instance. 
+
+1. Importantly, each developer was free to chose their own hierarchy
+   and names
+
+** overuse
+
+By the way, comparing /savemk/ and /ff/, you note the use of ~declare
+-f~ in both functions.  One might be tempted to re-use /ff/ in
+/savemk/, as I have been tempted.  I'm learning to resist temptations
+of this sort.  The /ff/ function is almost an ~alias~ feature.  I'll
+use it as a command line tool, and try to avoid using it in a
+function.  I'll prefer the builtin ~declare -f~ in other functions,
+reserving /ff/ for the command line.
+
+For another aside in place, here's a command sequence to detect those
+instances where I've not played by this rule, using /ff/ in other
+functions:
+
+#+BEGIN_EXAMPLE
+
+fuse ff
+fuse ff | field 1 | sort -u
+whfn $(fuse ff | field 1 | sort -u)
+whfn $(fuse ff | field 1 | sort -u) | field 3 | sort | uniq -c
+
+#+END_EXAMPLE
+
+By the lines:
+
+1. ~fuse ff~  answers the question "which functions use ff?".  it displays
+   a function name and the line(s) in the functions where the use happens.
+
+1. reuse the last command: ~!! | field 1 | sort -u~ returns a unique list
+   of the functions using "ff"
+
+1. retrieve the library file names: ~whfn $(!!)~ returns the function name,
+   a line number in the file and the library file name.
+
+1. and make a population sample: ~!! | field 3 | sort | uniq -c~
+
+And here's the result, giving me a bit of work to do, but only needing
+to touch three library files:
+
+:   8 /Users/applemcg/Dropbox/bin/cmdlib
+:   5 /Users/applemcg/Dropbox/bin/funlib
+:   1 /Users/applemcg/Dropbox/bin/proflib
+
+The good news: that a check (2017-12-26) of ~fuse ff~ shows no
+functions in my working collection are *ff* users.
+
+** the case against the alias
+
+Using the *fixlib* to hold fixes for the current *locallib*
+introduces two problems.  The normal behavior says "make once,
+iterate on fixes".  This assures that the only changes you
+need are in the fixlib. 
+
+Occasionally, you will want to reload both libraries in order.
+I wrote an /alias/, *mkf"
+
+: alias mkf='mk; . fixlib' 
+
+You can seewhere this is going.  It worked find as a quick fix
+at the command line.  However, as soon as I started to do useful
+things like capture the stdout, stderr, and report the state of
+a function, it became that alias didn't cut it.  Instead, this
+function did the trick:
+
+: $ mkf () { mk; . fixlib; }
+
+The alias has no means to intercept the stdout, stderr from the
+first command, whereas the function treats both processes as one
+for the purpose of those outputs.
+
+#+BEGIN_EXAMPLE
+$ mk > mk.out 2>mk.err; ff awk_file
+awk_file () 
+{ 
+    trace_call $*;
+    awk_lib $(myname 2).awk
+}
+$ mkf > mk.out 2>mk.err; ff awk_file
+awk_file () 
+{ 
+    : use NEWEST file for argument, regardless of SUFFIX;
+    read_tty $*;
+    set -- $(ls -t $(awk_files | grep ${1:-$(myname 2)}));
+    echo $1
+}
+#+END_EXAMPLE
+
+* function references
+#+INCLUDE: functionrefs.org
+* references
++ this paper appears online at http://mcgowans.org/marty3/commonplace/software/librarydevelopment.html
++ [[../10_red/index.org][the Red Chapter]]
++ [[https://github.com/applemcg/shelf/blob/master/shelf.org][SHELF proposal]].
++ [[http://leanpub.com/ShellFunctions][Shell Functions]]
++ [[./backupfunction.org][The Only Backup You'll Ever Need]].
+
+
+* history
+
+| event             | date             | comment |
+|-------------------+------------------+---------|
+| opened            | <2017-04-17 Mon> |         |
+| add function refs | <2017-04-24 Tue> |         |
+
