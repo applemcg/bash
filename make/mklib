@@ -1,0 +1,77 @@
+make_loader () 
+{ 
+    : completely generic, source all local libraries;
+    : then load, invoke the _inits;
+    : see the list of candidates to include in load;
+    for lib in $(make_libs);
+    do
+        make_canon $lib;
+    done;
+    make_initialize;
+    make_candidates;
+    declare -f make_{loader,candidates};
+    echo e.g. make_candidates -23 shows the unpublic
+}
+make_functions () 
+{ 
+    awk 'NF == 2 && $2 ~ /^\(\)$/ { print $1 }' $1
+}
+make_canon () 
+{ 
+    set $1 $1.tmp;
+    . $1;
+    declare -f $(make_functions $1) > $2;
+    mv $2 $1
+}
+make_libs () 
+{ 
+    ls ./?*lib | grep -v $BASH_SOURCE
+}
+make_inits () 
+{ 
+    awk ' $2 ~ /\(\)/ && $1 ~ /_init$/ { print $1 }' *lib
+}
+make_initialize () 
+{ 
+    for f in $(make_inits);
+    do
+        $f;
+    done
+}
+make_fundef () 
+{ 
+    grep "$1.()" ?*lib
+}
+make_candidates () 
+{ 
+    comm $1 <(shd_unmfgd $(functions *lib|sort)) <(public_alllocal|sort)
+}
+make_init () 
+{
+    fam_iam
+    smart_def make_public make_{init,loader,libs,canon,functions}
+    smart_add make_public make_{private,source}
+    smart_add make_public make_{initialize,inits,candidates}
+    smart_add make_public make_fundef
+    smart_function make_locality    
+    echo make_loader
+}
+make_locality () 
+{ 
+    : hdr: -------------------------------------------------- PRIVATE Functions --;
+    smart_islocal || return;
+    :
+    : -------------------------------------------- LIBRARY NAME	--;
+    :
+    public_libraryname mklib;
+    smart_def make_source $PWD;
+    :;
+    : ----------------------------------- Installable Functions --;
+    :;
+    smart_install make;
+    : --------------------------------------- Private Functions --;
+    : lists the purely private functions;
+    :;
+    smart_def make_private make_{locality,private}
+}
+make_init 1>&2

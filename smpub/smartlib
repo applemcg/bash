@@ -57,9 +57,16 @@ smart_trim ()
     : .. an attempt to remove a non-member;
     : properties arranged by ARGS in smart_trim;
     : date: 2017-06-13;
-    : todo: xlate to single awk script, save 4 processes.;
+    : todo: xlate to single awk script, save three processes.;
     : date: 2018-02-08;
-    echo $* | wpl | sort | uniq -c | awk '$1 == 2 { printf "%s ", $2 }'
+    : todo: when confident, make this a local function of smart_del;
+    function _wpl () 
+    { 
+        : the significant line from the more general function;
+        tr -cs 'A-Za-z0-9_' '\n'
+    };
+    echo $* | _wpl | sort | uniq -c | awk '$1 == 2 { printf "%s ", $2 }';
+    unset _wpl
 }
 smart_function () 
 { 

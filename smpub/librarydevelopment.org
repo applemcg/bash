@@ -28,7 +28,6 @@ the last command.
 * references
 + a version of this paper appeared online at http://mcgowans.org/marty3/commonplace/software/librarydevelopment.html
 + the [[https://github.com/applemcg/bash/blob/master/README.org][BASH README]]
-
 * Building and Maintaining 
 ** Public Library
 
@@ -673,7 +672,6 @@ awk_file ()
 
 * function references
 #+INCLUDE: functionrefs.org
-
 * history
 
 | event             | date             | comment |

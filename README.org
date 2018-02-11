@@ -1,17 +1,17 @@
 
 * Bash
 
-Directories here each have a ~mklib~, a library of local bash shell
-functions.  The product of each *mk* is a public library of one or
-more function families.
-
-These libraries implement the [[https://github.com/applemcg/shelf/blob/master/shelf.org][SHELF DRAFT]] Standard, and tools
-supporting shell functions and library development.
+These function libraries implement the [[https://github.com/applemcg/shelf/blob/master/shelf.org][SHELF DRAFT]] Standard, and
+provide tools supporting shell functions and library development.
 
 Not required in the SHELF Draft, these libraries add PUBLIC and
 PRIVATE status to local functions.   The PUBLIC functions are
 collected in their respective public libraries.  The SHELF Draft
 recognizes a library may contain more than one family.
+
+Directories here each have a ~mklib~, a library of local bash shell
+functions.  The product of each *mk* is a public library of one or
+more function families.
 
 * References
 
