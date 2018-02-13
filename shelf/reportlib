@@ -190,8 +190,8 @@ report_notcommand ()
 }
 report_notlib () 
 { 
-    : todo: does this belong in libmg?;
     : date: 2018-01-29;
+    : date: 2018-02-13;
     [[ $(functions ${1:-MissingFirstArgument} | grep _init$ | wc -l) -gt 0 ]] && return 1;
     report_usage $1 is NOT a shell function library
 }

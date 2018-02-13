@@ -268,18 +268,6 @@ shd_unmfgd ()
     report_notargcount 1 $# function ...;
     complement shd_mfgd $*
 }
-shd_locality () 
-{ 
-    : -- SHD ------------------------------------------ PRIVATE --;
-    smart_islocal || return;
-    smart_def shd_source $PWD;
-    smart_def shd_private shd_{assert,clean,demo};
-    smart_add shd_private shd_{justcolon,locality,test};
-    public_libraryname shelflib;
-    smart_install shd;
-    declare -f {test_,shd_{un,}}mfgd;
-    echo test_mfgd
-}
 shd_getdate () 
 { 
     : date: 2016-10-01;

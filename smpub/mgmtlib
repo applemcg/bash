@@ -2,7 +2,6 @@ libmg_init ()
 { 
     : date: 2018-01-06;
     : date: 2018-02-08;
-    : date: 2018-02-12;
     :;
     : hdr: --------------------------------------------------- PUBLIC Functions --;
     :;
@@ -154,7 +153,6 @@ public_update ()
     : date: 2018-01-11;
     : ~[ optional library [ list of functions ] ];
     : date: 2018-02-08;
-    : date: 2018-02-12;
     trace_call A $*;
     function remove_init () 
     { 
@@ -231,7 +229,6 @@ libmg_nextlib ()
 libmg_gather () 
 { 
     : date: 2018-02-08;
-    : date: 2018-02-12;
     report_notargcount 1 $# NO Functions to Update && return 1;
     trace_call NEW, UPDATE functions $*;
     shd_setdate $*;
@@ -269,7 +266,6 @@ libmg_updating ()
     : by creating .subdirectories of local libs files;
     : and .thePublicOne has the current public copy;
     : date: 2018-02-08;
-    : date: 2018-02-12;
     trace_call C tolib: $1, args: ${*:2};
     rm -fr .*lib .thePublicOne;
     :;
@@ -343,7 +339,6 @@ libmg_crunch ()
     : date: 2017-01-23;
     : prefer a local file;
     : date: 2018-01-06;
-    : date: 2018-02-12;
     report_notfile ${1:-MissingArgument} && return 1;
     : what is this test defending against that could not;
     : .. be a bit smarter;
