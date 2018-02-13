@@ -1,6 +1,7 @@
 public_init () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     fam_iam;
     :;
     : hdr: -- PUBLIC -------------------------------------- PUBLIC Functions --;
@@ -19,7 +20,7 @@ public_init ()
     :;
     : ----------------------- user may set PUBLIC_HOME, LIBRARY --;
     :;
-    public_home $HOME/git;
+    public_home $HOME;
     public_libraryname publib;
     public_helper;
     :;
@@ -30,6 +31,7 @@ public_init ()
 public_libraryname () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     :;
     : ------------------------- public, local libraries --;
     :;
@@ -39,11 +41,13 @@ public_directory ()
 { 
     : use needir to guarantee directory exists;
     : date: 2018-02-08;
+    : date: 2018-02-12;
     public_variable $1 $(needir $PUBLIC_HOME/$2)
 }
 public_home () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     public_variable HOME ${1:-$HOME};
     :;
     : whereever it is, it has a ...;
@@ -62,6 +66,7 @@ public_compare ()
     : ~ [[comm args] library];
     : compares funciton lists with library, defl PUBLIC, and local function;
     : date: 2018-02-08;
+    : date: 2018-02-12;
     case $# in 
         0)
             $(myname) -1 $PUBLIC_LIBRARY
@@ -89,6 +94,7 @@ public_compare ()
 local_nonpublic () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     case $# in 
         0)
             functions *lib | grep _init$ | sed 's/_init/_private/'
@@ -101,6 +107,7 @@ local_nonpublic ()
 local_alllocal () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     case $# in 
         0)
             foreach eval $(local_nonpublic) | wpl
@@ -118,6 +125,7 @@ local_helper ()
 public_alllocal () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     case $# in 
         0)
             foreach smart_function $(public_inlocal) | wpl
@@ -130,11 +138,13 @@ public_alllocal ()
 public_helper () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     fuse local_helper
 }
 public_inlocal () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     case $# in 
         0)
             functions *lib | grep _init$ | sed 's/_init/_public/'
@@ -147,6 +157,7 @@ public_inlocal ()
 public_given () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     case $# in 
         0)
             functions $(which publiclib) $(which shelflib) | sort
@@ -162,11 +173,13 @@ public_local_list ()
     : date: 2017-06-10;
     : date: 2017-07-15;
     : date: 2018-02-08;
+    : date: 2018-02-12;
     comm -13 <(public_given | sort) <(functions *lib | sort)
 }
 public_doc () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     cat  <<'EOF'
 
     run: $ source publilib
@@ -240,6 +253,7 @@ fun_starter ()
     : hdr: -- PUBLIC ---------------------------------------- UTIL Functions --;
     : from: fun_starter;
     : date: 2018-02-08;
+    : date: 2018-02-12;
     report_notfile $1 && return 1;
     function initstmt () 
     { 
@@ -252,11 +266,13 @@ isfunction ()
     : ~ function;
     : returns TRUTH of argument as FUNCTION;
     : date: 2018-02-08;
+    : date: 2018-02-12;
     declare -f $1 > /dev/null
 }
 needfile () 
 { 
     : date: 2018-02-08;
+    : date: 2018-02-12;
     report_notargcount 1 $# needed_file && return 1;
     [[ -f $1 ]] || { 
         mkdir -p $(dirname $1);
@@ -270,6 +286,7 @@ needir ()
     : date: 2017-07-18;
     : makes non-existant directory argument and returns name;
     : date: 2018-02-08;
+    : date: 2018-02-12;
     report_notargcount 1 $# needed_directory && return 1;
     [[ -d $1 ]] || mkdir -p $1;
     echo $1
@@ -279,6 +296,7 @@ args_uniq ()
     : date: 2017-03-26;
     : date: 2017-08-05;
     : date: 2018-02-08;
+    : date: 2018-02-12;
     trace_call $*;
     awk '
 

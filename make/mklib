@@ -3,10 +3,8 @@ make_loader ()
     : completely generic, source all local libraries;
     : then load, invoke the _inits;
     : see the list of candidates to include in load;
-    for lib in $(make_libs);
-    do
-        make_canon $lib;
-    done;
+    : date: 2018-02-12;
+    mk;
     make_initialize;
     make_candidates;
     declare -f make_{loader,candidates};
@@ -18,6 +16,7 @@ make_functions ()
 }
 make_canon () 
 { 
+    : date: 2018-02-12;
     set $1 $1.tmp;
     . $1;
     declare -f $(make_functions $1) > $2;
@@ -25,14 +24,17 @@ make_canon ()
 }
 make_libs () 
 { 
+    : date: 2018-02-12;
     ls ./?*lib | grep -v $BASH_SOURCE
 }
 make_inits () 
 { 
+    : date: 2018-02-12;
     awk ' $2 ~ /\(\)/ && $1 ~ /_init$/ { print $1 }' *lib
 }
 make_initialize () 
 { 
+    : date: 2018-02-12;
     for f in $(make_inits);
     do
         $f;
@@ -40,29 +42,43 @@ make_initialize ()
 }
 make_fundef () 
 { 
+    : date: 2018-02-12;
     grep "$1.()" ?*lib
 }
 make_candidates () 
 { 
+    : date: 2018-02-12;
     comm $1 <(shd_unmfgd $(functions *lib|sort)) <(public_alllocal|sort)
 }
 make_init () 
-{
-    fam_iam
-    smart_def make_public make_{init,loader,libs,canon,functions}
-    smart_add make_public make_{private,source}
-    smart_add make_public make_{initialize,inits,candidates}
-    smart_add make_public make_fundef
-    smart_function make_locality    
+{ 
+    fam_iam;
+    smart_def make_public make_{init,loader,libs,canon,functions};
+    smart_add make_public make_{private,source};
+    smart_add make_public make_{initialize,inits,candidates};
+    smart_add make_public make_fundef;
+    smart_add make_public mk;
+    smart_function make_locality;
     echo make_loader
+}
+mk () 
+{ 
+    : sources all local libraries;
+    : date: 2017-07-18;
+    : date: 2018-02-12;
+    for lib in $(make_libs);
+    do
+        make_canon $lib;
+    done;
+    echo make_{initialize,candidates}
 }
 make_locality () 
 { 
     : hdr: -------------------------------------------------- PRIVATE Functions --;
     smart_islocal || return;
-    :
-    : -------------------------------------------- LIBRARY NAME	--;
-    :
+    :;
+    : -------------------------------------------- LIBRARY NAME --;
+    :;
     public_libraryname mklib;
     smart_def make_source $PWD;
     :;
@@ -74,4 +90,3 @@ make_locality ()
     :;
     smart_def make_private make_{locality,private}
 }
-make_init 1>&2
