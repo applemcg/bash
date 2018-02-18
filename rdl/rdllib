@@ -385,7 +385,7 @@ rdl_locality ()
 { 
     trace_call $*;
     smart_islocal || return;
-    public_libraryname rdlib;
+    public_profile $HOME rdlib;
     smart_install rd;
     smart_def rdl_source $PWD;
     smart_def rdl_private rdl_{locality,private};

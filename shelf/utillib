@@ -1,16 +1,26 @@
 util_init () 
 { 
+    : date: 2018-02-16;
     smart_def util_public util_init;
     smart_add util_public UC comment funct_list ignore quietly;
     smart_add util_public notfunction myname;
     smart_add util_public setenv spaceit printfirst sfg ymd_hms;
+    smart_add util_public backup;
+    smart_add util_public backup_{copyright,depth,files,here,help};
+    smart_add util_public backup_{init,lib,one,paper,sync,version};
+    smart_add util_public backup_{files_not,allfiles,alldirs};
+    smart_add util_public allfiles_{version,vscript,dirs,backup};
+    smart_add util_public version_{need,test,today};
+    smart_add util_public ver_{date,time};
+    smart_add util_public max_depth bak_depth todays_version alldirs_backup;
+    smart_add util_public foreach timestamp epoch;
     smart_function util_locality
 }
 util_locality () 
 { 
     smart_islocal || return;
     smart_def util_source $PWD;
-    public_libraryname shelflib;
+    public_profile $HOME shelflib;
     smart_install util
 }
 UC () 
@@ -19,6 +29,7 @@ UC ()
     : arguments minimum 0;
     : returns list in UPPER CASE;
     : optional command arguments are folded otherwise stdin;
+    : date: 2018-02-16;
     [ $# -gt 0 ] && { 
         echo $* | tr a-z A-Z
     } || { 
@@ -33,34 +44,40 @@ assert_construction ()
 }
 comment () 
 { 
+    : date: 2018-02-16;
     echo $* 1>&2
 }
 funct_list () 
 { 
     : date 2016-11-13;
+    : date: 2018-02-16;
     spaceit $* | awk '$2 ~ /^\(\)$/ {print $1}'
 }
 ignore () 
 { 
     : ~ cmmd args ...;
     : returns STATUS, but not STDOUT;
+    : date: 2018-02-16;
     $@ > /dev/null
 }
 myname () 
 { 
     : ~ [n];
     : returns name of caller OR callers caller ...;
+    : date: 2018-02-16;
     echo ${FUNCNAME[${1:-1}]}
 }
 notfunction () 
 { 
     : date 2016-12-03;
+    : date: 2018-02-16;
     isfunction $1 || echo $1
 }
 printfirst () 
 { 
     : ~ STDIN or file ...;
     : lists line with first INSTANCE of first FIELD;
+    : date: 2018-02-16;
     trace_call $*;
     awk '!printed [$1]++' $*
 }
@@ -68,6 +85,7 @@ quietly ()
 { 
     : ~ cmmd args ...;
     : returns STATUS, but not STDERR;
+    : date: 2018-02-16;
     $@ 2> /dev/null
 }
 setenv () 
@@ -76,6 +94,7 @@ setenv ()
     : exports NAME to the environment,;
     : set to value ...;
     : date: 2017-08-23;
+    : date: 2018-02-16;
     [[ $# -lt 1 ]] && return;
     local na=$1;
     shift;
@@ -88,6 +107,7 @@ sfg ()
     : Set Functions Grep pattern;
     : returns FUNCTIONS in current ENVIRONMENT with pattern;
     : e.g. sfg PIPE wc counts number of functions;
+    : date: 2018-02-16;
     trace_call $*;
     set | functions | grep -i ${*:-.}
 }
@@ -97,6 +117,7 @@ spaceit ()
     : date 2016-10-27;
     : date 2016-11-03;
     : date 2016-11-12;
+    : date: 2018-02-16;
     function ispipe () 
     { 
         [[ -p /dev/stdin ]]
@@ -118,6 +139,268 @@ trace_old ()
 ymd_hms () 
 { 
     : date: 2017-05-29;
+    : date: 2018-02-16;
     trace_call $*;
     date "+%Y_%m%d_%H%M%S${1:+ $*}"
+}
+backup () 
+{ 
+    case $1 in 
+        "")
+            comment USAGE: backup file ... recursively backup to .bak/.bak/...;
+            return
+        ;;
+    esac;
+    trace_call $*;
+    foreach backup_one "$@"
+}
+backup_copyright () 
+{ 
+    comment "Copyright (C) 2005-2015, JYATL - Just Yet Another Testing Lab";
+    comment "mailto: mcgowan (at) alum DOT mit DOT edu";
+    : bkp: appleton.home./Users/applemcg/Dropbox/commonplace/software/backupfunction.org
+}
+backup_depth () 
+{ 
+    : date 2017-03-05;
+    trace_call $*;
+    find .bak | max_depth
+}
+backup_files () 
+{ 
+    trace_call $*;
+    indir .bak ls
+}
+backup_here () 
+{ 
+    set $1 .bak ${2:-$PWD};
+    [[ -d $2 ]] || mkdir $2;
+    [[ $3 == $PWD ]] && { 
+        cmp $1 $2/$1 2> /dev/null 1>&2 && return
+    };
+    [[ -f $2/$1 ]] && { 
+        cd $2;
+        backup_here $1 $3
+    } || { 
+        mv $1 $2/$1;
+        [[ $3 == $PWD ]] && { 
+            cp $2/$1 $1;
+            timestamp $2/$1 $1;
+            return
+        };
+        cd ..;
+        backup_here $1 $3
+    }
+}
+backup_help () 
+{ 
+    functions ${BASH_SOURCE}
+}
+backup_init () 
+{ 
+    : its possible the user meant "backup_lib";
+    : date: 2017-10-14;
+    backup_help
+}
+backup_lib () 
+{ 
+    trace_call $*;
+    backup $*;
+    chmod +x $*
+}
+backup_one () 
+{ 
+    report_notfile $1 && return;
+    ignore pushd $(dirname $1);
+    backup_here $(basename $1);
+    ignore popd
+}
+backup_paper () 
+{ 
+    trace_call $*;
+    ${*:-open} http://mcgowans.org/marty3/commonplace/software/backupfunction.html
+}
+backup_sync () 
+{ 
+    trace_call $*;
+    ignore pushd ${1:-.}/.bak;
+    set -- $(indir .. ls * | command comm -13 - <(ls *));
+    backup $*;
+    rm -f $*;
+    indir .. backup *;
+    popd 1>&2
+}
+backup_version () 
+{ 
+    : backup to DATE stamp, or first argument;
+    : date 2017-03-05;
+    set ${*:-$(date +%Y%m_%b/%d_%a/%H%M%S)};
+    trace_call $*;
+    report_notdirectory .bak && return 1;
+    backup_sync;
+    ln -f .bak/* $(needir .ver/$1)
+}
+version_need () 
+{ 
+    : are there backup files newer than latest version, T or F;
+    needir .ver > /dev/null;
+    set -- $(set $(ls -t .ver); wc  -l <(find .bak -newer .ver/$1 -type f));
+    [[ $1 -gt 0 ]]
+}
+max_depth () 
+{ 
+    : date 2017-03-05;
+    awk -F/ '{ if( NF>max_depth) max_depth=NF } END { print max_depth-1 }'
+}
+bak_depth () 
+{ 
+    : date 2017-03-05;
+    find .bak -name ${1:-histlib} | max_depth
+}
+version_today () 
+{ 
+    : ~ returns boolean;
+    : is there a version today?;
+    : date 2017-03-07;
+    trace_call $*;
+    [[ -d $(todays_version) ]]
+}
+todays_version () 
+{ 
+    : date 2017-03-07;
+    ${*:-echo} .ver/$(date +%Y%m_%b/%d_%a)
+}
+backup_files_not () 
+{ 
+    : date 2017-01-28;
+    : date 2017-03-23;
+    shell_onlyfiles $(command comm -23 <(ls) <(backup_files))
+}
+backup_allfiles () 
+{ 
+    : date: 2017-09-07;
+    find .bak */.bak -type f | grep -v .bak/.bak/ | sed 's/.bak\///'
+}
+allfiles_version () 
+{ 
+    : backup to DATE stamp, or first argument;
+    : date 2017-03-05;
+    : date: 2017-09-07;
+    set ${*:-$(date +%Y%m_%b/%d_%a/%H%M%S)};
+    set $1 $(needir .ver/$1);
+    trace_call $*;
+    allfiles_vscript $1 | tee $(myname).sh;
+    sh -x $(myname).sh;
+    find $1 -type f
+}
+allfiles_vscript () 
+{ 
+    set ${*:-$(date +%Y%m_%b/%d_%a/%H%M%S)};
+    set $1 $(needir .ver/$1);
+    allfiles_dirs $1;
+    allfiles_backup | awk -v ver=$2/ '
+
+          {
+	     dest=$1      
+	     sub(/^/,ver,dest);     # prepend the version
+	     sub(/\.bak\//,"",dest) # remove the .bak/ 
+	     printf "ln -f %s\t%s\n", $1, dest
+          }
+    '
+}
+version_test () 
+{ 
+    return;
+    : cleans out any previous versions today;
+    rm -fr .ver/$(date +%Y%m_%b/%d_%a);
+    allfiles_version;
+    find .ver/$(date +%Y%m_%b)
+}
+allfiles_dirs () 
+{ 
+    : backup to DATE stamp, or first argument;
+    : date 2017-03-05;
+    : date: 2017-09-07;
+    set ${*:-$(date +%Y%m_%b/%d_%a/%H%M%S)};
+    set $(needir .ver/$1);
+    trace_call $*;
+    for d in $(quietly backup_alldirs);
+    do
+        mkdir -p $1/$d;
+    done
+}
+alldirs_backup () 
+{ 
+    : date: 2017-09-16;
+    allfiles_backup | sed 's/\/.bak.*//' | printfirst
+}
+backup_alldirs () 
+{ 
+    : date: 2017-09-07;
+    function _backup_sync () 
+    { 
+        indir $1 backup_sync;
+        echo $1
+    };
+    foreach _backup_sync $(alldirs_backup)
+}
+allfiles_backup () 
+{ 
+    : date: 2017-09-16;
+    : trim any leading ./ and replace leading .bak with ./.bak;
+    find . -type f | sed '
+         s/^\.\///; 
+	 s/^\.bak\//.\/&/
+    ' | grep '\.bak/' | grep -v '\.bak/\.bak/'
+}
+alldirs_backup () 
+{ 
+    : date: 2017-09-16;
+    allfiles_backup | sed 's/\/.bak.*//' | printfirst
+}
+ver_time () 
+{ 
+    : date: 2017-12-23;
+    date +%Y%m_%b/%d_%a/%H%M%S
+}
+ver_date () 
+{ 
+    : date: 2017-12-23;
+    date +%Y%m_%b/%d_%a
+}
+foreach () 
+{ 
+    : date: 2017-05-12;
+    : date: 2017-07-16;
+    report_notcommand $1 && return 1;
+    local cmd=$1;
+    shift;
+    for arg in "$@";
+    do
+        $cmd $arg;
+    done
+}
+timestamp () 
+{ 
+    : ~ fileA fileB;
+    : stamp B with TIME of A;
+    : date: 2016-10-02;
+    : date: 2017-02-14;
+    : test for file A existing;
+    : date: 2017-07-10;
+    : date: 2017-07-16;
+    : date: 2017-07-18;
+    report_notfile $1 && return 1;
+    trace_call $*;
+    touch -t $(date -r $(epoch $1)  +%Y%m%d%H%M.%S) $2
+}
+epoch () 
+{ 
+    : date: 2017-07-10;
+    : date: 2017-07-16;
+    : date: 2017-07-18;
+    trace_call $*;
+    [[ -f $1 ]] || return;
+    set $(stat -r $1);
+    echo ${10}
 }

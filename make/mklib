@@ -4,19 +4,19 @@ make_loader ()
     : then load, invoke the _inits;
     : see the list of candidates to include in load;
     : date: 2018-02-12;
-    mk;
+    : date: 2018-02-16;
+    mk_dot;
     make_initialize;
-    make_candidates;
-    declare -f make_{loader,candidates};
-    echo e.g. make_candidates -23 shows the unpublic
 }
 make_functions () 
 { 
+    : date: 2018-02-16;
     awk 'NF == 2 && $2 ~ /^\(\)$/ { print $1 }' $1
 }
 make_canon () 
 { 
     : date: 2018-02-12;
+    : date: 2018-02-16;
     set $1 $1.tmp;
     . $1;
     declare -f $(make_functions $1) > $2;
@@ -25,16 +25,19 @@ make_canon ()
 make_libs () 
 { 
     : date: 2018-02-12;
+    : date: 2018-02-16;
     ls ./?*lib | grep -v $BASH_SOURCE
 }
 make_inits () 
 { 
     : date: 2018-02-12;
+    : date: 2018-02-16;
     awk ' $2 ~ /\(\)/ && $1 ~ /_init$/ { print $1 }' *lib
 }
 make_initialize () 
 { 
     : date: 2018-02-12;
+    : date: 2018-02-16;
     for f in $(make_inits);
     do
         $f;
@@ -43,34 +46,47 @@ make_initialize ()
 make_fundef () 
 { 
     : date: 2018-02-12;
+    : date: 2018-02-16;
     grep "$1.()" ?*lib
 }
 make_candidates () 
 { 
     : date: 2018-02-12;
-    comm $1 <(shd_unmfgd $(functions *lib|sort)) <(public_alllocal|sort)
+    : date: 2018-02-16;
+    comm $1 <(functions *lib|sort)       <(public_alllocal|sort)
+    printf -- "------\t------\t------\n"  
+    comm $1 <(echo local public | wpl)   <(echo manufactured public| wpl)
 }
 make_init () 
 { 
+    : date: 2018-02-16;
     fam_iam;
     smart_def make_public make_{init,loader,libs,canon,functions};
     smart_add make_public make_{private,source};
     smart_add make_public make_{initialize,inits,candidates};
     smart_add make_public make_fundef;
-    smart_add make_public mk;
+    smart_add make_public mk_dot functions;
     smart_function make_locality;
     echo make_loader
 }
-mk () 
+mk_dot () 
 { 
     : sources all local libraries;
+    : name avoids use of SOURCE, respects history, prefers DOT
     : date: 2017-07-18;
-    : date: 2018-02-12;
-    for lib in $(make_libs);
+    : date: 2018-02-18;
+    set -- ./?*lib
+    chmod +x $*
+    for lib in $*
     do
-        make_canon $lib;
+        . $lib;
     done;
-    echo make_{initialize,candidates}
+}
+functions () 
+{ 
+    : date: 2017-05-29;
+    : date: 2017-08-10;
+    awk '$2 ~ /^[(][)]$/ && !printed[$1]++ { print $1 }' ${*:--}
 }
 make_locality () 
 { 
@@ -79,7 +95,7 @@ make_locality ()
     :;
     : -------------------------------------------- LIBRARY NAME --;
     :;
-    public_libraryname mklib;
+    public_profile $HOME mklib
     smart_def make_source $PWD;
     :;
     : ----------------------------------- Installable Functions --;

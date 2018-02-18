@@ -5,6 +5,7 @@ smart_init ()
     : -- the model template is now in libmg;
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     :;
     fam_iam;
     :;
@@ -19,6 +20,7 @@ smart_doc ()
 { 
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     public_doc
 }
 smart_def () 
@@ -29,6 +31,7 @@ smart_def ()
     : callStack;
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     trace_call $*;
     report_notargcount 2 $# listName member ... && return 1;
     local boiler=": mfg: $(myname 2);: date: $(date +%Y-%m-%d)";
@@ -41,6 +44,7 @@ smart_add ()
     : date: 2017-08-05;
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     trace_call $*;
     smart_def $1 $(args_uniq  $(isfunction $1  && $1) ${*:2})
 }
@@ -50,6 +54,7 @@ smart_del ()
     : date: 2017-07-15;
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     report_notfunction $1 && return 1;
     trace_call $*;
     smart_def $1 $(smart_trim $($1) ${*:2} $($1))
@@ -66,6 +71,7 @@ smart_trim ()
     : date: 2018-02-08;
     : todo: when confident, make this a local function of smart_del;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     function _wpl () 
     { 
         : the significant line from the more general function;
@@ -82,6 +88,7 @@ smart_function ()
     : otherwise nothing.;
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     declare -f $1 > /dev/null && $@
 }
 fam_name () 
@@ -91,6 +98,7 @@ fam_name ()
     : returns callers family;
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     trace_call $* parent $(myname 2), GRANDparent $(myname 3);
     set -- $(myname ${1:-3});
     echo $# $* 1>&2;
@@ -100,6 +108,7 @@ smart_islocal ()
 { 
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     trace_call $*;
     set -- $(fam_name);
     set ${1:-EMPTY}_locality;
@@ -119,6 +128,7 @@ smart_install ()
     : start by modifying the alllocal call.;
     : date: 2018-02-08;
     : date: 2018-02-12;
+    : date: 2018-02-16;
     :;
     set ${1}_{installable,public,utils};
     smart_def $1 $($2) $(smart_function $3)
@@ -145,7 +155,7 @@ smart_locality ()
     : date: 2017-08-16;
     trace_call $*;
     smart_islocal || return;
-    public_library publib;
+    public_libraryname publib;
     smart_def smart_source $PWD;
     :;
     : -- UNSET these functions by INIT call --;

@@ -1,15 +1,18 @@
 trace_call () 
 { 
     : date: 2017-07-18;
+    : date: 2018-02-16;
     trace_stderr "$@"
 }
 trace_debug () 
 { 
+    : date: 2018-02-16;
     comment $PWD $(myname 2) $*;
     trap read debug
 }
 trace_init () 
 { 
+    : date: 2018-02-16;
     declare -f fam_iam > /dev/null || { 
         comment $(myname) FAM_IAM is NOT a function;
         return 1
@@ -24,7 +27,7 @@ trace_locality ()
 { 
     smart_islocal || return;
     smart_def trace_source $PWD;
-    public_libraryname shelflib;
+    public_profile $HOME shelflib;
     smart_install trace;
     smart_add trace_unset trace_{set,show,off,on,isOFF,isOKto};
     smart_add trace_unset trace_{base,basic,easy,replace,fbdy};
@@ -36,6 +39,7 @@ trace_missing ()
     : date: 2017-06-04;
     : date: 2017-07-18;
     : ~ ARG, defines function ARG to display the callstack;
+    : date: 2018-02-16;
     report_notargcount 1 $# "function name to trace where called" && return 1;
     eval "$1 () { trace_callstack \$(myname); }"
 }
@@ -44,6 +48,7 @@ trace_callstack ()
     : date: 2017-06-04;
     : date: 2017-07-18;
     : help: shows callstack of calling function;
+    : date: 2018-02-16;
     { 
         isNotNull "$1" && isHelp "$1"
     } && { 
@@ -67,11 +72,13 @@ trace_simple ()
 { 
     : ~ arg ...;
     : prints Calling Function and passed arguments to STDERR;
+    : date: 2018-02-16;
     pa=${FUNCNAME[1]:-COMMANDLINE};
     printf "TRACE %s\t%s\n" "$pa" "$*" 1>&2
 }
 trace_stderr () 
 { 
+    : date: 2018-02-16;
     pa=${FUNCNAME[2]:-COMMANDLINE};
     gr=${FUNCNAME[3]:-COMMANDLINE};
     printf "TRACE %s\t@ %s\t%d  ( %s )\n" "$gr" "$pa" $# "$*" 1>&2

@@ -1,10 +1,12 @@
 fam_copyright () 
 { 
+    : date: 2018-02-16;
     comment "Copyright (C) 2014-2018, JYATL - Just Yet Another Testing Lab";
     comment "mailto:mcgowan@alum.mit.edu"
 }
 fam_help () 
 { 
+    : date: 2018-02-16;
     echo to see FAM functions, fam_list
 }
 fam_list () 
@@ -12,6 +14,7 @@ fam_list ()
     : first underscore delimits family,;
     : subfunction may have _s in the name;
     : anticipates /rdb;
+    : date: 2018-02-16;
     sfg _ | sed 's/_/ /' | awk '
     BEGIN { fmt = "%s\t%s\n"
             printf fmt, "family", "subfun"
@@ -22,6 +25,7 @@ fam_list ()
 }
 fam_init () 
 { 
+    : date: 2018-02-16;
     fam_iam;
     smart_def fam_public fam_{init,source,iam,subbody,generic};
     smart_add fam_public fam_{list,help,copyright,copybody};
@@ -33,11 +37,12 @@ fam_locality ()
     trace_call $*;
     smart_islocal || return;
     smart_def fam_source $PWD;
-    public_libraryname shelflib;
+    public_profile $HOME shelflib;
     smart_install fam
 }
 fam_iam () 
 { 
+    : date: 2018-02-16;
     function fam_sub () 
     { 
         local f=${1}_$2;
@@ -76,6 +81,7 @@ fam_iam ()
 }
 fam_subbody () 
 { 
+    : date: 2018-02-16;
     echo $1 functions,variables:;
     { 
         ${1}_vars;
@@ -84,14 +90,17 @@ fam_subbody ()
 }
 fam_owner () 
 { 
+    : date: 2018-02-16;
     echo JYATL - Just Yet Another Testing Lab
 }
 fam_email () 
 { 
+    : date: 2018-02-16;
     echo mcgowan@alum.mit.edu
 }
 fam_copybody () 
 { 
+    : date: 2018-02-16;
     local fmt="    %s \"%s\"\n";
     printf "$fmt" comment "Copyright (C) $(date +%Y), $(fam_owner);";
     printf "$fmt" comment "mailto:$(fam_email);";
@@ -111,6 +120,7 @@ fam_generic ()
     : prefereably executes FUN_SUB arg ...;
     : or FUN_HELP;
     : ====================================;
+    : date: 2018-02-16;
     local fun=$1;
     shift;
     : only when a function is first use thru the model;

@@ -1,10 +1,12 @@
 report_copyright () 
 { 
+    : date: 2018-02-16;
     comment "Copyright (C) 2015-2018, JYATL - Just Yet Another Testing Lab";
     comment "mailto: mcgowan (at) alum DOT mit DOT edu"
 }
 report_init () 
 { 
+    : date: 2018-02-16;
     fam_iam;
     smart_def report_public report_{init,copyright,source};
     smart_add report_public report_nofilefrom;
@@ -24,13 +26,14 @@ report_locality ()
 { 
     smart_islocal || return;
     smart_def report_source $PWD;
-    public_libraryname shelflib;
+    public_profile $HOME shelflib;
     smart_install report;
     : superceded by _notargcount;
     unset public_needcount
 }
 report_nofilefrom () 
 { 
+    : date: 2018-02-16;
     set $(eval $*) /dev/null $*;
     [[ -f $1 ]] && return 1;
     shift;
@@ -39,152 +42,182 @@ report_nofilefrom ()
 report_notbase () 
 { 
     : date: 2017-05-12;
+    : date: 2018-02-16;
     [[ $(basename $PWD) == "$1" ]] && return 1;
     comment change to "$1" directory
 }
 report_notfilegreaterthanzero () 
 { 
+    : date: 2018-02-16;
     [[ -s $1 ]] && return 1;
     report_usage $1 is NOT a filegreaterthanzero
 }
 report_notgroupiseuid () 
 { 
+    : date: 2018-02-16;
     [[ -G $1 ]] && return 1;
     report_usage $1 is NOT a file with groupiseuid
 }
 report_notlargeenough () 
 { 
+    : date: 2018-02-16;
     [[ $2 -ge $1 ]] && return 1;
     report_usage $1 $(echo 1: $1, 2: $2 3...: ${*:3})
 }
 report_notowneriseuid () 
 { 
+    : date: 2018-02-16;
     [[ -O $1 ]] && return 1;
     report_usage $1 is NOT a file with owneriseuid
 }
 report_nottrue () 
 { 
     : date: 2017-07-18;
+    : date: 2018-02-16;
     eval "$@" && return 1;
     report_usage $@ FAILED
 }
 report_emptyfile () 
 { 
+    : date: 2018-02-16;
     [[ -s $1 ]] && return 1;
     report_usage File: is empty
 }
 report_isfile () 
 { 
+    : date: 2018-02-16;
     [[ -f $1 ]] || return 1;
     report_usage $1 IS a file and should not be ${*:2}
 }
 report_notblockspecial () 
 { 
+    : date: 2018-02-16;
     [[ -b $1 ]] && return 1;
     report_usage $1 is NOT a blockspecial file
 }
 report_notcalledby () 
 { 
+    : date: 2018-02-16;
     set ${1:-/dev/null} $(myname 3) non-Existant-function;
     [[ $2 == $1 ]] && return 1;
     report_usage was NOT called by $1.
 }
 report_notcharacterspecial () 
 { 
+    : date: 2018-02-16;
     [[ -c $1 ]] && return 1;
     report_usage $1 is NOT a characterspecial file
 }
 report_notdirectory () 
 { 
+    : date: 2018-02-16;
     [[ -d $1 ]] && return 1;
     report_usage $1 is NOT a Directory
 }
 report_notexecutable () 
 { 
+    : date: 2018-02-16;
     [[ -x $1 ]] && return 1;
     report_usage $1 is NOT an executable file
 }
 report_notexisting () 
 { 
+    : date: 2018-02-16;
     [[ -e $1 ]] && return 1;
     report_usage $1 is NOT an existing file
 }
 report_notfunction () 
 { 
+    : date: 2018-02-16;
     declare -f $1 > /dev/null && return 1;
     report_usage $1 is NOT a function
 }
 report_notgroup () 
 { 
+    : date: 2018-02-16;
     [[ -G $1 ]] && return 1;
     report_usage $1 is NOT a file with group or egid
 }
 report_notnonzerostring () 
 { 
+    : date: 2018-02-16;
     [[ -n $1 ]] && return 1;
     report_usage $1 is NOT a nonzerolengthstring
 }
 report_notowner () 
 { 
+    : date: 2018-02-16;
     [[ -O $1 ]] && return 1;
     report_usage $1 is NOT a file with owner or euid
 }
 report_notpipe () 
 { 
+    : date: 2018-02-16;
     [[ -p /dev/stdin ]] && return 1;
     report_usage is NOT reading a pipe
 }
 report_notreadable () 
 { 
+    : date: 2018-02-16;
     [[ -r $1 ]] && return 1;
     report_usage $1 is NOT a readable file
 }
 report_notsetgroupid () 
 { 
+    : date: 2018-02-16;
     [[ -g $1 ]] && return 1;
     report_usage $1 is NOT a file with setgroupid
 }
 report_notsetuserid () 
 { 
+    : date: 2018-02-16;
     [[ -u $1 ]] && return 1;
     report_usage $1 is NOT a file with setuserid
 }
 report_notsocket () 
 { 
+    : date: 2018-02-16;
     [[ -S $1 ]] && return 1;
     report_usage $1 is NOT a socket
 }
 report_notstickybitset () 
 { 
+    : date: 2018-02-16;
     [[ -k $1 ]] && return 1;
     report_usage $1 is NOT a file with its stickybitset
 }
 report_notsymboliclink () 
 { 
+    : date: 2018-02-16;
     [[ -L $1 ]] && return 1;
     report_usage $1 is NOT a symboliclink
 }
 report_notwritable () 
 { 
+    : date: 2018-02-16;
     [[ -w $1 ]] && return 1;
     report_usage $1 is NOT a writable file
 }
 report_notzerolengthstring () 
 { 
+    : date: 2018-02-16;
     [[ -z "$1" ]] && return 1;
     report_usage $1 is NOT a zerolengthstring
 }
 report_usage () 
 { 
+    : date: 2018-02-16;
     comment USAGE $(myname 3): $*
 }
 report_notargcount () 
 { 
+    : date: 2018-02-16;
     [[ $2 -ge $1 ]] && return 1;
     report_usage need at least $1 arg/s: $(shift 2; echo $*)
 }
 report_notcommand () 
 { 
+    : date: 2018-02-16;
     quietly ignore type -a $1 && return 1;
     report_usage $1 is NOT a command
 }
@@ -192,16 +225,19 @@ report_notlib ()
 { 
     : date: 2018-01-29;
     : date: 2018-02-13;
+    : date: 2018-02-16;
     [[ $(functions ${1:-MissingFirstArgument} | grep _init$ | wc -l) -gt 0 ]] && return 1;
     report_usage $1 is NOT a shell function library
 }
 report_notmodifiedsinceread () 
 { 
+    : date: 2018-02-16;
     [[ -N $1 ]] && return 1;
     report_usage $1 is NOT modified since last READ
 }
 report_notterminal () 
 { 
+    : date: 2018-02-16;
     case $1 in 
         [0-9])
             [[ -t $1 ]] && return 1;
@@ -214,26 +250,31 @@ report_notterminal ()
 }
 report_notfile () 
 { 
+    : date: 2018-02-16;
     [[ -f $1 ]] && return 1;
     report_usage $1 is NOT a file
 }
 report_notfile_gt_zero () 
 { 
+    : date: 2018-02-16;
     [[ -s $1 ]] && return 1;
     report_usage $1 is NOT a filegreaterthanzero
 }
 report_notexactcount () 
 { 
+    : date: 2018-02-16;
     [[ $2 -eq $1 ]] && return 1;
     report_usage need exactly $1 arg/s: ${*:3}
 }
 assert_help () 
 { 
+    : date: 2018-02-16;
     comment source ${BASH_SOURCE[$*]}
 }
 assert_init () 
 { 
     : assert_make;
+    : date: 2018-02-16;
     smart_def assert_public assert_{init,help};
     smart_def assert_construction assert_{make,generate,functions,template};
     functions ${BASH_SOURCE[$*]};
@@ -245,6 +286,6 @@ assert_locality ()
 { 
     smart_islocal || return;
     smart_def assert_source $PWD;
-    public_libraryname shelflib;
+    public_profile $HOME shelflib;
     smart_install assert
 }
