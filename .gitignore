@@ -1,9 +1,7 @@
 *.err
 *.html
-*/?xlib
+*.txt
 */ar
 .*
 .bak/*
-???/*.err
 ???/.*
-man/man?/.err/*

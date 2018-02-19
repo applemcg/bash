@@ -26,24 +26,16 @@ smart_doc ()
 smart_def () 
 { 
     : date: 2017-06-10;
-    : date: 2017-07-15;
-    : date: 2017-08-05;
-    : callStack;
-    : date: 2018-02-08;
-    : date: 2018-02-12;
     : date: 2018-02-16;
     trace_call $*;
     report_notargcount 2 $# listName member ... && return 1;
     local boiler=": mfg: $(myname 2);: date: $(date +%Y-%m-%d)";
     eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }"
+    trace_call $*;    
 }
 smart_add () 
 { 
     : date: 2017-06-10;
-    : date: 2017-07-15;
-    : date: 2017-08-05;
-    : date: 2018-02-08;
-    : date: 2018-02-12;
     : date: 2018-02-16;
     trace_call $*;
     smart_def $1 $(args_uniq  $(isfunction $1  && $1) ${*:2})
@@ -51,9 +43,6 @@ smart_add ()
 smart_del () 
 { 
     : date: 2017-06-10;
-    : date: 2017-07-15;
-    : date: 2018-02-08;
-    : date: 2018-02-12;
     : date: 2018-02-16;
     report_notfunction $1 && return 1;
     trace_call $*;

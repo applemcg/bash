@@ -37,14 +37,22 @@ public_profile ()
     : communicates with public_update;
     local profile=.public_profile;
     report_notargcount 2 $# directory function_library && return 1;
+    trace_call $*
     [[ -f $profile ]] || { 
         public_home $1;
         public_libraryname $2;
-        read a < /dev/tty;
         set | grep '^PUBLIC_' > $profile
+	chmod +x $profile
     };
     . $profile;
-    case $PUBLIC_LIBRARY in 
+    echo $pwd
+    cat $profile
+    read a < /dev/tty
+    case $PUBLIC_LIBRARY in
+        /*)
+	    echo ERROR missing PUBLIC_HOME
+	    return 2
+	    ;;
         "")
             echo public_home some_directory;
             echo public_libraryname some_file;
@@ -64,12 +72,18 @@ public_libraryname ()
     :;
     : ------------------------- public, local libraries --;
     :;
+    isfunction public_variable || {
+
+          _functions | grep public
+	  read a < /dev/tty
+
+    }
     case $1 in 
         "")
 
         ;;
         *)
-            public_variable LIBRARY $(needfile $PUBLIC_BIN/$1)
+            public_variable LIBRARY $(needfile $PUBLIC_BIN/$1)s
         ;;
     esac
 }
@@ -79,6 +93,12 @@ public_directory ()
     : date: 2018-02-08;
     : date: 2018-02-12;
     : date: 2018-02-16;
+    isfunction public_variable || {
+
+          _functions | grep public
+	  read a < /dev/tty
+
+    }
     public_variable $1 $(needir $PUBLIC_HOME/$2)
 }
 public_home () 
@@ -86,6 +106,12 @@ public_home ()
     : date: 2018-02-08;
     : date: 2018-02-12;
     : date: 2018-02-16;
+    isfunction public_variable || {
+
+          _functions | grep public
+	  read a < /dev/tty
+
+    }
     public_variable HOME ${1:-$HOME};
     :;
     : whereever it is, it has a ...;
@@ -313,10 +339,7 @@ isfunction ()
 { 
     : ~ function;
     : returns TRUTH of argument as FUNCTION;
-    : date: 2018-02-08;
-    : date: 2018-02-12;
-    : date: 2018-02-16;
-    declare -f $1 > /dev/null
+    [ "$(declare -F $1)" == "$1" ]
 }
 needfile () 
 { 

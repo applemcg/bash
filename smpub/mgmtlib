@@ -137,7 +137,6 @@ libmg_doc ()
  ~ Marty McGowan 2017-12-30 
 
 EOF
-
 }
 public_update () 
 { 

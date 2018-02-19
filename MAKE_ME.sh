@@ -35,13 +35,18 @@ _acd ()
     _mk_one $2
 }
 _mk_run () 
-{ 
+{
+    case $PWD in
+	$HOME)
+	    return;;
+    esac
     unset $( _functions| grep -v '^_' );
     _functions;
     dirs -c;
     err=$PWD/make.err;
     rm -f $err;
     _mk_one;
+    [[ -d ./make ]] || { cd ..; _mk_run; }
     cd ./make;
     . mklib;
     _acd ../make _mk_here;
@@ -54,10 +59,6 @@ _mk_run ()
     _acd ../make _mk_init;
     _functions | grep -v '^_' | sort > ../initfuns.txt;
     _mk_msg all INIT wc -l $(wc -l ../initfuns.txt);
-    declare -f _mk_updateall
-}
-_mk_updateall () 
-{ 
     _acd ../shelf public_update;
     _acd ../smpub public_update;
     _acd ../make public_update;

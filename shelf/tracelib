@@ -74,7 +74,7 @@ trace_simple ()
     : prints Calling Function and passed arguments to STDERR;
     : date: 2018-02-16;
     pa=${FUNCNAME[1]:-COMMANDLINE};
-    printf "TRACE %s\t%s\n" "$pa" "$*" 1>&2
+    printf "TRACE %s\t%s\n" "$pa" "$PWD: $*" 1>&2
 }
 trace_stderr () 
 { 
