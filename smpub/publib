@@ -29,6 +29,12 @@ public_init ()
     :;
     smart_function public_locality
 }
+q_prof () 
+{
+    set ${1:-.public_profile}
+    set $(cat $1 | wc -l) $(grep /User $1 | wc -l);
+    [ $1 -ne $2 ]
+}
 public_profile () 
 { 
     : must have a ./.public_profile with a PUBLIC_LIBRARY;
@@ -45,14 +51,7 @@ public_profile ()
 	chmod +x $profile
     };
     . $profile;
-    echo $pwd
-    cat $profile
-    read a < /dev/tty
     case $PUBLIC_LIBRARY in
-        /*)
-	    echo ERROR missing PUBLIC_HOME
-	    return 2
-	    ;;
         "")
             echo public_home some_directory;
             echo public_libraryname some_file;
@@ -60,10 +59,10 @@ public_profile ()
             return 1
         ;;
         *)
-
         ;;
     esac
 }
+public_variable    () { setenv PUBLIC_${1} $2; }
 public_libraryname () 
 { 
     : date: 2018-02-08;
@@ -72,18 +71,12 @@ public_libraryname ()
     :;
     : ------------------------- public, local libraries --;
     :;
-    isfunction public_variable || {
-
-          _functions | grep public
-	  read a < /dev/tty
-
-    }
     case $1 in 
         "")
 
         ;;
         *)
-            public_variable LIBRARY $(needfile $PUBLIC_BIN/$1)s
+            public_variable LIBRARY $(needfile $PUBLIC_BIN/$1)
         ;;
     esac
 }
@@ -93,12 +86,6 @@ public_directory ()
     : date: 2018-02-08;
     : date: 2018-02-12;
     : date: 2018-02-16;
-    isfunction public_variable || {
-
-          _functions | grep public
-	  read a < /dev/tty
-
-    }
     public_variable $1 $(needir $PUBLIC_HOME/$2)
 }
 public_home () 
@@ -106,12 +93,6 @@ public_home ()
     : date: 2018-02-08;
     : date: 2018-02-12;
     : date: 2018-02-16;
-    isfunction public_variable || {
-
-          _functions | grep public
-	  read a < /dev/tty
-
-    }
     public_variable HOME ${1:-$HOME};
     :;
     : whereever it is, it has a ...;

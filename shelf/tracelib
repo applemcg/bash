@@ -49,6 +49,7 @@ trace_callstack ()
     : date: 2017-07-18;
     : help: shows callstack of calling function;
     : date: 2018-02-16;
+    function isNotNull () { return 1; }
     { 
         isNotNull "$1" && isHelp "$1"
     } && { 

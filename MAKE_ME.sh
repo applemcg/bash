@@ -20,7 +20,7 @@ _mk_funw ()
 }
 _mk_init () 
 { 
-    make_loader 2>> $err;
+    make_initialize 2>> $err;
     _mk_one INIT
 }
 _mk_here () 
@@ -51,6 +51,8 @@ _mk_run ()
     . mklib;
     _acd ../make _mk_here;
     _acd ../smpub _mk_here;
+    _functions | grep public_variable
+    _mk_msg public_variable 
     _acd ../shelf _mk_here;
     _functions | grep -v '^_' | sort > ../mkfuns.txt;
     _mk_msg all MK wc -l $(wc -l ../mkfuns.txt);
@@ -58,10 +60,15 @@ _mk_run ()
     _acd ../smpub _mk_init;
     _acd ../make _mk_init;
     _functions | grep -v '^_' | sort > ../initfuns.txt;
+
     _mk_msg all INIT wc -l $(wc -l ../initfuns.txt);
     _acd ../shelf public_update;
     _acd ../smpub public_update;
     _acd ../make public_update;
     _acd .. dirs
+    echo TIME to QUIT
+    read a </dev/tty
+    exit
+    echo NEVER Get HERE
 }
 echo _mk_run
