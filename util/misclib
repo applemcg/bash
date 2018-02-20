@@ -1,0 +1,165 @@
+awk_file () 
+{ 
+    : use NEWEST file for argument, regarless of SUFFIX;
+    : date: 2017-05-11;
+    : date: 2017-07-10;
+    : date: 2017-07-16;
+    : date: 2017-07-18;
+    trace_call $*;
+    set -- $(awk_files | grep ${1:-$(myname 2)});
+    case $# in 
+        0)
+            return
+        ;;
+        *)
+            [[ -f $1 ]] && { 
+                set $(ls -t $*);
+                echo $1
+            }
+        ;;
+    esac
+}
+awk_files () 
+{ 
+    : date: 2016-11-25;
+    : date: 2016-11-27;
+    : clone: foreachi files_dirsuf awk;
+    : find AWK or TST files on LIB_PATH;
+    : date: 2017-05-11;
+    : date: 2017-07-10;
+    : date: 2017-07-16;
+    : date: 2017-07-18;
+    trace_call $*;
+    for path in $(lib_paths) {.,..}/lib;
+    do
+        shell_onlyfiles ${path}/*.{awk,tst} 2> /dev/null;
+    done
+}
+c () 
+{ 
+    : date: 2017-08-16;
+    fam_generic c $*
+}
+calledby () 
+{ 
+    : date: 2017-12-26;
+    echo ${FUNCNAME[2]}
+}
+f2file () 
+{ 
+    : date: 2017-07-10;
+    : date: 2017-07-16;
+    : date: 2017-07-18;
+    : date: 2017-10-26;
+    report_notfile ${1:-MissingFirstArgument} && return 1;
+    local d=.${2:-$(basename $1)};
+    trace_call $# $*, d: $d;
+    : gawk and awk differ in CLOSE built-in;
+    : gawk uses FCLOSE, awk CLOSE ?!;
+    rm -fr $d;
+    mkdir $d;
+    cat $1 | awk -v dir=$d/ -f $(awk_file)
+}
+families () 
+{ 
+    : date: 2017-09-19;
+    sfg _init | sed 's/_init//'
+}
+field () 
+{ 
+    set ${1:-1};
+    awk -v field=$1 '{ print $field }'
+}
+home () 
+{ 
+    : ~ {cmd, echo} the name of the portable File System;
+    : intended for DROPBOX, but lets use a portable idea.;
+    case $# in 
+        0)
+            : ${ALTHOME:-$HOME}
+        ;;
+        *)
+            [[ -d $1 ]] && ALTHOME=$1
+        ;;
+    esac;
+    echo ${ALTHOME:-$HOME}
+}
+initstmt () 
+{ 
+    printf "%s 1>&2\n" $1
+}
+lib_paths () 
+{ 
+    paths | grep '/bin$' | sed 's/bin$/lib/'
+}
+paths () 
+{ 
+    : date: 2017-05-29;
+    : date: 2017-07-15;
+    : date: 2017-07-16;
+    eval echo \$${1:-PATH} | sed 's/::/:.:/' | tr : '\012'
+}
+qmoved () 
+{ 
+    [ "$PWD" == "${1:-$PWD}" ] && return;
+    echo MOVED to $PWD
+}
+rd () 
+{ 
+    : -- allow commands to preserve Relation Data header;
+    trace_call $*;
+    read HEAD;
+    read DASH;
+    rdb_hdr $HEAD;
+    "$@"
+}
+rdb_hdr () 
+{ 
+    : date: 2017-05-12;
+    trace_call $*;
+    : first the names, then equal-width dashes,;
+    : with one or more, spaces to a single TAB;
+    ( echo $*;
+    echo $* | tr 'a-zA-Z0-9_' '-' ) | sed 's/  */ /g' | tr ' ' '\t'
+}
+shell_onlyfiles () 
+{ 
+    for f in ${*:-*};
+    do
+        [[ -f $f ]] && echo $f;
+    done
+}
+source () 
+{ 
+    set $1 $(basename $1);
+    set $1 ${2%lib};
+    trace_call $*;
+    isfunction ${2}_init && { 
+        comment SOURCE ${2}lib has been sourced, unset ${2}_init to source;
+        return
+    };
+    local f;
+    case $1 in 
+        */*)
+            f=$1
+        ;;
+        *)
+            f=$(which $1)
+        ;;
+    esac;
+    case $f in 
+        "")
+            comment NO $1 in PATH;
+            return
+        ;;
+    esac;
+    save_dir=$PWD;
+    [[ -f $f ]] && command source $f;
+    : manual PPTLOG:;
+    date "+%F %a %b %d %T SOURCEd $f from $save_dir $(qmoved $save_dir)" >> ~/lib/source.log
+}
+today () 
+{ 
+    trace_call $*;
+    date +%Y${2}%m${1}%d
+}
