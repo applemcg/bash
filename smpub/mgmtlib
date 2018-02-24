@@ -34,7 +34,31 @@ libmg_init ()
     :;
     : the _locality function should, of course, NOT be a public function, nor;
     : _ need exist, hence the routine use of the smart_function call.;
+    :;    : Functions requiring PUBLIC installation;
+    : e.g. libmg, belong in the _public list. Publicly installable;
+    : utility functions, and not family members, are also in the public list;
+    : and may be discovered by comparing the family list to the public listn;
     :;
+    : Manufactured functions -- those written by the smart_ family should;
+    : not be in the _public list. Presumably the generating;
+    : smart_ call is in an installed function. An exception is the;
+    : {fam}_source function, whose purpose is to identify the working;
+    : directory for the function library. Therefore, the manufacturing;
+    : function should NOT be on the _public list. A good place is the _locality;
+    : function;
+    :;
+    : For the purpose of installing in the public library, call the;
+    : smart_install function with the family name. This is best handled;
+    : in the _locality function.;
+    :;
+    fam_iam;
+    smart_def libmg_public libmg_{init,source,doc};
+    smart_add libmg_public libmg_{f3file,f4file};
+    :;
+    : --------------------------------------- Utility Functions --;
+    : any functions deserving public exposure which;
+    :;
+    smart_add libmg_public libsave
     smart_function libmg_locality
 }
 wpl () 
@@ -71,15 +95,12 @@ libsave ()
     : date: 2016-09-30;
     : args: library function ...;
     : date: 2018-01-08;
-    : date: 2018-02-12;
-    : date: 2018-02-16;
     report_notargcount 2 $# library function ... && return 1;
     report_notfile $1 && return 1;
     trace_call $*;
-    : replace shd_setdate;
-    declare -f ${*:2} | tee .$(myname).err >> $1;
+    shd_setdate ${*:2} | tee .$(myname).err >> $1;
     command source $1;
-    libmg_crunch $1
+    lib_crunch $1
 }
 libmg_doc () 
 { 
