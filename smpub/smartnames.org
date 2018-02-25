@@ -37,29 +37,37 @@ deletion mechanism, the *smart_trim* function is also include. Note,
 safety's sake, a defensive programmer would ~unset~ the smart name.
 
 #+BEGIN_SRC sh
-$ declare -f smart_def smart_add smart_del smart_trim 
+$ declare -f smart_def smart_add smart_del smart_trim
 smart_def () 
 { 
     : date: 2017-06-10;
-    : date: 2017-06-14;
+    : date: 2018-02-16;
+    trace_call $*;
     report_notargcount 2 $# listName member ... && return 1;
     local boiler=": mfg: $(myname 2);: date: $(date +%Y-%m-%d)";
-    eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }"
+    eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }";
+    trace_call $*
 }
 smart_add () 
 { 
     : date: 2017-06-10;
-    : date: 2017-06-14;
+    : date: 2018-02-16;
     trace_call $*;
-    smart_list $1 ${*:2} $( isfunction $1  && $1 )
+    smart_def $1 $(args_uniq  $(isfunction $1  && $1) ${*:2})
 }
 smart_del () 
 { 
     : date: 2017-06-10;
-    : date: 2017-06-14;
+    : date: 2018-02-16;
+    : smart_trim receives the current list, args to del;
+    : .. and the current list again, i.e.;
+    : current, and undeleted args appear TWICE;
+    : args to delete appear THREE times, and;
+    : args not present appear but ONCE to SMART_TRIM.;
+    : it returns names only ONCE, which appear TWICE;
     report_notfunction $1 && return 1;
     trace_call $*;
-    smart_list $1 $(smart_trim $($1) ${*:2} $($1))
+    smart_def $1 $(smart_trim $($1) ${*:2} $($1))
 }
 smart_trim () 
 { 
@@ -72,6 +80,8 @@ smart_trim ()
     : todo: xlate to single awk script, save three processes.;
     : date: 2018-02-08;
     : todo: when confident, make this a local function of smart_del;
+    : date: 2018-02-12;
+    : date: 2018-02-16;
     function _wpl () 
     { 
         : the significant line from the more general function;
@@ -80,7 +90,7 @@ smart_trim ()
     echo $* | _wpl | sort | uniq -c | awk '$1 == 2 { printf "%s ", $2 }';
     unset _wpl
 }
-
+$
 #+END_SRC
 
 The functions *smart_def, smart_add*, and *smart_del* respectively

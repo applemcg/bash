@@ -30,8 +30,8 @@ smart_def ()
     trace_call $*;
     report_notargcount 2 $# listName member ... && return 1;
     local boiler=": mfg: $(myname 2);: date: $(date +%Y-%m-%d)";
-    eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }"
-    trace_call $*;    
+    eval "$1 () { $boiler; \${@:-echo} $(args_uniq ${*:2}); }";
+    trace_call $*
 }
 smart_add () 
 { 
@@ -44,6 +44,12 @@ smart_del ()
 { 
     : date: 2017-06-10;
     : date: 2018-02-16;
+    : smart_trim receives the current list, args to del
+    : .. and the current list again, i.e.
+    : current, and undeleted args appear TWICE
+    : args to delete appear THREE times, and
+    : args not present appear but ONCE to SMART_TRIM.
+    : it returns names only ONCE, which appear TWICE
     report_notfunction $1 && return 1;
     trace_call $*;
     smart_def $1 $(smart_trim $($1) ${*:2} $($1))
