@@ -5,10 +5,6 @@ util_init ()
     smart_add util_public UC comment funct_list ignore quietly;
     smart_add util_public notfunction myname;
     smart_add util_public setenv spaceit printfirst sfg ymd_hms;
-    smart_add util_public backup;
-    smart_add util_public backup_{copyright,depth,files,here,help};
-    smart_add util_public backup_{init,lib,one,paper,sync,version};
-    smart_add util_public backup_{files_not,allfiles,alldirs};
     smart_add util_public allfiles_{version,vscript,dirs,backup};
     smart_add util_public version_{need,test,today};
     smart_add util_public ver_{date,time};
@@ -20,8 +16,10 @@ util_locality ()
 { 
     smart_islocal || return;
     smart_def util_source $PWD;
+    smart_def bkup_source $PWD
     public_profile $HOME shelflib;
     smart_install util
+    smart_install bkup
 }
 UC () 
 { 
@@ -173,6 +171,8 @@ backup_files ()
 }
 backup_here () 
 { 
+    : command cp, now works with cp, mv functions;
+    : date: 2018-03-11;
     set $1 .bak ${2:-$PWD};
     [[ -d $2 ]] || mkdir $2;
     [[ $3 == $PWD ]] && { 
@@ -182,15 +182,117 @@ backup_here ()
         cd $2;
         backup_here $1 $3
     } || { 
-        mv $1 $2/$1;
+        trace_call ASCENDING $PWD: $*;
+        command mv $1 $2/$1;
         [[ $3 == $PWD ]] && { 
-            cp $2/$1 $1;
+            command cp $2/$1 $1;
             timestamp $2/$1 $1;
             return
         };
         cd ..;
         backup_here $1 $3
     }
+}
+cpmv_test () 
+{ 
+    set testcpmv.d;
+    [[ -d $1 ]] || mkdir $1;
+    [[ -f $1/$(today).txt ]] || { 
+        ls -lrt > $1/lrt.txt;
+        backup $1/lrt.txt;
+        ls -al > $1/al.txt;
+        backup $1/al.txt;
+        ls -l > $1/l.txt;
+        backup $1/l.txt;
+        ls -l $1 > $1/$(today).txt;
+        backup $1/$(today).txt
+    };
+    for file in $1/*;
+    do
+        trace_call file $file;
+        read a < /dev/tty;
+        ( cat $file;
+        today ) > $(basename $file);
+    done;
+    cp *.txt $1
+}
+cpmv_init () 
+{
+    smart_def bkup_public backup;
+    smart_add bkup_public backup_{copyright,depth,files,here,help};
+    smart_add bkup_public backup_{init,lib,one,paper,sync,version};
+    smart_add bkup_public backup_{files_not,allfiles,alldirs};
+    smart_add bkup_public backup_{files_not,allfiles,alldirs};
+    smart_add bkup_public cpmv_{init,backup,directory}
+    smart_add bkup_public cp mv is_backedup cplnmv_doc
+    echo WARNING, cp, mv functions assigned;
+    cplnmv_doc
+}
+cplnmv_doc ()
+{
+    ${*:-open} http://mcgowans.org/marty3/commonplace/20_red/cplnmv.html
+}
+is_backedup () 
+{ 
+    trace_call $*;
+    [[ -f ${1:-/dev/null} ]] || return 1;
+    [[ -f $(dirname $1)/.bak/$(basename $1) ]]
+}
+cpmv () 
+{ 
+    : cpmv xx file ... directory;
+    : cpmv xx file file;
+    : cpmv xx -flag ...;
+    trace_call $*;
+    case $2 in 
+        -*)
+	    trace_call COMMAND $*;
+            command $*;
+            return
+        ;;
+    esac;
+    eval local destination=\$$#;
+    [[ -d $destination ]] && { 
+        cpmv_directory $1 $destination ${*:2};
+        return
+    };
+    [[ $# -gt 3 ]] && { 
+        error "cpmv file file";
+        return 2
+    };
+    cpmv_backup $*
+}
+cp () 
+{ 
+    report_notargcount 2 $# && return 1
+    cpmv cp $*
+}
+mv () 
+{
+    report_notargcount 2 $# && return 1
+    cpmv mv $*
+}
+cpmv_backup () 
+{ 
+    : ~ cmmd source resolved/destination;
+    trace_call $*;
+    is_backedup $3 && backup $3;
+    trace_call COMMAND $*;
+    command $*;
+    is_backedup $3 && backup $3
+}
+cpmv_directory () 
+{ 
+    : ~ cmd directory file ... directory;
+    local destination=$2;
+    trace_call destination: $destination $*;
+    for file in ${*:3};
+    do
+        [[ $file = $destination ]] && break;
+        [[ -d $file ]] && continue;
+        local bn=$(basename $file);
+        cpmv_backup $1 $file $destination/$bn;
+    done
 }
 backup_help () 
 { 
