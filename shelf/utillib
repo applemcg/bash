@@ -195,7 +195,7 @@ backup_here ()
 }
 cpmv_test () 
 { 
-    set testcpmv.d;
+    sept testcpmv.d;
     [[ -d $1 ]] || mkdir $1;
     [[ -f $1/$(today).txt ]] || { 
         ls -lrt > $1/lrt.txt;
@@ -218,18 +218,28 @@ cpmv_test ()
 }
 cpmv_init () 
 {
+    fam_iam
+    :
     smart_def bkup_public backup;
     smart_add bkup_public backup_{copyright,depth,files,here,help};
     smart_add bkup_public backup_{init,lib,one,paper,sync,version};
     smart_add bkup_public backup_{files_not,allfiles,alldirs};
-    smart_add bkup_public backup_{files_not,allfiles,alldirs};
-    smart_add bkup_public cpmv_{init,backup,directory}
-    smart_add bkup_public cp mv is_backedup cplnmv_doc
+    :
+    smart_def cpmv_public cpmv_{do,doc,init,backup,directory}
+    smart_add cpmv_public cp mv is_backedup install_one
     echo WARNING, cp, mv functions assigned;
-    cplnmv_doc
-}
-cplnmv_doc ()
+    cpmv_locality    
+} 
+install_one ()
 {
+    : moves the FILE argument to the DIRECTORY, created if necessary
+    report_notargcount 2 $# File directory_from_HOME && return 1
+    trace_call $*;    
+    for_existing $1 mv $1 $(needir $HOME/$2)
+}    
+cpmv_doc ()
+{
+    trace_call $*;
     ${*:-open} http://mcgowans.org/marty3/commonplace/20_red/cplnmv.html
 }
 is_backedup () 
@@ -238,11 +248,11 @@ is_backedup ()
     [[ -f ${1:-/dev/null} ]] || return 1;
     [[ -f $(dirname $1)/.bak/$(basename $1) ]]
 }
-cpmv () 
+cpmv_do () 
 { 
-    : cpmv xx file ... directory;
-    : cpmv xx file file;
-    : cpmv xx -flag ...;
+    : cpmv_do xx file ... directory;
+    : cpmv_do xx file file;
+    : cpmv_do xx -flag ...;
     trace_call $*;
     case $2 in 
         -*)
@@ -257,7 +267,7 @@ cpmv ()
         return
     };
     [[ $# -gt 3 ]] && { 
-        error "cpmv file file";
+        error "cpmv_do file file";
         return 2
     };
     cpmv_backup $*
@@ -265,12 +275,12 @@ cpmv ()
 cp () 
 { 
     report_notargcount 2 $# && return 1
-    cpmv cp $*
+    cpmv_do cp $*
 }
 mv () 
 {
     report_notargcount 2 $# && return 1
-    cpmv mv $*
+    cpmv_do mv $*
 }
 cpmv_backup () 
 { 
@@ -294,8 +304,35 @@ cpmv_directory ()
         cpmv_backup $1 $file $destination/$bn;
     done
 }
+cpmv_locality () 
+{
+    : -- HDR ---------------------------------- Local functions	-- ;
+    smart_islocal || return;
+    trace_call $*
+    smart_def bkup_source $PWD
+    smart_def cpmv_source $PWD    
+    public_profile $HOME shelflib;
+    smart_install bkup
+    smart_install cpmv
+    cpmv_installs
+    echo cpmv_doc
+}
+for_existing () 
+{
+    : good example of a local function begging to be promoted
+    trace_call $*;
+    [[ -f $1 ]] && ${*:2} 
+}
+cpmv_installs ()
+{
+    : where the author houses ftp site for personal folder
+    :
+    trace_call $*;    
+    install_one    cplnmv.html    Dropbox/commonplace/20_red
+}
 backup_help () 
-{ 
+{
+    : -- HDR --------------------------------- PUBLIC functions	-- ;
     functions ${BASH_SOURCE}
 }
 backup_init () 

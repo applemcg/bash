@@ -1,0 +1,156 @@
+#+TITLE: Copy (cp) and Move (mv), Auto-Backup
+#+INCLUDE: orgheader.org
+
+* Copy, Link, Move
+
+At small function family to override *cp, ln*, and *mv* commands for
+files which *backup* previously saved.  For example,
+
+: $ cp a b 
+
+will backup the current copy of /b/, if it has been backed up.  To
+force the backup, simply precede the command as here:
+
+: $ backup file
+: $ cp copy file
+
+The [[http://mcgowans.org/marty3/commonplace/software/backupfunction.html][backup procedure]] only saves a fresh copy.
+
+The functions here backup the destination file before being
+overwritten and after the copy or move.  Either the first or second
+backup may be redundant, but again, an unchanged copy is not
+duplicated in the backup chain.  The redundancy, in this case is worth
+it.
+
+** Test Cases
+
+For starters, the *ln* command will be left for future development.
+The *cp* and *mv* commands are rarely used with flag arguments, and
+only expect file and directory arguments.
+
+Therefore possible test cases involve:
+
+: cp file file
+: cp file directory
+: cp file file ... directory
+: cp directory directory
+
+and detect these errors
+
+: cp file directory file
+: cp directory file
+: cp file file ... file
+: cp arg    # a single arg
+: cp        # or none
+
+And identical cases for the *mv* command.
+
+** Conditions, with cases
+
+In those cases where files are the source and a directory is the
+destination, then each destination file will have to be tested for the
+presence of a backup.
+
+So, an early function will be *is_backedup*, and the template we'll call *cpmv*.
+
+#+BEGIN_SRC sh
+cpmv_test () 
+{ 
+    set testcpmv.d;
+    [[ -d $1 ]] || mkdir $1;
+    [[ -f $1/$(today).txt ]] || { 
+        ls -lrt > $1/lrt.txt;
+        backup $1/lrt.txt;
+        ls -al > $1/al.txt;
+        backup $1/al.txt;
+        ls -l > $1/l.txt;
+        backup $1/l.txt;
+        ls -l $1 > $1/$(today).txt;
+        backup $1/$(today).txt
+    };
+    for file in $1/*;
+    do
+        trace_call file $file;
+        read a < /dev/tty;
+        ( cat $file;
+        today ) > $(basename $file);
+    done;
+    cp *.txt $1
+}
+cpmv_init () 
+{ 
+    echo WARNING, cp, mv functions assigned;
+    cplnmv_doc
+}
+cplnmv_doc ()
+{
+    ${*:-open} http://mcgowans.org/marty3/commonplace/20_red/cplnmv.html
+}
+is_backedup () 
+{ 
+    trace_call $*;
+    [[ -f ${1:-/dev/null} ]] || return 1;
+    [[ -f $(dirname $1)/.bak/$(basename $1) ]]
+}
+cpmv () 
+{ 
+    : cpmv xx file ... directory;
+    : cpmv xx file file;
+    : cpmv xx -flag ...;
+    trace_call $*;
+    case $2 in 
+        -*)
+	    trace_call COMMAND $*;
+            command $*;
+            return
+        ;;
+    esac;
+    eval local destination=\$$#;
+    [[ -d $destination ]] && { 
+        cpmv_directory $1 $destination ${*:2};
+        return
+    };
+    [[ $# -gt 3 ]] && { 
+        error "cpmv file file";
+        return 2
+    };
+    cpmv_backup $*
+}
+cp () 
+{ 
+    report_notargcount 2 $# && return 1
+    cpmv cp $*
+}
+mv () 
+{
+    report_notargcount 2 $# && return 1
+    cpmv mv $*
+}
+cpmv_backup () 
+{ 
+    : ~ cmmd source resolved/destination;
+    trace_call $*;
+    is_backedup $3 && backup $3;
+    trace_call COMMAND $*;
+    command $*;
+    is_backedup $3 && backup $3
+}
+cpmv_directory () 
+{ 
+    : ~ cmd directory file ... directory;
+    local destination=$2;
+    trace_call destination: $destination $*;
+    for file in ${*:3};
+    do
+        [[ $file = $destination ]] && break;
+        [[ -d $file ]] && continue;
+        local bn=$(basename $file);
+        cpmv_backup $1 $file $destination/$bn;
+    done
+}
+
+#+END_SRC
+
+* references
++ [[http://mcgowans.org/marty3/commonplace][commonplace book]]
++ see cplnmv_doc above

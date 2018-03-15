@@ -66,9 +66,8 @@ _mk_run ()
     _acd ../smpub public_update;
     _acd ../make public_update;
     _acd .. dirs
-    echo TIME to QUIT
-    read a </dev/tty
-    exit
+    _mk_msg TIME to QUIT
+    return
     echo NEVER Get HERE
 }
 echo _mk_run
